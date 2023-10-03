@@ -7,9 +7,9 @@ if (APPLE)
 else()
     message(STATUS "Intel detected.")
 endif()
-project(SDDMMlib)
 
-add_library(SDDMMlib STATIC
+
+add_library(SDDMMlib SHARED
             SDDMM/naive_SDDMM.cpp 
             MatrixLib/CSRMatrix.cpp
             MatrixLib/DenseMatrix.cpp
@@ -17,6 +17,8 @@ add_library(SDDMMlib STATIC
 
 # Add our own code
 target_include_directories(SDDMMlib PUBLIC 
-                            ../include)
+                            ../include/MatrixLib
+                            ../include/SDDMM
+                            )
 
 # Add third party code if needed here

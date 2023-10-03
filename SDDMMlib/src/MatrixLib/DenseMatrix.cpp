@@ -1,5 +1,5 @@
 // DenseMatrix.cpp
-#include "MatrixLib/DenseMatrix.hpp"
+#include "DenseMatrix.hpp"
 #include <iostream>
 #include <fstream>
 #include <stdexcept>

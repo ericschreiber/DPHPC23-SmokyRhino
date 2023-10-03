@@ -1,4 +1,4 @@
-#include "MatrixLib/DenseMatrix.hpp"
+#include "DenseMatrix.hpp"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -7,7 +7,8 @@
 // Create a dense matrix, write and read from file, and check for equality
 
 int main(){
-    DenseMatrix<double> matrixDouble(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    DenseMatrix<double> matrixDouble =  DenseMatrix<double>(3,3);
+    // DenseMatrix<double> matrixDouble(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
     // DenseMatrix<int> matrixInt(std::vector<std::vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
 
     // // Write matrixDouble to file

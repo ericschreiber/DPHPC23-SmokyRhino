@@ -26,7 +26,7 @@ add_executable(test_io_dense test_IO_Dense.cpp)
 # add_executable(test_SDDMM test_SDDMM.cpp)
 
 # adding the MatrixLib library
-add_subdirectory(${SDDMMLIB_ROOT}/src ${CMAKE_CURRENT_BINARY_DIR}/SDDMMlib)
+# add_subdirectory(${SDDMMLIB_ROOT}/src ${CMAKE_CURRENT_BINARY_DIR}/SDDMMlib)
 # target_include_directories(test_io_dense PRIVATE ${SDDMMLIB_ROOT}/include)
 # target_include_directories(test_io_CSR PUBLIC ${SDDMMLIB_ROOT}/include)
 # target_include_directories(test_SDDMM PUBLIC ${SDDMMLIB_ROOT}/include)

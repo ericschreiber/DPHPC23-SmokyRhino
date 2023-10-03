@@ -1,5 +1,5 @@
 // CSRMatrix.cpp
-#include "MatrixLib/CSRMatrix.hpp"
+#include "CSRMatrix.hpp"
 #include <fstream>
 #include <iostream>
 

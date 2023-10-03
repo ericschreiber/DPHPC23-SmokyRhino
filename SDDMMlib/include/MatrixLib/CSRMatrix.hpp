@@ -4,9 +4,9 @@
 
 #include <vector>
 #include <string>
-#include "SDDMM/SDDMMlib.hpp"
-#include "MatrixLib/DenseMatrix.hpp"
-#include "MatrixLib/SparseMatrix.hpp"
+#include "SDDMMlib.hpp"
+#include "DenseMatrix.hpp"
+#include "SparseMatrix.hpp"
 
 template <typename T>
 class CSRMatrix: public SparseMatrix<T> {

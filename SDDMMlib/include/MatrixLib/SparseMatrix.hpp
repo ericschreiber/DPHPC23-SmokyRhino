@@ -4,7 +4,7 @@
 
 #include <vector>
 #include <string>
-#include "MatrixLib/DenseMatrix.hpp"
+#include "DenseMatrix.hpp"
 
 template <typename T>
 class SparseMatrix {

@@ -1,9 +1,10 @@
 // CSRMatrix.cpp
-#include "CSRMatrix.hpp"
+#include "MatrixLib/CSRMatrix.hpp"
 #include <fstream>
 #include <iostream>
 
-CSRMatrix::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols) {
+template <typename T>
+CSRMatrix<T>::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols) {
     // Initialize CSRMatrix with zeros
     values.clear();
     colIndices.clear();
@@ -11,7 +12,7 @@ CSRMatrix::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols) {
 }
 
 template <typename T>
-CSRMatrix::CSRMatrix(const std::vector<std::vector<T>>& denseMatrix) {
+CSRMatrix<T>::CSRMatrix(const std::vector<std::vector<T>>& denseMatrix) {
     // Convert a dense matrix to CSR format
     numRows = denseMatrix.size();
     numCols = denseMatrix[0].size();
@@ -35,8 +36,8 @@ CSRMatrix::CSRMatrix(const std::vector<std::vector<T>>& denseMatrix) {
     rowPtr[numRows] = values.size();
 }
 
-
-CSRMatrix::CSRMatrix(const CSRMatrix& other) {
+template <typename T>
+CSRMatrix<T>::CSRMatrix(const CSRMatrix& other) {
     // Copy constructor
     numRows = other.numRows;
     numCols = other.numCols;
@@ -45,8 +46,8 @@ CSRMatrix::CSRMatrix(const CSRMatrix& other) {
     rowPtr = other.rowPtr;
 }
 
-
-void CSRMatrix::readFromFile(const std::string& filePath) {
+template <typename T>
+void CSRMatrix<T>::readFromFile(const std::string& filePath) {
     // Read CSR matrix from a file where a matrix was stored in CSR format using writeToFile()
     std::ifstream file(filePath);
     if (!file.is_open()) {
@@ -78,13 +79,15 @@ void CSRMatrix::readFromFile(const std::string& filePath) {
     file.close();
 }
 
-void CSRMatrix::SDDMM(const DenseMatrix& x, const DenseMatrix& y, SparseMatrix& result,
-    void (*SDDMMFunc)(const DenseMatrix& x, const DenseMatrix& y, const SparseMatrix& z, SparseMatrix& result)) const {
+template <typename T>   
+void CSRMatrix<T>::SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, SparseMatrix<T>& result,
+    void (*SDDMMFunc)(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result)) const {
     // Call the SDDMM function from the library
     SDDMMFunc(x, y, *this, result);
 }
 
-void CSRMatrix::writeToFile(const std::string& filePath) const {
+template <typename T>
+void CSRMatrix<T>::writeToFile(const std::string& filePath) const {
     // Write CSR matrix to a file in the following format:
     //     numRows numCols
     //     numNonZeros

@@ -2,19 +2,20 @@
 #ifndef CSR_MATRIX_HPP
 #define CSR_MATRIX_HPP
 
-#include "SparseMatrix.hpp"
 #include <vector>
 #include <string>
-#include "SDDMMlib.hpp"
+#include "SDDMM/SDDMMlib.hpp"
+#include "MatrixLib/DenseMatrix.hpp"
+#include "MatrixLib/SparseMatrix.hpp"
 
 template <typename T>
-class CSRMatrix : public SparseMatrix {
+class CSRMatrix: public SparseMatrix<T> {
 public:
     CSRMatrix(int rows, int cols);  // Constructor for an empty CSR matrix
     CSRMatrix(const std::vector<std::vector<T>>& values);  // Constructor from dense matrix
     CSRMatrix(const CSRMatrix& other);  // Copy constructor
-    virtual void SDDMM(const denseMatrix& x, const denseMatrix& y, SparseMatrix& result
-        void (*SDDMMFunc)(const denseMatrix& x, const denseMatrix& y, const SparseMatrix& z, SparseMatrix& result)) const override;
+    virtual void SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, SparseMatrix<T>& result,
+        void (*SDDMMFunc)(const DenseMatrix<T>& a, const DenseMatrix<T>& b, const SparseMatrix<T>& c, SparseMatrix<T>& result)) const override;
     // Read CSR matrix from a file where a matrix was stored in CSR format using writeToFile()
     virtual void readFromFile(const std::string& filePath) override; 
     // Write CSR matrix to a file in the following format:

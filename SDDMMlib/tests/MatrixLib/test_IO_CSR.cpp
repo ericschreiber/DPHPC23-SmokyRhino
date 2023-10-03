@@ -1,24 +1,10 @@
 // create matrix, write to file, read and check for equality
-#include "CSRMatrix.hpp"
+#include "MatrixLib/CSRMatrix.hpp"
 #include <stdio.h>
 
 int main(){
-    CSRMatrix<double> matrixDouble(3, 3);
-    CSRMatrix<int> matrixInt(3, 3);
-
-    //Initialize matrixDouble
-    matrixDouble.values = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    matrixDouble.colIndices = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    matrixDouble.rowPtr = {0, 3, 6, 9};
-    matrixDouble.numRows = 3;
-    matrixDouble.numCols = 3;
-
-    //Initialize matrixInt
-    matrixInt.values = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    matrixInt.colIndices = {0, 1, 2, 0, 1, 2, 0, 1, 2};
-    matrixInt.rowPtr = {0, 3, 6, 9};
-    matrixInt.numRows = 3;
-    matrixInt.numCols = 3;
+    CSRMatrix<double> matrixDouble(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    CSRMatrix<int> matrixInt(std::vector<std::vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
 
     // Write matrixDouble to file
     matrixDouble.writeToFile("testDouble.txt");

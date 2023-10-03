@@ -1,5 +1,5 @@
 // DenseMatrix.cpp
-#include "DenseMatrix.hpp"
+#include "MatrixLib/DenseMatrix.hpp"
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -43,7 +43,7 @@ void DenseMatrix<T>::setValue(int row, int col, T value) {
 }
 
 template <typename T>
-void DenseMatrix<T>::readFromFile(const std::string& filePath) const {
+void DenseMatrix<T>::readFromFile(const std::string& filePath) {
     std::ifstream file(filePath);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open file for reading: " << filePath << std::endl;

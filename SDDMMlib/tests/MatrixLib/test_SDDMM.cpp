@@ -1,6 +1,6 @@
-#include "CSRMatrix.hpp"
-#include "DenseMatrix.hpp"
-#include "naive_SDDMM.cpp"
+#include "MatrixLib/CSRMatrix.hpp"
+#include "MatrixLib/DenseMatrix.hpp"
+#include "SDDMM/naive_SDDMM.cpp"
 
 int main() {
     CSRMatrix<double> matrixA(3, 3);

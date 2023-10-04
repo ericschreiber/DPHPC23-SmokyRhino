@@ -4,7 +4,6 @@
 
 #include <vector>
 #include <string>
-#include "SDDMMlib.hpp"
 #include "DenseMatrix.hpp"
 #include "SparseMatrix.hpp"
 
@@ -15,7 +14,7 @@ public:
     CSRMatrix(const std::vector<std::vector<T>>& values);  // Constructor from dense matrix
     CSRMatrix(const CSRMatrix& other);  // Copy constructor
     virtual void SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, SparseMatrix<T>& result,
-        void (*SDDMMFunc)(const DenseMatrix<T>& a, const DenseMatrix<T>& b, const SparseMatrix<T>& c, SparseMatrix<T>& result)) const override;
+       std::function<void(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result)> SDDMMFunc) const override;
     // Read CSR matrix from a file where a matrix was stored in CSR format using writeToFile()
     virtual void readFromFile(const std::string& filePath) override; 
     // Write CSR matrix to a file in the following format:

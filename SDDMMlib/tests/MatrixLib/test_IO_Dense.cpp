@@ -33,7 +33,7 @@ int main(){
             }
         }
     }
-    assert(same);
+    assert(same && "matrixDoubleFromFile is not equal to matrixDouble");
 
     // Check if matrixIntFromFile is equal to matrixInt
     same = true;
@@ -44,7 +44,9 @@ int main(){
             }
         }
     }
-    assert(same);
+    assert(same && "matrixIntFromFile is not equal to matrixInt");
+
+    std::cout << "Test passed!" << std::endl;
 
     // remove the temp files
     remove("testDouble.txt");

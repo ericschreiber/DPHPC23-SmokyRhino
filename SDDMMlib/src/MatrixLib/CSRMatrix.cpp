@@ -61,6 +61,8 @@ void CSRMatrix<T>::readFromFile(const std::string& filePath) {
     int numNonZeros;
     file >> numNonZeros;
     std::string dataType;
+    file >> dataType;
+
 
     // Resize the CSR matrix data structures
     values.resize(numNonZeros);
@@ -69,8 +71,7 @@ void CSRMatrix<T>::readFromFile(const std::string& filePath) {
 
     // Read the values, column indices, and row pointers from the file
     for (int i = 0; i < numNonZeros; ++i) {
-        file >> values[i];
-        file >> colIndices[i];
+        file >> values[i] >> colIndices[i];
     }
 
     for (int i = 0; i <= numRows; ++i) {
@@ -82,7 +83,7 @@ void CSRMatrix<T>::readFromFile(const std::string& filePath) {
 
 template <typename T>   
 void CSRMatrix<T>::SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, SparseMatrix<T>& result,
-    void (*SDDMMFunc)(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result)) const {
+    std::function<void(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result)> SDDMMFunc) const {
     // Call the SDDMM function from the library
     SDDMMFunc(x, y, *this, result);
 }
@@ -126,21 +127,28 @@ template <typename T>
 bool CSRMatrix<T>::operator == (const SparseMatrix<T>& other) const {
     // Check if the dimensions are the same
     if (numRows != other.getNumCols() || numCols != other.getNumCols()) {
+        std::cout << "Error: Dimensions are not the same" << std::endl;
         return false;
     }
 
     // Check if the values are the same
     if (values != other.getValues()) {
+        std::cout << "Error: Values are not the same" << std::endl;
+        for (int i = 0; i < values.size(); ++i) {
+            std::cout << values[i] << " " << other.getValues()[i] << std::endl;
+        }
         return false;
     }
 
     // Check if the column indices are the same
     if (colIndices != other.getColIndices()) {
+        std::cout << "Error: Column indices are not the same" << std::endl;
         return false;
     }
 
     // Check if the row pointers are the same
     if (rowPtr != other.getRowPtr()) {
+        std::cout << "Error: Row pointers are not the same" << std::endl;
         return false;
     }
 

@@ -1,9 +1,11 @@
 // naive_SDDMM.cpp
 #include "naive_SDDMM.hpp"
+#include <iostream>
 
 template <typename T>
 void naive_SDDMM<T>::SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result) const {
     // please implement
+    std::cout << "naive_SDDMM was executed :)" << std::endl;
     return;
 }
 

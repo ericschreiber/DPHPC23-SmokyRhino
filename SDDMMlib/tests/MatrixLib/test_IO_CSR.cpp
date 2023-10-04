@@ -2,7 +2,7 @@
 #include "CSRMatrix.hpp"
 #include <stdio.h>
 #include <iostream>
-#include <cassert>
+#include <cassert> 
 
 int main(){
     CSRMatrix<double> matrixDouble(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
@@ -27,6 +27,8 @@ int main(){
 
     // Check if matrixIntFromFile is equal to matrixInt
     assert(matrixInt == matrixIntFromFile && "matrixIntFromFile is not equal to matrixInt");
+
+    std::cout << "Test passed!" << std::endl;
 
     // remove the temporary files
     remove("testDouble.txt");

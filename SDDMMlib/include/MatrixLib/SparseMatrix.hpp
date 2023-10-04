@@ -5,11 +5,12 @@
 #include <vector>
 #include <string>
 #include "DenseMatrix.hpp"
+#include <functional>
 
 template <typename T>
 class SparseMatrix {
 public:
-    virtual void SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, SparseMatrix<T>& result, void (*SDDMMFunc)(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix& z, SparseMatrix& result)) const = 0;
+    virtual void SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, SparseMatrix<T>& result, std::function<void(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result)> SDDMMFunc) const = 0;
     virtual void readFromFile(const std::string& filePath) = 0;
     virtual void writeToFile(const std::string& filePath) const = 0;
     virtual ~SparseMatrix() {}

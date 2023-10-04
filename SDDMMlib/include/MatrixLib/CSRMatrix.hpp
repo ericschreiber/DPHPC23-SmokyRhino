@@ -9,7 +9,7 @@
 #include "SparseMatrix.hpp"
 
 template <typename T>
-class CSRMatrix: public SparseMatrix<T> {
+class CSRMatrix: virtual public SparseMatrix<T> {
 public:
     CSRMatrix(int rows, int cols);  // Constructor for an empty CSR matrix
     CSRMatrix(const std::vector<std::vector<T>>& values);  // Constructor from dense matrix
@@ -27,6 +27,17 @@ public:
     //     row pointers   
     virtual void writeToFile(const std::string& filePath) const override;
     virtual ~CSRMatrix() {}
+
+    virtual bool operator == (const SparseMatrix<T>& other) const override;
+
+    virtual int getNumRows() const override;
+    virtual int getNumCols() const override;
+    virtual T getValue(int row, int col) const override;
+    virtual int getNumValues() const override;
+    virtual std::vector<T> getValues() const override;
+    virtual std::vector<int> getColIndices() const override;
+    virtual std::vector<int> getRowPtr() const override;
+
 
 private:
     std::vector<T> values;

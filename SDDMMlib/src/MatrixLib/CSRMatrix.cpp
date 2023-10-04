@@ -2,6 +2,7 @@
 #include "CSRMatrix.hpp"
 #include <fstream>
 #include <iostream>
+#include <cassert>
 
 template <typename T>
 CSRMatrix<T>::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols) {
@@ -119,3 +120,88 @@ void CSRMatrix<T>::writeToFile(const std::string& filePath) const {
 
     file.close();
 }
+
+// OPerator overloading ==
+template <typename T>  
+bool CSRMatrix<T>::operator == (const SparseMatrix<T>& other) const {
+    // Check if the dimensions are the same
+    if (numRows != other.getNumCols() || numCols != other.getNumCols()) {
+        return false;
+    }
+
+    // Check if the values are the same
+    if (values != other.getValues()) {
+        return false;
+    }
+
+    // Check if the column indices are the same
+    if (colIndices != other.getColIndices()) {
+        return false;
+    }
+
+    // Check if the row pointers are the same
+    if (rowPtr != other.getRowPtr()) {
+        return false;
+    }
+
+    return true;
+}
+
+
+template <typename T>
+int CSRMatrix<T>::getNumRows() const {
+    return numRows;
+}
+
+template <typename T>
+int CSRMatrix<T>::getNumCols() const {
+    return numCols;
+}
+
+template <typename T>
+T CSRMatrix<T>::getValue(int row, int col) const {
+    // Assert that the row and column are in bounds
+    assert(row >= 0 && row < numRows && "Error: Row index out of bounds");
+    assert(col >= 0 && col < numCols && "Error: Column index out of bounds");
+
+    // Find the index of the value in the row
+    int index = -1;
+    for (int i = rowPtr[row]; i < rowPtr[row + 1]; ++i) {
+        if (colIndices[i] == col) {
+            index = i;
+            break;
+        }
+    }
+
+    // Return the value if it was found, otherwise return -1
+    assert(index != -1 && "Error: Value not found");
+    return values[index];
+    
+}
+
+template <typename T>
+std::vector<T> CSRMatrix<T>::getValues() const {
+    return values;
+}
+
+template <typename T>
+int CSRMatrix<T>::getNumValues() const {
+    return values.size();
+}
+
+template <typename T>
+std::vector<int> CSRMatrix<T>::getColIndices() const {
+    return colIndices;
+}
+
+template <typename T>
+std::vector<int> CSRMatrix<T>::getRowPtr() const {
+    return rowPtr;
+}
+
+
+
+// Instantiate the versions of the class that we need
+template class CSRMatrix<float>;
+template class CSRMatrix<double>;
+template class CSRMatrix<int>;

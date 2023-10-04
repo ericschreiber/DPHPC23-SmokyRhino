@@ -5,13 +5,6 @@
 cmake_minimum_required(VERSION 3.26)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # create compile_commands.json file
-# if apple set -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
-if (APPLE)
-    message(STATUS "Apple Silicon detected")
-    set(ENV{DCMAKE_APPLE_SILICON_PROCESSOR} "arm64")
-else()
-    message(STATUS "Intel detected.")
-endif()
 
 project(testcasesMatrixLib)
 
@@ -22,8 +15,8 @@ set(SDDMMLIB_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 # Link the executable
 add_executable(test_io_dense test_IO_Dense.cpp)
-# add_executable(test_io_CSR test_IO_CSR.cpp)
-# add_executable(test_SDDMM test_SDDMM.cpp)
+add_executable(test_io_CSR test_IO_CSR.cpp)
+add_executable(test_SDDMM test_SDDMM.cpp)
 
 # adding the MatrixLib library
 # add_subdirectory(${SDDMMLIB_ROOT}/src ${CMAKE_CURRENT_BINARY_DIR}/SDDMMlib)
@@ -32,6 +25,9 @@ add_executable(test_io_dense test_IO_Dense.cpp)
 # target_include_directories(test_SDDMM PUBLIC ${SDDMMLIB_ROOT}/include)
 
 # Link the library
-target_link_libraries(test_io_dense SDDMMlib)
-# target_link_libraries(test_io_CSR SDDMMlib)
-# target_link_libraries(test_SDDMM SDDMMlib)
+target_link_libraries(test_io_dense MatrixLib)
+target_link_libraries(test_io_CSR MatrixLib)
+target_link_libraries(test_SDDMM 
+                        MatrixLib
+                        SDDMMlib
+)

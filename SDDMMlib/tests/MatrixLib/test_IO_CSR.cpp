@@ -1,6 +1,8 @@
 // create matrix, write to file, read and check for equality
-#include "MatrixLib/CSRMatrix.hpp"
+#include "CSRMatrix.hpp"
 #include <stdio.h>
+#include <iostream>
+#include <cassert>
 
 int main(){
     CSRMatrix<double> matrixDouble(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
@@ -21,34 +23,10 @@ int main(){
     matrixIntFromFile.readFromFile("testInt.txt");
 
     // Check if matrixDoubleFromFile is equal to matrixDouble
-    if (matrixDoubleFromFile.values == matrixDouble.values && 
-        matrixDoubleFromFile.colIndices == matrixDouble.colIndices && 
-        matrixDoubleFromFile.rowPtr == matrixDouble.rowPtr && 
-        matrixDoubleFromFile.numRows == matrixDouble.numRows && 
-        matrixDoubleFromFile.numCols == matrixDouble.numCols) {
-        std::cout << "Test passed for Doubles!" << std::endl;
-    } else {
-        std::cout << "Test failed! matrixDoubleFromFile is: " << std::endl;
-        for (int i = 0; i < matrixDoubleFromFile.values.size(); ++i) {
-            std::cout << matrixDoubleFromFile.values[i] << " ";
-        }
-        std::cout << std::endl;
-    }
+    assert(matrixDoubleFromFile == matrixDouble && "matrixDoubleFromFile is not equal to matrixDouble");
 
     // Check if matrixIntFromFile is equal to matrixInt
-    if (matrixIntFromFile.values == matrixInt.values && 
-        matrixIntFromFile.colIndices == matrixInt.colIndices && 
-        matrixIntFromFile.rowPtr == matrixInt.rowPtr && 
-        matrixIntFromFile.numRows == matrixInt.numRows && 
-        matrixIntFromFile.numCols == matrixInt.numCols) {
-        std::cout << "Test passed for Integers!" << std::endl;
-    } else {
-        std::cout << "Test failed! matrixIntFromFile is: " << std::endl;
-        for (int i = 0; i < matrixIntFromFile.values.size(); ++i) {
-            std::cout << matrixIntFromFile.values[i] << " ";
-        }
-        std::cout << std::endl;
-    }
+    assert(matrixInt == matrixIntFromFile && "matrixIntFromFile is not equal to matrixInt");
 
     // remove the temporary files
     remove("testDouble.txt");

@@ -57,7 +57,7 @@ void DenseMatrix<T>::readFromFile(const std::string& filePath) {
     values.resize(numRows, std::vector<T>(numCols, T()));
 
     // Check the datatype
-    if (datatype != T().getDatatype()) {
+    if (datatype != typeid(T).name()) {
         std::cerr << "Error: Datatype in file does not match the datatype of the matrix" << std::endl;
         return;
     }
@@ -87,7 +87,7 @@ void DenseMatrix<T>::writeToFile(const std::string& filePath) const {
     }
 
     // Write numRows, numCols, datatype
-    file << numRows << " " << numCols << " " << T().getDatatype() << std::endl;
+    file << numRows << " " << numCols << " " << typeid(T).name() << std::endl;
 
     // Write the values
     for (int i = 0; i < numRows; ++i) {
@@ -99,3 +99,9 @@ void DenseMatrix<T>::writeToFile(const std::string& filePath) const {
 
     file.close();
 }
+
+
+// Instanciate the template class with all the types we want to support
+template class DenseMatrix<int>;
+template class DenseMatrix<float>;
+template class DenseMatrix<double>;

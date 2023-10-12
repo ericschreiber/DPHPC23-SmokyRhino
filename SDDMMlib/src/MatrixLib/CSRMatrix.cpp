@@ -167,7 +167,7 @@ int CSRMatrix<T>::getNumCols() const {
 }
 
 template <typename T>
-T CSRMatrix<T>::getValue(int row, int col) const {
+T CSRMatrix<T>::at(int row, int col) const {
     // Assert that the row and column are in bounds
     assert(row >= 0 && row < numRows && "Error: Row index out of bounds");
     assert(col >= 0 && col < numCols && "Error: Column index out of bounds");

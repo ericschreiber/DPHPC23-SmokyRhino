@@ -1,5 +1,6 @@
 // naive_SDDMM.cpp
-#include "naive_SDDMM.hpp"
+#include "naive_sequential_full_SDDMM.hpp"
+#include "DenseMatrix.hpp"
 #include <iostream>
 
 template <typename T>
@@ -11,7 +12,7 @@ void naive_sequential_full_SDDMM<T>::SDDMM(const DenseMatrix<T>& x, const DenseM
     int n = x.getNumCols();
     int k = y.getNumCols();
 
-    DenseMatrix xy = DenseMatrix(m, n); 
+    auto xy = DenseMatrix<T>(m, n); 
 
     // I assume a size check has been done for now, but we might want to make that one explicitly
     // Please note that the paper uses A[M][K] and B[N][K]. I.e. B already seems to be transposed!
@@ -37,6 +38,6 @@ void naive_sequential_full_SDDMM<T>::SDDMM(const DenseMatrix<T>& x, const DenseM
 }
 
 // Explicit template instantiation
-template class naive_SDDMM<float>;
-template class naive_SDDMM<double>;
-template class naive_SDDMM<int>;
+template class naive_sequential_full_SDDMM<float>;
+template class naive_sequential_full_SDDMM<double>;
+template class naive_sequential_full_SDDMM<int>;

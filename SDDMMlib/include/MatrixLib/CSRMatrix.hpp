@@ -31,7 +31,7 @@ public:
 
     virtual int getNumRows() const override;
     virtual int getNumCols() const override;
-    virtual T getValue(int row, int col) const override;
+    virtual T at(int row, int col) const override;
     virtual int getNumValues() const override;
     virtual std::vector<T> getValues() const override;
     virtual std::vector<int> getColIndices() const override;

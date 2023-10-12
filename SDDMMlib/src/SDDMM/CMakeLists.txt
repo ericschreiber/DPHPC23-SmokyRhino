@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_library(SDDMMlib 
             naive_SDDMM.cpp
+            naive_sequential_full_SDDMM.cpp
 )      
 
 # Add our own code

@@ -14,12 +14,14 @@ class DenseMatrix {
 
         int getNumRows() const;
         int getNumCols() const;
-        T getValue(int row, int col) const;
+        T at(int row, int col) const;
         void setValue(int row, int col, T value);
 
         void readFromFile(const std::string& filePath);
         void writeToFile(const std::string& filePath) const;
 
+        T operator[](int row, int col) const;
+        
     private:
         std::vector<std::vector<T>> values;
         int numRows;

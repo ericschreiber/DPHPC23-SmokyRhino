@@ -1,29 +1,29 @@
 #include <cuda_runtime.h>
 #include "utils.h"
+#include <algorithm>
 
-#define BLOCK_SIZE 32
 
 __global__ void naivesampling(
-    const int m,
-    const int n,
+    const int size,
     const double* const A,
     double* const C)
 {
-    const int row = blockIdx.y * blockDim.y + threadIdx.y;
-    const int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-    C[col*m + row] = C[col*m + row] * A[col*m + row];
+    if (idx < size) {
+        C[idx] = C[idx] * A[idx];
+    }
 }
 
+
 void mysampling(
-    const int m,
-    const int n,
+    const int size,
     const double* const A,
     double* const C)
 {
-  dim3 dimGrid(n/BLOCK_SIZE, m/BLOCK_SIZE);
-  dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
 
-  naivesampling<<<dimGrid, dimBlock>>>(m, n, A, C);
+  int blocks = std::min(1024, (size + 1023) / 1024);
+
+  naivesampling<<<blocks, 1024>>>(size, A, C);
   CUDA_CHECK(cudaGetLastError());
 }

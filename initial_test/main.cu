@@ -7,13 +7,11 @@
 #include "utils.h"
 #include "CUDATimer.cuh"
 
-void myDgemm(int, int, int, double, const double*, const double*, double, double*);
-void mysampling(int, int, const double*, double*);
+void mysampling(int, const double*, double*);
 double rmse(int, const double*, const double*);
 
 int main()
 {
-  printf("1");
   int steps = 10;
 
   // Set-up host-side matrices, must be multiple of BLOCK_SIZE and BLOCK_ITEMS_XY
@@ -89,13 +87,12 @@ int main()
   std::cout << "cublasDgemm average runtime : " << cublasAvg << "[ms]" << std::endl;
 
   // 2) Warmup
-  myDgemm(m, n, k, alpha, d_A, d_B, beta, d_C);
-  printf("2");
   timer.start(0);
   for (int i=0; i < steps; i++)
-    myDgemm(m, n, k, alpha, d_A, d_B, beta, d_C);
-    printf("3");
-    mysampling(m,n, d_C, d_D);
+  ////////////////////////////////////////////////////////////////////////////////////////////
+    cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha, d_A, m, d_B, k, &beta, d_Ccublas, m);
+    mysampling(m*n, d_C, d_D);
+  ////////////////////////////////////////////////////////////////////////////////////////////
   timer.stop(0); // implicit synchronization within this function
 
   // Launch with Dgemm with cuBLAS to benchmark against

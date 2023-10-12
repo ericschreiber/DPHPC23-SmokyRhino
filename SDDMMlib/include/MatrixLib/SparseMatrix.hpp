@@ -17,7 +17,7 @@ public:
     virtual bool operator == (const SparseMatrix& other) const = 0;
     virtual int getNumRows() const = 0;
     virtual int getNumCols() const = 0;
-    virtual T getValue(int row, int col) const = 0;
+    virtual T at(int row, int col) const = 0;
     virtual int getNumValues() const = 0;
     virtual std::vector<T> getValues() const = 0;
     virtual std::vector<int> getColIndices() const = 0;

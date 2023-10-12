@@ -21,10 +21,10 @@ int DenseMatrix<T>::getNumCols() const {
 }
 
 template <typename T>
-T DenseMatrix<T>::getValue(int row, int col) const {
+T DenseMatrix<T>::at(int row, int col) const {
    // check out of range
    if (row < 0 || row >= numRows || col < 0 || col >= numCols) {
-       throw std::out_of_range("Error: DenseMatrix::getValue() out of range");
+       throw std::out_of_range("Error: DenseMatrix::at() out of range");
    }
    else {
        return values[row][col];

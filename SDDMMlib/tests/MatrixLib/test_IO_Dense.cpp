@@ -28,7 +28,7 @@ int main(){
     bool same = true;
     for (int i = 0; i < matrixDoubleFromFile.getNumRows(); ++i) {
         for (int j = 0; j < matrixDoubleFromFile.getNumCols(); ++j) {
-            if (matrixDoubleFromFile.getValue(i, j) != matrixDouble.getValue(i, j)) {
+            if (matrixDoubleFromFile.at(i, j) != matrixDouble.at(i, j)) {
                 same = false;
             }
         }
@@ -39,7 +39,7 @@ int main(){
     same = true;
     for (int i = 0; i < matrixIntFromFile.getNumRows(); ++i) {
         for (int j = 0; j < matrixIntFromFile.getNumCols(); ++j) {
-            if (matrixIntFromFile.getValue(i, j) != matrixInt.getValue(i, j)) {
+            if (matrixIntFromFile.at(i, j) != matrixInt.at(i, j)) {
                 same = false;
             }
         }

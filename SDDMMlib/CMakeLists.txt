@@ -1,5 +1,5 @@
 # Set the minimum required version of CMake
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.25)
 # if apple set -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
 if (APPLE)
     message(STATUS "Apple Silicon detected")

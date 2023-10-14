@@ -15,6 +15,8 @@ add_library(SDDMMlib
             naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
             naive_dense_dense_gpu/naive_dense_dense.cu
             naive_dense_dense_gpu/my_naive_sampling.cu
+            jiela_implementation/initial_SDDMM_GPU_jiela.cpp
+            niklas_implementation/initial_SDDMM_GPU_niklas.cpp
 )      
 
 # Add our own code

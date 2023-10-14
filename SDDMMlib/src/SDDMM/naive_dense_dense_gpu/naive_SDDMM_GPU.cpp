@@ -1,8 +1,7 @@
-// naive_SDDMM.cpp
+// naive_SDDMM_GPU.cpp
 #include "naive_dense_dense_gpu/naive_SDDMM_GPU.hpp"
 #include <iostream>
 
-// this has to be deleted and then the inheritance changed
 template <typename T>
 void naive_SDDMM_GPU<T>::SDDMM_DENSE(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const DenseMatrix<T>& z, DenseMatrix<T>& result) const {
     // input matrices are on CPU - need to be copied

@@ -6,3 +6,5 @@ project(testcasessddmm)
 
 # Add subdirectories for the library and executable
 add_subdirectory(naive_dense_dense_gpu)
+add_subdirectory(initial_gpu/jiela)
+add_subdirectory(initial_gpu/niklas)

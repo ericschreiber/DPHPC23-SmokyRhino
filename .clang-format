@@ -1,8 +1,8 @@
 BasedOnStyle: Google
 IndentWidth: 4
-ColumnLimit: 150
+ColumnLimit: 0
+BinPackParameters: false
+BinPackArguments: false
 BreakBeforeBraces: Allman
 AlignAfterOpenBracket: AlwaysBreak
-BinPackArguments: false
-BinPackParameters: false
-
+IndentAccessModifiers: true

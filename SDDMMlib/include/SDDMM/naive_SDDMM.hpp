@@ -9,9 +9,12 @@
 template <typename T>
 class naive_SDDMM : public SDDMMlib<T>
 {
-   public:
-    virtual void SDDMM(const DenseMatrix<T>& matrixA, const DenseMatrix<T>& matrixB, const SparseMatrix<T>& matrixC,
-                       SparseMatrix<T>& matrixResult) const override;
+    public:
+        virtual void SDDMM(
+            const DenseMatrix<T>& matrixA_HOST,
+            const DenseMatrix<T>& matrixB_HOST,
+            const SparseMatrix<T>& matrixC_HOST,
+            SparseMatrix<T>& matrixResult_HOST) const override;
 };
 
 #endif  // NAIVE_SDDMM_HPP

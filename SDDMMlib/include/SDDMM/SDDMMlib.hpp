@@ -8,9 +8,12 @@
 template <typename T>
 class SDDMMlib
 {
-   public:
-    virtual void SDDMM(const DenseMatrix<T>& matrixA, const DenseMatrix<T>& matrixB, const SparseMatrix<T>& matrixC,
-                       SparseMatrix<T>& matrixResult) const = 0;
+    public:
+        virtual void SDDMM(
+            const DenseMatrix<T>& matrixA_HOST,
+            const DenseMatrix<T>& matrixB_HOST,
+            const SparseMatrix<T>& matrixC_HOST,
+            SparseMatrix<T>& matrixResult_HOST) const = 0;
 };
 
 #endif  // SDDMMLIB_HPP

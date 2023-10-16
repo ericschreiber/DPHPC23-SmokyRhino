@@ -1,10 +1,12 @@
-#include <random>
-#include <iostream>
-#include <cuda_runtime.h>
 #include <cublas_v2.h>
+#include <cuda_runtime.h>
+
+#include <iostream>
+#include <random>
+
 #include "utils.h"
 
-void my_naive_sampling(int, const float*, float*);
+void my_naive_sampling(int, const float *, float *);
 
 ////
 // this function computes the SDDMM of 3 dense matrices using cublas Sgemm and a custom sampling kernel
@@ -13,7 +15,7 @@ void my_naive_sampling(int, const float*, float*);
 // C (m x n)
 // D (m x n)
 //
-// the function expects the sizes m, n, k as int and pointers to the 4 matrices of type float 
+// the function expects the sizes m, n, k as int and pointers to the 4 matrices of type float
 //                                                         in the following order A, B, C, D
 // all pointers need to point to memory on the GPU
 // the matrix C is needed as a buffer - it does not contribute data to the SDDMM
@@ -21,12 +23,20 @@ void my_naive_sampling(int, const float*, float*);
 // the result is written to D
 ////
 
-void compute(int m, int n, int k, float *d_A, float *d_B, float *d_C, float *d_D) {
+void compute(
+    int m,
+    int n,
+    int k,
+    float *d_A,
+    float *d_B,
+    float *d_C,
+    float *d_D)
+{
     float alpha = 1;
     float beta = 0;
     cublasHandle_t handle;
     CUDA_CHECK(cublasCreate(&handle));
 
     cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha, d_A, m, d_B, k, &beta, d_C, m);
-    my_naive_sampling(m*n, d_C, d_D);
+    my_naive_sampling(m * n, d_C, d_D);
 }

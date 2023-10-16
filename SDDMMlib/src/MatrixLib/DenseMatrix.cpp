@@ -6,12 +6,16 @@
 #include <stdexcept>
 
 template <typename T>
-DenseMatrix<T>::DenseMatrix(int rows, int cols) : numRows(rows), numCols(cols), values(rows, std::vector<T>(cols, T()))
+DenseMatrix<T>::DenseMatrix(int rows, int cols) : numRows(rows),
+                                                  numCols(cols),
+                                                  values(rows, std::vector<T>(cols, T()))
 {
 }
 
 template <typename T>
-DenseMatrix<T>::DenseMatrix(const std::vector<std::vector<T>>& values) : numRows(values.size()), numCols(values[0].size()), values(values)
+DenseMatrix<T>::DenseMatrix(const std::vector<std::vector<T>>& values) : numRows(values.size()),
+                                                                         numCols(values[0].size()),
+                                                                         values(values)
 {
 }
 

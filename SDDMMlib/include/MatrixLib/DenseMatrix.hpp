@@ -20,7 +20,7 @@ class DenseMatrix {
         void readFromFile(const std::string& filePath);
         void writeToFile(const std::string& filePath) const;
 
-        T operator[](int row, int col) const;
+        // T operator[](int row, int col) const;
         
     private:
         std::vector<std::vector<T>> values;

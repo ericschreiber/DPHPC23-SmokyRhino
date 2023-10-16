@@ -1,5 +1,5 @@
-// naive_SDDMM.cpp
-#include "naive_SDDMM.hpp"
+// naive_sequential_sampled_SDDMM.cpp
+#include "naive_sequential_sampled_SDDMM.hpp"
 #include <iostream>
 
 template <typename T>
@@ -17,16 +17,16 @@ void naive_sequential_sampled_SDDMM<T>::SDDMM(const DenseMatrix<T>& x, const Den
     // I also assume we are taking a CRS matrix
 
     for(int i = 0; i < m; i++){
-        for(int j = z.getRowPtr[i]; j < z.getRowPtr[i+1]; j++){
+        for(int j = z.getRowPtr()[i]; j < z.getRowPtr()[i+1]; j++){
             for(int l = 0; l < k; l++){
-                result.getValues[j] += x[i][l] * y[z.getColIndices[j]][l];
+                result.getValues()[j] += x.at(i, l) * y.at(z.getColIndices()[j], l);
             }
         }
     }
 
     for(int i = 0; i < m; i ++){
-        for(int j = z.getRowPtr[i]; j < z.getRowPtr[i+1]; j++){
-            result.getValues[j] *= z.getValues[j];
+        for(int j = z.getRowPtr()[i]; j < z.getRowPtr()[i+1]; j++){
+            result.getValues()[j] *= z.getValues()[j];
         }
     }
 
@@ -35,6 +35,6 @@ void naive_sequential_sampled_SDDMM<T>::SDDMM(const DenseMatrix<T>& x, const Den
 }
 
 // Explicit template instantiation
-template class naive_SDDMM<float>;
-template class naive_SDDMM<double>;
-template class naive_SDDMM<int>;
+template class naive_sequential_sampled_SDDMM<float>;
+template class naive_sequential_sampled_SDDMM<double>;
+template class naive_sequential_sampled_SDDMM<int>;

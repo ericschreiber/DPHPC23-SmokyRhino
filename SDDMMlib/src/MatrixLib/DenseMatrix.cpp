@@ -100,10 +100,10 @@ void DenseMatrix<T>::writeToFile(const std::string& filePath) const {
     file.close();
 }
 
-template <typename T>
-T DenseMatrix<T>::operator[](int row, int col) const {
-    return values[row][col];
-}
+// template <typename T>
+// T DenseMatrix<T>::operator[](int row, int col) const {
+//     return values[row][col];
+// }
 
 
 // Instanciate the template class with all the types we want to support

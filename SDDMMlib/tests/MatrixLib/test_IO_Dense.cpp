@@ -1,12 +1,15 @@
-#include "DenseMatrix.hpp"
 #include <stdio.h>
+
+#include <cassert>
 #include <iostream>
 #include <vector>
-#include <cassert>
+
+#include "DenseMatrix.hpp"
 
 // Create a dense matrix, write and read from file, and check for equality
 
-int main(){
+int main()
+{
     DenseMatrix<double> matrixDouble(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
     DenseMatrix<int> matrixInt(std::vector<std::vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
 
@@ -26,9 +29,12 @@ int main(){
 
     // Check if matrixDoubleFromFile is equal to matrixDouble
     bool same = true;
-    for (int i = 0; i < matrixDoubleFromFile.getNumRows(); ++i) {
-        for (int j = 0; j < matrixDoubleFromFile.getNumCols(); ++j) {
-            if (matrixDoubleFromFile.at(i, j) != matrixDouble.at(i, j)) {
+    for (int i = 0; i < matrixDoubleFromFile.getNumRows(); ++i)
+    {
+        for (int j = 0; j < matrixDoubleFromFile.getNumCols(); ++j)
+        {
+            if (matrixDoubleFromFile.at(i, j) != matrixDouble.at(i, j))
+            {
                 same = false;
             }
         }
@@ -37,9 +43,12 @@ int main(){
 
     // Check if matrixIntFromFile is equal to matrixInt
     same = true;
-    for (int i = 0; i < matrixIntFromFile.getNumRows(); ++i) {
-        for (int j = 0; j < matrixIntFromFile.getNumCols(); ++j) {
-            if (matrixIntFromFile.at(i, j) != matrixInt.at(i, j)) {
+    for (int i = 0; i < matrixIntFromFile.getNumRows(); ++i)
+    {
+        for (int j = 0; j < matrixIntFromFile.getNumCols(); ++j)
+        {
+            if (matrixIntFromFile.at(i, j) != matrixInt.at(i, j))
+            {
                 same = false;
             }
         }
@@ -53,5 +62,4 @@ int main(){
     remove("testInt.txt");
 
     return 0;
-
 }

@@ -15,7 +15,17 @@ int main()
     CSRMatrix<float> expectedSolution_HOST(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
 
     // Call multiply and pass the multiplication function from the library
-    matrixA_HOST.SDDMM(matrixB_HOST, matrixC_HOST, calculatedSolution_HOST, std::bind(&naive_SDDMM_GPU<float>::SDDMM, naive_SDDMM_GPU<float>(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    matrixA_HOST.SDDMM(
+        matrixB_HOST,
+        matrixC_HOST,
+        calculatedSolution_HOST,
+        std::bind(
+            &naive_SDDMM_GPU<float>::SDDMM,
+            naive_SDDMM_GPU<float>(),
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3,
+            std::placeholders::_4));
 
     // Check if the calculated solution is equal to the expected solution
     if (calculatedSolution_HOST == expectedSolution_HOST)

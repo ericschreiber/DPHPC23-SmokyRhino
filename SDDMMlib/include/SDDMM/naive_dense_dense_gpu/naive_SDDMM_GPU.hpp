@@ -9,9 +9,9 @@
 template <typename T>
 class naive_SDDMM_GPU : public SDDMMlib<T> {
     public:
-        virtual void SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result) const override;
+        virtual void SDDMM(const DenseMatrix<T>& matrixA, const DenseMatrix<T>& matrixB, const SparseMatrix<T>& matrixC, SparseMatrix<T>& matrixResult) const override;
     private:
-        void SDDMM_DENSE(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const DenseMatrix<T>& z, DenseMatrix<T>& result) const;
+        void SDDMM_DENSE(const DenseMatrix<T>& matrixA, const DenseMatrix<T>& matrixB_transpose, const DenseMatrix<T>& matrixC, DenseMatrix<T>& matrixResult) const;
 };
 
 #endif // NAIVE_SDDMM_GPU_HPP

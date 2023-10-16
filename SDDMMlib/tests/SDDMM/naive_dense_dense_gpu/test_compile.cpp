@@ -6,15 +6,15 @@
 #include <vector>
 
 int main() {
-    CSRMatrix<double> matrixA(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    DenseMatrix<double> matrixB(std::vector<std::vector<double>>{{1}, {2}, {3}});
-    DenseMatrix<double> matrixC(std::vector<std::vector<double>>{{1}, {2}, {3}});
-    CSRMatrix<double> calculatedSolution(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
-    CSRMatrix<double> expectedSolution(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
+    CSRMatrix<float> matrixA(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1}, {2}, {3}});
+    DenseMatrix<float> matrixC(std::vector<std::vector<float>>{{1}, {2}, {3}});
+    CSRMatrix<float> calculatedSolution(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
+    CSRMatrix<float> expectedSolution(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
 
 
     // Call multiply and pass the multiplication function from the library
-    matrixA.SDDMM(matrixB, matrixC, calculatedSolution, std::bind(&naive_SDDMM_GPU<double>::SDDMM, naive_SDDMM_GPU<double>(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    matrixA.SDDMM(matrixB, matrixC, calculatedSolution, std::bind(&naive_SDDMM_GPU<float>::SDDMM, naive_SDDMM_GPU<float>(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
     // Check if the calculated solution is equal to the expected solution
     if (calculatedSolution == expectedSolution) {

@@ -1,0 +1,3 @@
+# This is an example for a run config file
+naive_SDDMM, dataset_small
+naive_SDDMM, dataset_small

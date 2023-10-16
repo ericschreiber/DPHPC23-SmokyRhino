@@ -1,10 +1,10 @@
 // initial_SDDMM_GPU_jiela.cpp
+#include "initial_implementation_gpu_jiela/initial_SDDMM_GPU_jiela.hpp"
+
 #include <iostream>
 
-#include "naive_SDDMM.hpp"
-
 template <typename T>
-void naive_SDDMM<T>::SDDMM(
+void initial_SDDMM_GPU_jiela<T>::SDDMM(
     const DenseMatrix<T>& matrixA_HOST,
     const DenseMatrix<T>& matrixB_HOST,
     const SparseMatrix<T>& matrixC_HOST,
@@ -16,6 +16,6 @@ void naive_SDDMM<T>::SDDMM(
 }
 
 // Explicit template instantiation
-template class naive_SDDMM<float>;
-template class naive_SDDMM<double>;
-template class naive_SDDMM<int>;
+template class initial_SDDMM_GPU_jiela<float>;
+template class initial_SDDMM_GPU_jiela<double>;
+template class initial_SDDMM_GPU_jiela<int>;

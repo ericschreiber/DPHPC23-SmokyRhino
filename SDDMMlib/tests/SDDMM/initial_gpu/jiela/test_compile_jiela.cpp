@@ -4,18 +4,18 @@
 
 #include "CSRMatrix.hpp"
 #include "DenseMatrix.hpp"
-#include "naive_SDDMM.hpp"
+#include "initial_implementation_gpu_jiela/initial_SDDMM_GPU_jiela.hpp"
 
 int main()
 {
-    CSRMatrix<double> matrixA_HOST(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    DenseMatrix<double> matrixB_HOST(std::vector<std::vector<double>>{{1}, {2}, {3}});
-    DenseMatrix<double> matrixC_HOST(std::vector<std::vector<double>>{{1}, {2}, {3}});
-    CSRMatrix<double> calculatedSolution_HOST(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
-    CSRMatrix<double> expectedSolution_HOST(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
+    CSRMatrix<float> matrixA_HOST(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    DenseMatrix<float> matrixB_HOST(std::vector<std::vector<float>>{{1}, {2}, {3}});
+    DenseMatrix<float> matrixC_HOST(std::vector<std::vector<float>>{{1}, {2}, {3}});
+    CSRMatrix<float> calculatedSolution_HOST(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
+    CSRMatrix<float> expectedSolution_HOST(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
 
     // Call multiply and pass the multiplication function from the library
-    matrixA_HOST.SDDMM(matrixB_HOST, matrixC_HOST, calculatedSolution_HOST, std::bind(&naive_SDDMM<double>::SDDMM, naive_SDDMM<double>(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    matrixA_HOST.SDDMM(matrixB_HOST, matrixC_HOST, calculatedSolution_HOST, std::bind(&initial_SDDMM_GPU_jiela<float>::SDDMM, initial_SDDMM_GPU_jiela<float>(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
     // Check if the calculated solution is equal to the expected solution
     if (calculatedSolution_HOST == expectedSolution_HOST)

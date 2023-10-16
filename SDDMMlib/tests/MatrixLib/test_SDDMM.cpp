@@ -15,9 +15,17 @@ int main()
     CSRMatrix<double> expectedSolution(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
 
     // Call multiply and pass the multiplication function from the library
-    matrixA.SDDMM(matrixB, matrixC, calculatedSolution,
-                  std::bind(&naive_SDDMM<double>::SDDMM, naive_SDDMM<double>(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                            std::placeholders::_4));
+    matrixA.SDDMM(
+        matrixB,
+        matrixC,
+        calculatedSolution,
+        std::bind(
+            &naive_SDDMM<double>::SDDMM,
+            naive_SDDMM<double>(),
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3,
+            std::placeholders::_4));
 
     // Check if the calculated solution is equal to the expected solution
     if (calculatedSolution == expectedSolution)

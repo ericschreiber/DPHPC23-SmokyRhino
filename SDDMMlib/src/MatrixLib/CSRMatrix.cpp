@@ -94,8 +94,14 @@ void CSRMatrix<T>::readFromFile(const std::string& filePath)
 
 template <typename T>
 void CSRMatrix<T>::SDDMM(
-    const DenseMatrix<T>& x, const DenseMatrix<T>& y, SparseMatrix<T>& result,
-    std::function<void(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result)> SDDMMFunc) const
+    const DenseMatrix<T>& x,
+    const DenseMatrix<T>& y,
+    SparseMatrix<T>& result,
+    std::function<void(
+        const DenseMatrix<T>& x,
+        const DenseMatrix<T>& y,
+        const SparseMatrix<T>& z,
+        SparseMatrix<T>& result)> SDDMMFunc) const
 {
     // Call the SDDMM function from the library
     SDDMMFunc(x, y, *this, result);

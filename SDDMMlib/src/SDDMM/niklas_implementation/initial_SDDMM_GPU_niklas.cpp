@@ -3,8 +3,10 @@
 #include <iostream>
 
 template <typename T>
-void naive_SDDMM<T>::SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result) const {
-    // please implement
+void naive_SDDMM<T>::SDDMM(const DenseMatrix<T>& matrixA, const DenseMatrix<T>& matrixB, const SparseMatrix<T>& matrixC, SparseMatrix<T>& matrixResult) const {
+    /*
+    // get values colIndices and rowPtr from matrixC
+    */
     std::cout << "naive_SDDMM from niklas was executed :)" << std::endl;
     return;
 }

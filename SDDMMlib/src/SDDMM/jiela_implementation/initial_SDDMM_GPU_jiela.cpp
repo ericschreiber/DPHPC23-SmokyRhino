@@ -3,7 +3,7 @@
 #include <iostream>
 
 template <typename T>
-void naive_SDDMM<T>::SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result) const {
+void naive_SDDMM<T>::SDDMM(const DenseMatrix<T>& matrixA, const DenseMatrix<T>& matrixB, const SparseMatrix<T>& matrixC, SparseMatrix<T>& matrixResult) const {
     // please implement
     std::cout << "naive_SDDMM from jiela was executed :)" << std::endl;
     return;

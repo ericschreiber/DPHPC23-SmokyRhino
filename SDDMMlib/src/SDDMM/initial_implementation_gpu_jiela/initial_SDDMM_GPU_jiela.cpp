@@ -1,15 +1,22 @@
 // initial_SDDMM_GPU_jiela.cpp
-#include "initial_SDDMM_GPU_jiela.hpp"
-#include "DenseMatrix.hpp"
+#include "initial_implementation_gpu_jiela/initial_SDDMM_GPU_jiela.hpp"
+
 #include <iostream>
 
+#include "DenseMatrix.hpp"
+
 template <typename T>
-void initial_SDDMM_GPU_jiela<T>::SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result) const {
+void initial_SDDMM_GPU_jiela<T>::SDDMM(
+    const DenseMatrix<T>& x,
+    const DenseMatrix<T>& y,
+    const SparseMatrix<T>& z,
+    SparseMatrix<T>& result) const
+{
     // This uses a blocked version, where each row of the matrix is handled by one block
-    
-        // input matrices are on CPU - need to be copied
-        // for the sparse matrices, we need to copy not only the values, but also the access vectors!
-        // However since the Result and z will have the same access vectors we only need to copy those once.
+
+    // input matrices are on CPU - need to be copied
+    // for the sparse matrices, we need to copy not only the values, but also the access vectors!
+    // However since the Result and z will have the same access vectors we only need to copy those once.
     /*
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
     int m = x.getNumRows();
@@ -53,4 +60,5 @@ void initial_SDDMM_GPU_jiela<T>::SDDMM(const DenseMatrix<T>& x, const DenseMatri
 // Explicit template instantiation
 template class initial_SDDMM_GPU_jiela<float>;
 template class initial_SDDMM_GPU_jiela<double>;
-template class initial_SDDMM_GPU_jiela<int>;;
+template class initial_SDDMM_GPU_jiela<int>;
+;

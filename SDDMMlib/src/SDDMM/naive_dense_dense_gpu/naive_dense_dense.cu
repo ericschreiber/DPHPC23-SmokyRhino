@@ -32,11 +32,35 @@ void compute(
     float *d_C,
     float *d_D)
 {
+    // alpha and beta are needed for Sgemm
     float alpha = 1;
     float beta = 0;
+
+    // to run cublas functions we need to first create a handle
     cublasHandle_t handle;
     CUDA_CHECK(cublasCreate(&handle));
 
-    cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha, d_A, m, d_B, k, &beta, d_C, m);
-    my_naive_sampling(m * n, d_C, d_D);
+    // Sgemm calculates A*B and the result is stored in C
+    cublasSgemm(
+        handle,
+        CUBLAS_OP_N,
+        CUBLAS_OP_N,
+        m,
+        n,
+        k,
+        &alpha,
+        d_A,
+        m,
+        d_B,
+        k,
+        &beta,
+        d_C,
+        m);
+
+    // custom kernel to calculate the Hadamard product between C and D
+    // the result is stored in D
+    my_naive_sampling(
+        m * n,
+        d_C,
+        d_D);
 }

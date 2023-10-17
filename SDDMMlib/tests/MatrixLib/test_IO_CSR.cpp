@@ -1,10 +1,13 @@
 // create matrix, write to file, read and check for equality
-#include "CSRMatrix.hpp"
 #include <stdio.h>
-#include <iostream>
-#include <cassert> 
 
-int main(){
+#include <cassert>
+#include <iostream>
+
+#include "CSRMatrix.hpp"
+
+int main()
+{
     CSRMatrix<double> matrixDouble(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
     CSRMatrix<int> matrixInt(std::vector<std::vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
 

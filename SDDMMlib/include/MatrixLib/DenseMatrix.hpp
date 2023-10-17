@@ -2,14 +2,15 @@
 #ifndef DENSEMATRIX_HPP
 #define DENSEMATRIX_HPP
 
-#include <vector>
 #include <string>
+#include <vector>
 
 template <typename T>
-class DenseMatrix {
+class DenseMatrix
+{
     public:
         // Constructors
-        DenseMatrix(int rows, int cols);  // Constructor for an empty dense matrix
+        DenseMatrix(int rows, int cols);                         // Constructor for an empty dense matrix
         DenseMatrix(const std::vector<std::vector<T>>& values);  // Copy constructor
 
         int getNumRows() const;
@@ -26,7 +27,6 @@ class DenseMatrix {
         std::vector<std::vector<T>> values;
         int numRows;
         int numCols;
-
 };
 
-#endif // DENSEMATRIX_HPP
+#endif  // DENSEMATRIX_HPP

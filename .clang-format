@@ -1,0 +1,8 @@
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 0
+BinPackParameters: false
+BinPackArguments: false
+BreakBeforeBraces: Allman
+AlignAfterOpenBracket: AlwaysBreak
+IndentAccessModifiers: true

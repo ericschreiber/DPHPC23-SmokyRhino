@@ -19,7 +19,11 @@ class CSRMatrix : virtual public SparseMatrix<T>
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,
             SparseMatrix<T>& result,
-            std::function<void(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result)> SDDMMFunc)
+            std::function<void(
+                const DenseMatrix<T>& x,
+                const DenseMatrix<T>& y,
+                const SparseMatrix<T>& z,
+                SparseMatrix<T>& result)> SDDMMFunc)
             const override;
         // Read CSR matrix from a file where a matrix was stored in CSR format using writeToFile()
         virtual void readFromFile(const std::string& filePath) override;

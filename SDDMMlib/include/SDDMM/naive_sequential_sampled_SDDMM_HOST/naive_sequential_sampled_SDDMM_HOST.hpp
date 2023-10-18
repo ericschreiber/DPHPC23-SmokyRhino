@@ -1,4 +1,4 @@
-// naive_sequential_sampled_SDDMM.hpp
+// naive_sequential_sampled_SDDMM_HOST.hpp
 #ifndef NAIVE_SEQUENTIAL_SAMPLED_SDDMM_HOST_HPP
 #define NAIVE_SEQUENTIAL_SAMPLED_SDDMM_HOST_HPP
 
@@ -10,7 +10,11 @@ template <typename T>
 class naive_sequential_sampled_SDDMM_HOST : public SDDMMlib<T>
 {
     public:
-        virtual void SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result) const override;
+        virtual void SDDMM(
+            const DenseMatrix<T>& x,
+            const DenseMatrix<T>& y,
+            const SparseMatrix<T>& z,
+            SparseMatrix<T>& result) const override;
 };
 
-#endif  // NAIVE_SEQUENTIAL_SAMPLED_SDDMM_HPP
+#endif  // NAIVE_SEQUENTIAL_SAMPLED_SDDMM_HOST_HPP

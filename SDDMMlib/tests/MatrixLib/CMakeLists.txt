@@ -29,8 +29,12 @@ add_executable(test_naive_sequential_sampled_SDDMM_HOST naive_sequential_sampled
 # Link the library
 target_link_libraries(test_io_dense MatrixLib)
 target_link_libraries(test_io_CSR MatrixLib)
-target_link_libraries(test_naive_sequential_full_SDDMM_HOST MatrixLib)
-target_link_libraries(test_naive_sequential_sampled_SDDMM_HOST MatrixLib)
+target_link_libraries(test_naive_sequential_full_SDDMM_HOST
+                        MatrixLib
+                        SDDMMlib)
+target_link_libraries(test_naive_sequential_sampled_SDDMM_HOST
+                        MatrixLib
+                        SDDMMlib)
 target_link_libraries(test_SDDMM 
                         MatrixLib
                         SDDMMlib

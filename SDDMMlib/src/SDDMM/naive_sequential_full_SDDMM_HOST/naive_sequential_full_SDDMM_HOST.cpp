@@ -11,9 +11,13 @@ void naive_sequential_full_SDDMM_HOST<T>::SDDMM(const DenseMatrix<T>& x, const D
     // This is a very dumb implementation, because it samples only AFTER the
     // matrix x matrix multiplication
 
+    std::cout << "entered naive_sequential_full_SDDMM_HOST" << std::endl;
+
     int m = x.getNumRows();
     int n = x.getNumCols();
     int k = y.getNumCols();
+
+    std::cout << "grabbed dimensions" << std::endl;
 
     auto xy = DenseMatrix<T>(m, n);
 

@@ -8,11 +8,15 @@
 
 int main()
 {
+    std::cout << "entered the main of the test" << std::endl;
+
     CSRMatrix<double> matrixA(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
     DenseMatrix<double> matrixB(std::vector<std::vector<double>>{{1}, {2}, {3}});
     DenseMatrix<double> matrixC(std::vector<std::vector<double>>{{1}, {2}, {3}});
     CSRMatrix<double> calculatedSolution(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
     CSRMatrix<double> expectedSolution(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
+
+    std::cout << "created Matrices" << std::endl;
 
     // Call multiply and pass the multiplication function from the library
     matrixA.SDDMM(

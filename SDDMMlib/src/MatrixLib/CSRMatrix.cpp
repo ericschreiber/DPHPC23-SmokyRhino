@@ -6,6 +6,19 @@
 #include <iostream>
 
 template <typename T>
+CSRMatrix<T>::CSRMatrix()
+{
+    // Default constructor
+    // empty instance of values, colIndices, rowPtr
+    values = std::vector<T>();
+    colIndices = std::vector<int>();
+    rowPtr = std::vector<int>();
+
+    numRows = 0;
+    numCols = 0;
+}
+
+template <typename T>
 CSRMatrix<T>::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols)
 {
     // Initialize CSRMatrix with zeros

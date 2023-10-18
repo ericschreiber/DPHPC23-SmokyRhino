@@ -10,6 +10,7 @@ class DenseMatrix
 {
     public:
         // Constructors
+        DenseMatrix();                                           // Default constructor
         DenseMatrix(int rows, int cols);                         // Constructor for an empty dense matrix
         DenseMatrix(const std::vector<std::vector<T>>& values);  // Copy constructor
 

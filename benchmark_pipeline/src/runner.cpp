@@ -31,10 +31,10 @@ void runner<T>::run()
 {
     _results.push_back(std::make_tuple("function", "dataset", "result"));
     // Create the matrices
-    CSRMatrix<T>* matrixA;
-    DenseMatrix<T>* matrixB;
-    DenseMatrix<T>* matrixC;
-    CSRMatrix<T>* calculatedSolution;
+    CSRMatrix<T> matrixA = CSRMatrix<T>();
+    DenseMatrix<T> matrixB = DenseMatrix<T>();
+    DenseMatrix<T> matrixC = DenseMatrix<T>();
+    CSRMatrix<T> calculatedSolution;
 
     std::string dataset_before = "";
     for (auto& function_to_run : _functions_to_run)
@@ -52,38 +52,9 @@ void runner<T>::run()
             // ************************************************************
             // For the moment we just initialize the matrices here
             std::cout << "!!!!!!PLEASE IMPLEMENT MATRIX LOADING!!!!!!" << std::endl;
-            matrixA = new CSRMatrix<T>(std::vector<std::vector<T>>{
-                {1, 0, 0, 0, 0, 0, 0, 0, 0},
-                {2, 3, 0, 0, 0, 0, 0, 0, 0},
-                {4, 5, 6, 0, 0, 0, 0, 0, 0},
-                {7, 8, 9, 10, 0, 0, 0, 0, 0},
-                {11, 12, 13, 14, 15, 0, 0, 0, 0},
-                {16, 17, 18, 19, 20, 21, 0, 0, 0},
-                {22, 23, 24, 25, 26, 27, 28, 0, 0},
-                {29, 30, 31, 32, 33, 34, 35, 36, 0},
-                {37, 38, 39, 40, 41, 42, 43, 44, 45}});
-
-            matrixB = new DenseMatrix<T>(std::vector<std::vector<T>>{
-                {1, 1, 1},
-                {2, 2, 2},
-                {3, 3, 3},
-                {4, 4, 4},
-                {5, 5, 5},
-                {6, 6, 6},
-                {7, 7, 7},
-                {8, 8, 8},
-                {9, 9, 9}});
-
-            matrixC = new DenseMatrix<T>(std::vector<std::vector<T>>{
-                {1, 1, 1},
-                {2, 2, 2},
-                {3, 3, 3},
-                {4, 4, 4},
-                {5, 5, 5},
-                {6, 6, 6},
-                {7, 7, 7},
-                {8, 8, 8},
-                {9, 9, 9}});
+            matrixA.readFromFile("/Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/csrmatrix_test.txt");
+            matrixB.readFromFile("/Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/densematrix_test.txt");
+            matrixC.readFromFile("/Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/densematrix_test.txt");
 
             dataset_before = dataset;
         }
@@ -91,13 +62,13 @@ void runner<T>::run()
         auto start = std::chrono::high_resolution_clock::now();
 
         // Prepare the calculated solution
-        calculatedSolution = new CSRMatrix<T>(matrixA->getNumRows(), matrixA->getNumRows());
+        calculatedSolution = CSRMatrix<T>(matrixA.getNumRows(), matrixA.getNumRows());
 
         // Run the function
-        matrixA->SDDMM(
-            *matrixB,
-            *matrixC,
-            *calculatedSolution,
+        matrixA.SDDMM(
+            matrixB,
+            matrixC,
+            calculatedSolution,
             std::bind(
                 &SDDMMlib<T>::SDDMM,
                 class_to_run,

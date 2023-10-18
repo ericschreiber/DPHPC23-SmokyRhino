@@ -12,6 +12,7 @@ template <typename T>
 class CSRMatrix : virtual public SparseMatrix<T>
 {
     public:
+        CSRMatrix();                                           // Default constructor
         CSRMatrix(int rows, int cols);                         // Constructor for an empty CSR matrix
         CSRMatrix(const std::vector<std::vector<T>>& values);  // Constructor from dense matrix
         CSRMatrix(const CSRMatrix& other);                     // Copy constructor

@@ -6,6 +6,15 @@
 #include <stdexcept>
 
 template <typename T>
+DenseMatrix<T>::DenseMatrix()
+{
+    // Default constructor
+    values = std::vector<std::vector<T>>();
+    numRows = 0;
+    numCols = 0;
+}
+
+template <typename T>
 DenseMatrix<T>::DenseMatrix(int rows, int cols) : numRows(rows),
                                                   numCols(cols),
                                                   values(rows, std::vector<T>(cols, T()))
@@ -78,7 +87,7 @@ void DenseMatrix<T>::readFromFile(const std::string& filePath)
     // Check the datatype
     if (datatype != typeid(T).name())
     {
-        std::cerr << "Error: Datatype in file does not match the datatype of the matrix" << std::endl;
+        std::cerr << "Error: Datatype in file does not match the datatype of the matrix. Is: " << datatype << " Should be: " << typeid(T).name() << std::endl;
         return;
     }
 

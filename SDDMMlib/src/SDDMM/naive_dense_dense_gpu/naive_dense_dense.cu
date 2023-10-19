@@ -6,7 +6,10 @@
 
 #include "utils.h"
 
-void my_naive_sampling(int, const float *, float *);
+void my_naive_sampling(
+    int,
+    const float *,
+    float *);
 
 ////
 // this function computes the SDDMM of 3 dense matrices using cublas Sgemm and a custom sampling kernel

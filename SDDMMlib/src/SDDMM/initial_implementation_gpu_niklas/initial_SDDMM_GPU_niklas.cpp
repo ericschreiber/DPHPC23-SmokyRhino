@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "initial_implementation_gpu_niklas/initial_SDDMM_solver.cuh"
+
 template <typename T>
 void initial_SDDMM_GPU_niklas<T>::SDDMM(
     const DenseMatrix<T> &matrixA_HOST,
@@ -101,6 +103,8 @@ void initial_SDDMM_GPU_niklas<T>::SDDMM(
     compute(
         (rowPtr_matrixC_HOST.size() - 1),  // this will give the number of blocks to use
                                            // this is by no means optimized
+                                           // maybe use a different metric according to
+                                           // threads per SM
         m,
         n,
         k,

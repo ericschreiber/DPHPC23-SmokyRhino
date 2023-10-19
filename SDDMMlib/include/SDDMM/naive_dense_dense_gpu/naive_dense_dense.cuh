@@ -6,9 +6,9 @@ void compute(
     int m,
     int n,
     int k,
-    float *d_A,
-    float *d_B,
-    float *d_C,
-    float *d_D);
+    const float *const d_A,
+    const float *const d_B,
+    float *const d_C,
+    float *const d_D);
 
 #endif  // NAIVE_DENSE_DENSE_CUH

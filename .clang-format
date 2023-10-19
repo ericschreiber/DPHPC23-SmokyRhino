@@ -5,4 +5,5 @@ BinPackParameters: false
 BinPackArguments: false
 BreakBeforeBraces: Allman
 AlignAfterOpenBracket: AlwaysBreak
+
 IndentAccessModifiers: true

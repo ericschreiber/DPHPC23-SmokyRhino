@@ -52,5 +52,6 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/SDDMMlib"
 }

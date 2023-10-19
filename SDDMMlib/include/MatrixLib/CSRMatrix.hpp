@@ -12,9 +12,9 @@ template <typename T>
 class CSRMatrix : virtual public SparseMatrix<T>
 {
     public:
-        CSRMatrix(int rows, int cols);                         // Constructor for an empty CSR matrix
-        CSRMatrix(const std::vector<std::vector<T>>& values);  // Constructor from dense matrix
-        CSRMatrix(const CSRMatrix& other);                     // Copy constructor
+        CSRMatrix(int rows, int cols);            // Constructor for an empty CSR matrix
+        CSRMatrix(const DenseMatrix<T>& values);  // Constructor from dense matrix
+        CSRMatrix(const CSRMatrix& other);        // Copy constructor
         virtual void SDDMM(
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,
@@ -46,6 +46,10 @@ class CSRMatrix : virtual public SparseMatrix<T>
         virtual std::vector<T> getValues() const override;
         virtual std::vector<int> getColIndices() const override;
         virtual std::vector<int> getRowPtr() const override;
+
+        virtual void setValues(const std::vector<T>& values) override;
+        virtual void setColIndices(const std::vector<int>& colIndices) override;
+        virtual void setRowPtr(const std::vector<int>& rowPtr) override;
 
     private:
         std::vector<T> values;

@@ -1,3 +1,6 @@
+build/
 SDDMMlib/build/
 SDDMMlib/tests/MatrixLib/cmake
-.vscode/
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/tasks.json

@@ -11,10 +11,10 @@ class naive_SDDMM : public SDDMMlib<T>
 {
     public:
         virtual void SDDMM(
-            const DenseMatrix<T>& matrixA_HOST,
-            const DenseMatrix<T>& matrixB_HOST,
-            const SparseMatrix<T>& matrixC_HOST,
-            SparseMatrix<T>& matrixResult_HOST) const override;
+            const DenseMatrix<T>& x,
+            const DenseMatrix<T>& y,
+            const SparseMatrix<T>& z,
+            SparseMatrix<T>& result) const override;
 };
 
 #endif  // NAIVE_SDDMM_HPP

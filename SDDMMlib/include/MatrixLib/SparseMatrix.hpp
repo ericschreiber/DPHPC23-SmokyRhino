@@ -20,8 +20,7 @@ class SparseMatrix
                 const DenseMatrix<T>& x,
                 const DenseMatrix<T>& y,
                 const SparseMatrix<T>& z,
-                SparseMatrix<T>& result)> SDDMMFunc)
-            const = 0;
+                SparseMatrix<T>& result)> SDDMMFunc) const = 0;
         virtual void readFromFile(const std::string& filePath) = 0;
         virtual void writeToFile(const std::string& filePath) const = 0;
         virtual ~SparseMatrix() {}
@@ -33,6 +32,10 @@ class SparseMatrix
         virtual std::vector<T> getValues() const = 0;
         virtual std::vector<int> getColIndices() const = 0;
         virtual std::vector<int> getRowPtr() const = 0;
+
+        virtual void setValues(const std::vector<T>& values) = 0;
+        virtual void setColIndices(const std::vector<int>& colIndices) = 0;
+        virtual void setRowPtr(const std::vector<int>& rowPtr) = 0;
 };
 
 #endif  // SPARSE_MATRIX_HPP

@@ -11,8 +11,22 @@ void naive_SDDMM<T>::SDDMM(
     SparseMatrix<T>& result) const
 {
     // please implement
+    this->start_run();
     std::cout << "naive_SDDMM was executed :)" << std::endl;
+    this->stop_run();
     return;
+}
+
+template <typename T>
+void naive_SDDMM<T>::start_run() const
+{
+    this->_timer->start_cpu_run();  // OR _timer.start_gpu_run();
+}
+
+template <typename T>
+void naive_SDDMM<T>::stop_run() const
+{
+    this->_timer->stop_cpu_run();  // OR _timer.stop_gpu_run();
 }
 
 // Explicit template instantiation

@@ -29,7 +29,7 @@ runner<T>::~runner()
 template <typename T>
 void runner<T>::run()
 {
-    _results.push_back(std::make_tuple("function", "dataset", "result"));
+    init_result_file();
     // Create the matrices
     CSRMatrix<T> matrixA = CSRMatrix<T>();
     DenseMatrix<T> matrixB = DenseMatrix<T>();
@@ -59,7 +59,8 @@ void runner<T>::run()
             dataset_before = dataset;
         }
         // Time the function
-        auto start = std::chrono::high_resolution_clock::now();
+        ExecutionTimer timer = ExecutionTimer();
+        class_to_run->set_timer(&timer);
 
         // Prepare the calculated solution
         calculatedSolution = CSRMatrix<T>(matrixA.getNumRows(), matrixA.getNumRows());
@@ -77,22 +78,36 @@ void runner<T>::run()
                 std::placeholders::_3,
                 std::placeholders::_4));
 
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        auto durations = timer.get_runs();
         // Append the result to the results list
-        _results.push_back(std::make_tuple(function_class, dataset, std::to_string(duration.count())));
+        _results.push_back(std::make_tuple(function_class, dataset, durations));
         write_result();
     }
+}
+
+template <typename T>
+void runner<T>::init_result_file()
+{
+    // Create the results file
+    std::ofstream results_file(_results_file_path);
+    results_file << "function,dataset,result" << std::endl;
+    results_file.close();
 }
 
 template <typename T>
 void runner<T>::write_result()
 {
     // Write the last result to the results file
+    // The structure is string, string, vector<double>
+    std::string durations_string = "";
+    for (auto& duration : std::get<2>(_results.back()))
+    {
+        durations_string += std::to_string(duration) + ",";
+    }
     std::ofstream results_file(_results_file_path, std::ios::app);
     results_file << std::get<0>(_results.back()) << ","
                  << std::get<1>(_results.back()) << ","
-                 << std::get<2>(_results.back()) << std::endl;
+                 << durations_string << std::endl;
 }
 
 template class runner<float>;

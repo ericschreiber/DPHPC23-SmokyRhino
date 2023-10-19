@@ -15,6 +15,7 @@ target_include_directories(BenchmarkPipelinelib PUBLIC
 target_link_libraries(BenchmarkPipelinelib
                         MatrixLib
                         SDDMMlib
+                        TimingLib
                         )
 
 # Link the executable

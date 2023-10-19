@@ -16,6 +16,7 @@ class runner
 
     private:
         void write_result();
+        void init_result_file();
 
         std::string _out_path;
         std::string _results_file_path;
@@ -27,7 +28,7 @@ class runner
         // - The name of the function class that was run
         // - The name of the dataset that was used
         // - Where the results are stored
-        std::vector<std::tuple<std::string, std::string, std::string>> _results;
+        std::vector<std::tuple<std::string, std::string, std::vector<double>>> _results;
 };
 
 #endif  // RUNNER_HPP

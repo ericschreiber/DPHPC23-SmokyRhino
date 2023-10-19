@@ -5,6 +5,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "CSRMatrix.hpp"
+
 template <typename T>
 DenseMatrix<T>::DenseMatrix(int rows, int cols) : numRows(rows),
                                                   numCols(cols),
@@ -19,6 +21,44 @@ DenseMatrix<T>::DenseMatrix(const std::vector<std::vector<T>>& values) : numRows
 {
 }
 
+// constructor to convert CSR matrix to dense matrix
+template <typename T>
+DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
+{
+    int num_rows = csrMatrix.getNumRows();
+    int num_cols = csrMatrix.getNumCols();
+    std::vector<std::vector<T>> vals(num_rows, std::vector<T>(num_cols, 0));
+
+    // main loop
+    std::vector<int> rowIndices = csrMatrix.getRowPtr();
+    std::vector<int> columnIndices = csrMatrix.getColIndices();
+    std::vector<T> values = csrMatrix.getValues();
+    int rowIndicesArrayRunner = 0;
+    // not sure if this (using while true and a break) is the best way to do do-while loop
+    while (true)
+    {
+        int num_elems_in_row = rowIndices[rowIndicesArrayRunner + 1] - rowIndices[rowIndicesArrayRunner];
+        for (int i = 0; i < num_elems_in_row; i++)
+        {
+            int index = rowIndices[rowIndicesArrayRunner] + i;  // this index indexes columnIndices and values
+            int column_index = columnIndices[index];
+            int value = values[index];
+            vals[rowIndicesArrayRunner][column_index] = value;
+        }
+        // increments and loop end condition
+        rowIndicesArrayRunner++;
+        if (rowIndicesArrayRunner == rowIndices.size() - 1)
+        {
+            break;
+        }
+    }
+
+    // write class fields
+    this->values = vals;
+    this->numRows = num_rows;
+    this->numCols = num_cols;
+}
+
 template <typename T>
 int DenseMatrix<T>::getNumRows() const
 {
@@ -29,6 +69,13 @@ template <typename T>
 int DenseMatrix<T>::getNumCols() const
 {
     return numCols;
+}
+
+// added this, don't see why we should not have it
+template <typename T>
+std::vector<std::vector<T>> DenseMatrix<T>::getValues()
+{
+    return this->values;
 }
 
 template <typename T>

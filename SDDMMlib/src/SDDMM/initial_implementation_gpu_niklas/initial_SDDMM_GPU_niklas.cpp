@@ -19,8 +19,8 @@ void initial_SDDMM_GPU_niklas<T>::SDDMM(
     std::vector<int> rowPtr_matrixC_HOST = matrixC_HOST.getRowPtr();
 
     // copy colIndices and rowPtr from matrixC_HOST to matrixResult_HOST
-    matrixResult_HOST.set_colIndices(colIndices_matrixC_HOST);  // function not implemented yet
-    matrixResult_HOST.set_rowPtr(rowPtr_matrixC_HOST);          // function not implemented yet
+    matrixResult_HOST.setcolIndices(colIndices_matrixC_HOST);
+    matrixResult_HOST.setrowPtr(rowPtr_matrixC_HOST);
 
     // transpose matrixB_HOST to matrixB_transpose_HOST
 
@@ -122,6 +122,9 @@ void initial_SDDMM_GPU_niklas<T>::SDDMM(
             values_matrixResult_GPU,
             values_matrixC_HOST.size() * sizeof(float),
             cudaMemcpyDeviceToHost));
+
+    // save the results to matrixResult_HOST
+    matrixResult_HOST.setValues(values_matrixC_HOST);
 
     // free memory on the device
     CUDA_CHECK(

@@ -53,6 +53,7 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "__bit_reference": "cpp",
+        "__bits": "cpp",
         "__config": "cpp",
         "__debug": "cpp",
         "__errc": "cpp",
@@ -62,6 +63,7 @@
         "__node_handle": "cpp",
         "__split_buffer": "cpp",
         "__threading_support": "cpp",
+        "__tuple": "cpp",
         "__verbose_abort": "cpp",
         "bitset": "cpp",
         "charconv": "cpp",
@@ -72,6 +74,11 @@
         "mutex": "cpp",
         "optional": "cpp",
         "ratio": "cpp",
-        "variant": "cpp"
-    }
+        "stack": "cpp",
+        "variant": "cpp",
+        "__nullptr": "cpp",
+        "__string": "cpp",
+        "chrono": "cpp"
+    },
+    "cmake.sourceDirectory": "/Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/SDDMMlib"
 }

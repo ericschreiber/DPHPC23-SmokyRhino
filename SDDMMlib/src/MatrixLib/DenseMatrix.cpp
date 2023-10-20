@@ -33,9 +33,7 @@ DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
     std::vector<int> rowIndices = csrMatrix.getRowPtr();
     std::vector<int> columnIndices = csrMatrix.getColIndices();
     std::vector<T> values = csrMatrix.getValues();
-    int rowIndicesArrayRunner = 0;
-    // not sure if this (using while true and a break) is the best way to do do-while loop
-    while (true)
+    for (int rowIndicesArrayRunner = 0; rowIndicesArrayRunner < rowIndices.size(); rowIndicesArrayRunner++)
     {
         int num_elems_in_row = rowIndices[rowIndicesArrayRunner + 1] - rowIndices[rowIndicesArrayRunner];
         for (int i = 0; i < num_elems_in_row; i++)
@@ -45,12 +43,7 @@ DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
             int value = values[index];
             vals[rowIndicesArrayRunner][column_index] = value;
         }
-        // increments and loop end condition
         rowIndicesArrayRunner++;
-        if (rowIndicesArrayRunner == rowIndices.size() - 1)
-        {
-            break;
-        }
     }
 
     // write class fields
@@ -106,6 +99,8 @@ void DenseMatrix<T>::setValue(int row, int col, T value)
     }
 }
 
+// Should this method ever become too slow/consume to much memory implement this:
+// "Use the fact that you are switching positions of only two variables. So you only need a variable to save one, copy the other and save the intermediate to the first position."
 template <typename T>
 void DenseMatrix<T>::transpose()
 {

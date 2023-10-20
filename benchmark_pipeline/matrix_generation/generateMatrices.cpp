@@ -1,3 +1,5 @@
+// TODO: Can you remove this from the PR? There is another branch called EricPipeline where I extended the CMakeLists to include the pipeline files. Could you please try to incorporate it into that branch? (Pull the branch, make a new one from it "git checkout -b newBranchName", Add the files, commit and push to newBranchName, PR to EricPipeline)
+
 // TODO: maybe also parametrize the type of the matrix (float, double, int, etc.)
 
 // Note: to compile this into a "standalone" executable and not into as part of a library I threw
@@ -26,7 +28,7 @@ int main(int argc, char *argv[])
     std::string dst_path = argv[4];
 
     // populate array with uniofrmly distributed random numbers (respecting the degree of sparsity)
-    std::vector<std::vector<float> > vals(n, std::vector<float>(m, 0));
+    std::vector<std::vector<float>> vals(n, std::vector<float>(m, 0));
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < m; j++)

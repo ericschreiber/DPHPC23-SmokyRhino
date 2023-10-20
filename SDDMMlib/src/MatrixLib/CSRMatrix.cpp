@@ -15,8 +15,6 @@ CSRMatrix<T>::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols)
 }
 
 // this constructor is used to convert a dense matrix to CSR format
-// TODO: Why does this constructor take in a vector of vectors and
-//       not instance of DenseMatrix? Should it be changed?
 template <typename T>
 CSRMatrix<T>::CSRMatrix(const DenseMatrix<T>& denseMatrix)
 {

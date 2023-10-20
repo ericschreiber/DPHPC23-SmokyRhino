@@ -15,13 +15,13 @@ class DenseMatrix
 {
     public:
         // Constructors
-        DenseMatrix(int rows, int cols);                          // Constructor for an empty dense matrix
-        DenseMatrix(const std::vector<std::vector<T> >& values);  // Copy constructor
-        DenseMatrix(CSRMatrix<T>& csrMatrix);                     // constructor to convert CSR matrix to dense matrix
+        DenseMatrix(int rows, int cols);                         // Constructor for an empty dense matrix
+        DenseMatrix(const std::vector<std::vector<T>>& values);  // Copy constructor
+        DenseMatrix(CSRMatrix<T>& csrMatrix);                    // constructor to convert CSR matrix to dense matrix
 
         int getNumRows() const;
         int getNumCols() const;
-        std::vector<std::vector<T> > getValues();  // added this, don't see why we should not have it
+        std::vector<std::vector<T>> getValues();  // added this, don't see why we should not have it
         T at(int row, int col) const;
         void setValue(int row, int col, T value);
         void transpose();
@@ -30,7 +30,7 @@ class DenseMatrix
         void writeToFile(const std::string& filePath) const;
 
     private:
-        std::vector<std::vector<T> > values;
+        std::vector<std::vector<T>> values;
         int numRows;
         int numCols;
 };

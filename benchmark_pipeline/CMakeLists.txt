@@ -22,5 +22,8 @@ add_subdirectory(src)
 # Add the executable target
 add_executable(generateMatrices matrix_generation/generateMatrices.cpp)
 
-# Link the external library (MyLibrary) to the executable
-target_link_libraries(generateMatrices /Users/lucaserlacher/Documents/Studium/Master/23HS/HPC/DPHPC23-SmokyRhino/SDDMMlib/build/src/MatrixLib/libMatrixLib.a)
+# Find the MatrixLib library file
+find_library(MATRIXLIB NAMES MatrixLib PATHS ../SDDMMlib/build/src/MatrixLib REQUIRED)
+
+# Link the MatrixLib library to the executable
+target_link_libraries(generateMatrices ${MATRIXLIB})

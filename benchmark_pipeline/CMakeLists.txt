@@ -11,5 +11,16 @@ endif()
 # Define your project and set its name
 project(Pipeline)
 
+# We need some header files for the compilation
+include_directories("../SDDMMlib/include/MatrixLib")
+include_directories("../SDDMMlib/include/SDDMM")
+include_directories("../SDDMMlib/include/TimingLib")
+
 # Add subdirectories for the library and executable
 add_subdirectory(src)
+
+# Add the executable target
+add_executable(generateMatrices matrix_generation/generateMatrices.cpp)
+
+# Link the external library (MyLibrary) to the executable
+target_link_libraries(generateMatrices /Users/lucaserlacher/Documents/Studium/Master/23HS/HPC/DPHPC23-SmokyRhino/SDDMMlib/build/src/MatrixLib/libMatrixLib.a)

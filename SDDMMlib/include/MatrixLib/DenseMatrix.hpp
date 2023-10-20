@@ -10,9 +10,9 @@ class DenseMatrix
 {
     public:
         // Constructors
-        DenseMatrix();                                           // Default constructor
-        DenseMatrix(int rows, int cols);                         // Constructor for an empty dense matrix
-        DenseMatrix(const std::vector<std::vector<T>>& values);  // Copy constructor
+        DenseMatrix();                                            // Default constructor
+        DenseMatrix(int rows, int cols);                          // Constructor for an empty dense matrix
+        DenseMatrix(const std::vector<std::vector<T> >& values);  // Copy constructor
 
         int getNumRows() const;
         int getNumCols() const;
@@ -23,7 +23,7 @@ class DenseMatrix
         void writeToFile(const std::string& filePath) const;
 
     private:
-        std::vector<std::vector<T>> values;
+        std::vector<std::vector<T> > values;
         int numRows;
         int numCols;
 };

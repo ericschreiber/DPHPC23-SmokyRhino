@@ -25,9 +25,9 @@ DenseMatrix<T>::DenseMatrix(const std::vector<std::vector<T>>& values) : numRows
 template <typename T>
 DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
 {
-    int num_rows = csrMatrix.getNumRows();
-    int num_cols = csrMatrix.getNumCols();
-    std::vector<std::vector<T>> vals(num_rows, std::vector<T>(num_cols, 0));
+    this->numRows = csrMatrix.getNumRows();
+    this->numCols = csrMatrix.getNumCols();
+    std::vector<std::vector<T>> vals(this->numRows, std::vector<T>(this->numCols, 0));
 
     // main loop
     std::vector<int> rowIndices = csrMatrix.getRowPtr();
@@ -46,10 +46,7 @@ DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
         rowIndicesArrayRunner++;
     }
 
-    // write class fields
     this->values = vals;
-    this->numRows = num_rows;
-    this->numCols = num_cols;
 }
 
 template <typename T>

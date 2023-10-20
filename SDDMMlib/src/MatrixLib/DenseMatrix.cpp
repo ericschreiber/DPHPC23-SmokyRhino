@@ -107,6 +107,24 @@ void DenseMatrix<T>::setValue(int row, int col, T value)
 }
 
 template <typename T>
+void DenseMatrix<T>::transpose()
+{
+    std::vector<std::vector<T>> vals = this->values;
+    std::vector<std::vector<T>> transposedVals(this->numCols, std::vector<T>(this->numRows, 0));
+    for (int i = 0; i < this->numRows; i++)
+    {
+        for (int j = 0; j < this->numCols; j++)
+        {
+            transposedVals[j][i] = vals[i][j];
+        }
+    }
+    this->values = transposedVals;
+    int temp = this->numRows;
+    this->numRows = this->numCols;
+    this->numCols = temp;
+}
+
+template <typename T>
 void DenseMatrix<T>::readFromFile(const std::string& filePath)
 {
     std::ifstream file(filePath);

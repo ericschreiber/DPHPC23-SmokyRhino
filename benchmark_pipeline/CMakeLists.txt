@@ -18,12 +18,3 @@ include_directories("../SDDMMlib/include/TimingLib")
 
 # Add subdirectories for the library and executable
 add_subdirectory(src)
-
-# Add the executable target
-add_executable(generateMatrices matrix_generation/generateMatrices.cpp)
-
-# Find the MatrixLib library file
-find_library(MATRIXLIB NAMES MatrixLib PATHS ../SDDMMlib/build/src/MatrixLib REQUIRED)
-
-# Link the MatrixLib library to the executable
-target_link_libraries(generateMatrices ${MATRIXLIB})

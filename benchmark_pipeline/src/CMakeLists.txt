@@ -28,3 +28,10 @@ target_link_libraries(benchmark_pipeline
                         SDDMMlib
                         BenchmarkPipelinelib
 )
+
+# Add generate matrices
+# Add the executable target
+add_executable(generateMatrices matrix_generation/generateMatrices.cpp)
+
+# Link the MatrixLib library to the executable
+target_link_libraries(generateMatrices MatrixLib)

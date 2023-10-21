@@ -5,4 +5,4 @@ SDDMMlib/tests/MatrixLib/cmake
 .vscode/launch.json
 .vscode/tasks.json
 .DS_Store
-benchmark_pipeline/
+benchmark_pipeline/data/

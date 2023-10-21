@@ -4,11 +4,11 @@
 #include <iostream>
 #include <vector>
 
+#include "CSRMatrix.hpp"
 #include "DenseMatrix.hpp"
 
 // Create a dense matrix, write and read from file, and check for equality
-
-int main()
+void mainTest()
 {
     DenseMatrix<double> matrixDouble(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
     DenseMatrix<int> matrixInt(std::vector<std::vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
@@ -60,6 +60,23 @@ int main()
     // remove the temp files
     remove("testDouble.txt");
     remove("testInt.txt");
+}
+
+// test the constructor that converts a matrix in csr into a dense matrix
+void testCsrToDense()
+{
+    std::vector<std::vector<int>> in = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    CSRMatrix<int> matrixCSR(std::vector<std::vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    DenseMatrix<int> matrixDense(matrixCSR);
+    std::vector<std::vector<int>> vals = matrixDense.getValues();
+    // compare both value vectors
+    assert(vals == in && "Incorrect CSR to Dense conversion");
+}
+
+int main()
+{
+    mainTest();
+    testCsrToDense();
 
     return 0;
 }

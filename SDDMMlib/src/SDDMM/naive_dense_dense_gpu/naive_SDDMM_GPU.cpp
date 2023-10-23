@@ -3,18 +3,20 @@
 
 #include <iostream>
 
+#include "naive_dense_dense_gpu/naive_dense_dense.cuh"
+#include "utils.h"
+
 template <typename T>
 void naive_SDDMM_GPU<T>::SDDMM_DENSE(
     const DenseMatrix<T>& matrixA_HOST,
     const DenseMatrix<T>& matrixB_transpose_HOST,
     const DenseMatrix<T>& matrixC_HOST,
-    DenseMatrix<T>& matrixResult_HOST) const
+    DenseMatrix<T>& matrixResult_dense_HOST) const
 {
-    /*
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
-    int m = matrixA.getNumRows();
-    int n = matrixA.getNumCols();
-    int k = matrixB.getNumCols();
+    int m = matrixA_HOST.getNumRows();
+    int n = matrixA_HOST.getNumCols();
+    int k = matrixB_transpose_HOST.getNumCols();
 
     // allocate memory for the matrices on the GPU
     float* matrixA_GPU;
@@ -48,7 +50,7 @@ void naive_SDDMM_GPU<T>::SDDMM_DENSE(
     CUDA_CHECK(
         cudaMemcpy(
             matrixB_transpose_GPU,
-            matrixB_transpose,
+            matrixB_transpose_HOST,
             n * k * sizeof(float),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
@@ -60,7 +62,7 @@ void naive_SDDMM_GPU<T>::SDDMM_DENSE(
     CUDA_CHECK(
         cudaMemcpy(
             matrixResult_GPU,
-            matrixResult,
+            matrixResult_dense_HOST,
             m * n * sizeof(float),
             cudaMemcpyHostToDevice));
 
@@ -70,14 +72,14 @@ void naive_SDDMM_GPU<T>::SDDMM_DENSE(
         n,
         k,
         matrixA_GPU,
-        matriB_transpose_GPU,
+        matrixB_transpose_GPU,
         matrixC_GPU,
         matrixResult_GPU);
 
     // copy result from the GPU
     CUDA_CHECK(
         cudaMemcpy(
-            matrixResult,
+            matrixResult_dense_HOST,
             matrixResult_GPU,
             m * n * sizeof(float),
             cudaMemcpyDeviceToHost));
@@ -96,8 +98,6 @@ void naive_SDDMM_GPU<T>::SDDMM_DENSE(
         cudaFree(
             matrixResult_GPU));
 
-    */
-
     std::cout << "naive_SDDMM was executed :)" << std::endl;
     return;
 }
@@ -109,30 +109,27 @@ void naive_SDDMM_GPU<T>::SDDMM(
     const SparseMatrix<T>& matrixC_HOST,
     SparseMatrix<T>& matrixResult_HOST) const
 {
-    /*
+    // change matrixB_transpose and matrixResult to a dense matrix
+    DenseMatrix<float> matrixC_dense_HOST(matrixC_HOST);
+    DenseMatrix<float> matrixResult_dense_HOST(matrixResult_HOST);
+
     // transpose matrixB to B^t
-    matrixB_transpose =
-
-    // change matrixB and matrixResult to a dense matrix
-
-
+    DenseMatrix<float> matrixB_transpose_HOST;
+    matrixB_transpose_HOST = matrixB_transpose_HOST.transpose();
 
     // call naive_SDDMM_GPU to compute the SDDMM
-    matrixA.SDDMM_DENSE(
-        matrixB_HOST matrixC_HOST,
-         matrixResult,
-         std::bind(
-            &naive_SDDMM_GPU<float>::SDDMM_DENSE,
-             naive_SDDMM_GPU<float>(),
-    std::placeholders::_1,
-     std::placeholders::_2,
-     std::placeholders::_3,
-      std::placeholders::_4));
+    SDDMM_DENSE(
+        matrixA_HOST,
+        matrixB_transpose_HOST,
+        matrixC_dense_HOST,
+        matrixResult_dense_HOST);
 
     // change matrixResult to a sparse matrix
+    CSRMatrix<float> matrixResult_finished_HOST(matrixResult_dense_HOST);
+    matrixResult_HOST = matrixResult_finished_HOST;
 
-    */
-    std::cout << "naive_SDDMM was executed :)" << std::endl;
+    std::cout
+        << "naive_SDDMM was executed :)" << std::endl;
     return;
 }
 

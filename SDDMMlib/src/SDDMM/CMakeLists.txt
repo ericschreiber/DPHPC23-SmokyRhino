@@ -6,7 +6,6 @@ project(SDDMM_CUDA LANGUAGES CXX CUDA)
 
 set(THIRD_PARTY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 
-
 # cuda
 set_source_files_properties(*.cu PROPERTIES LANGUAGE CUDA)
 

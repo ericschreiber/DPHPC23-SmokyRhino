@@ -5,6 +5,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "CSRMatrix.hpp"
+
 template <typename T>
 DenseMatrix<T>::DenseMatrix(int rows, int cols) : numRows(rows),
                                                   numCols(cols),
@@ -19,6 +21,34 @@ DenseMatrix<T>::DenseMatrix(const std::vector<std::vector<T>>& values) : numRows
 {
 }
 
+// constructor to convert CSR matrix to dense matrix
+template <typename T>
+DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
+{
+    this->numRows = csrMatrix.getNumRows();
+    this->numCols = csrMatrix.getNumCols();
+    std::vector<std::vector<T>> vals(this->numRows, std::vector<T>(this->numCols, 0));
+
+    // main loop
+    std::vector<int> rowIndices = csrMatrix.getRowPtr();
+    std::vector<int> columnIndices = csrMatrix.getColIndices();
+    std::vector<T> values = csrMatrix.getValues();
+    for (int rowIndicesArrayRunner = 0; rowIndicesArrayRunner < rowIndices.size(); rowIndicesArrayRunner++)
+    {
+        int num_elems_in_row = rowIndices[rowIndicesArrayRunner + 1] - rowIndices[rowIndicesArrayRunner];
+        for (int i = 0; i < num_elems_in_row; i++)
+        {
+            int index = rowIndices[rowIndicesArrayRunner] + i;  // this index indexes columnIndices and values
+            int column_index = columnIndices[index];
+            int value = values[index];
+            vals[rowIndicesArrayRunner][column_index] = value;
+        }
+        rowIndicesArrayRunner++;
+    }
+
+    this->values = vals;
+}
+
 template <typename T>
 int DenseMatrix<T>::getNumRows() const
 {
@@ -29,6 +59,13 @@ template <typename T>
 int DenseMatrix<T>::getNumCols() const
 {
     return numCols;
+}
+
+// added this, don't see why we should not have it
+template <typename T>
+std::vector<std::vector<T>> DenseMatrix<T>::getValues()
+{
+    return this->values;
 }
 
 template <typename T>
@@ -57,6 +94,26 @@ void DenseMatrix<T>::setValue(int row, int col, T value)
     {
         values[row][col] = value;
     }
+}
+
+// Should this method ever become too slow/consume to much memory implement this:
+// "Use the fact that you are switching positions of only two variables. So you only need a variable to save one, copy the other and save the intermediate to the first position."
+template <typename T>
+void DenseMatrix<T>::transpose()
+{
+    std::vector<std::vector<T>> vals = this->values;
+    std::vector<std::vector<T>> transposedVals(this->numCols, std::vector<T>(this->numRows, 0));
+    for (int i = 0; i < this->numRows; i++)
+    {
+        for (int j = 0; j < this->numCols; j++)
+        {
+            transposedVals[j][i] = vals[i][j];
+        }
+    }
+    this->values = transposedVals;
+    int temp = this->numRows;
+    this->numRows = this->numCols;
+    this->numCols = temp;
 }
 
 template <typename T>

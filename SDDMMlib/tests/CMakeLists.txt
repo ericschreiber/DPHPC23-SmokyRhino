@@ -6,3 +6,4 @@ project(tests)
 
 # Add subdirectories for the library and executable
 add_subdirectory(MatrixLib)
+add_subdirectory(SDDMM)

@@ -6,18 +6,18 @@
 #include "DenseMatrix.hpp"
 
 template <typename T>
-void naive_sequential_full_SDDMM_HOST<T>::SDDMM(const DenseMatrix<T>& x, const DenseMatrix<T>& y, const SparseMatrix<T>& z, SparseMatrix<T>& result) const
+void naive_sequential_full_SDDMM_HOST<T>::SDDMM(
+    const DenseMatrix<T>& x,
+    const DenseMatrix<T>& y,
+    const SparseMatrix<T>& z,
+    SparseMatrix<T>& result) const
 {
     // This is a very dumb implementation, because it samples only AFTER the
     // matrix x matrix multiplication
 
-    std::cout << "entered naive_sequential_full_SDDMM_HOST" << std::endl;
-
     int m = x.getNumRows();
     int n = x.getNumCols();
     int k = y.getNumCols();
-
-    std::cout << "grabbed dimensions" << std::endl;
 
     auto xy = DenseMatrix<T>(m, n);
 
@@ -43,7 +43,24 @@ void naive_sequential_full_SDDMM_HOST<T>::SDDMM(const DenseMatrix<T>& x, const D
     {
         for (int j = z.getRowPtr()[i]; j < z.getRowPtr()[i + 1]; j++)
         {
-            result.getValues()[j] *= z.getValues()[j];
+            std::cout << "entered inner loop" << std::endl;
+            // std::cout << j << std::endl;
+            auto temp = xy.at(i, z.getColIndices()[j]);
+            std::cout << "assigned the temp" << std::endl;
+            // std::cout << z.getValues() << std::endl;
+            std::cout << "values" << std::endl;
+            for (int höck = 0; höck < z.getNumValues(); höck++)
+            {
+                std::cout << z.getValues()[höck] << std::endl;
+            }
+            std::cout << "num Values, num Rows, num cols" << std::endl;
+            std::cout << z.getNumValues() << std::endl;
+            // std::cout << j << std::endl;
+            std::cout << z.getNumRows() << std::endl;
+            std::cout << z.getNumCols() << std::endl;
+
+            result.getValues()[j] = temp * z.getValues()[j];
+            std::cout << "did a thing" << std::endl;
         }
     }
 

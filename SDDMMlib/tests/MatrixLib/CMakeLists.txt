@@ -17,8 +17,6 @@ set(SDDMMLIB_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 add_executable(test_io_dense test_IO_Dense.cpp)
 add_executable(test_io_CSR test_IO_CSR.cpp)
 add_executable(test_SDDMM test_SDDMM.cpp)
-add_executable(test_naive_sequential_full_SDDMM_HOST naive_sequential_full_SDDMM_HOST/test_naive_sequential_full_SDDMM_HOST.cpp)
-add_executable(test_naive_sequential_sampled_SDDMM_HOST naive_sequential_sampled_SDDMM_HOST/test_naive_sequential_sampled_SDDMM_HOST.cpp)
 
 # adding the MatrixLib library
 # add_subdirectory(${SDDMMLIB_ROOT}/src ${CMAKE_CURRENT_BINARY_DIR}/SDDMMlib)
@@ -29,12 +27,6 @@ add_executable(test_naive_sequential_sampled_SDDMM_HOST naive_sequential_sampled
 # Link the library
 target_link_libraries(test_io_dense MatrixLib)
 target_link_libraries(test_io_CSR MatrixLib)
-target_link_libraries(test_naive_sequential_full_SDDMM_HOST
-                        MatrixLib
-                        SDDMMlib)
-target_link_libraries(test_naive_sequential_sampled_SDDMM_HOST
-                        MatrixLib
-                        SDDMMlib)
 target_link_libraries(test_SDDMM 
                         MatrixLib
                         SDDMMlib

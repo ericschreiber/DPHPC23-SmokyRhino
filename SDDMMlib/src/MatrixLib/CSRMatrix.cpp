@@ -14,12 +14,13 @@ CSRMatrix<T>::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols)
     rowPtr.resize(rows + 1, 0);
 }
 
+// this constructor is used to convert a dense matrix to CSR format
 template <typename T>
-CSRMatrix<T>::CSRMatrix(const std::vector<std::vector<T>>& denseMatrix)
+CSRMatrix<T>::CSRMatrix(const DenseMatrix<T>& denseMatrix)
 {
     // Convert a dense matrix to CSR format
-    numRows = denseMatrix.size();
-    numCols = denseMatrix[0].size();
+    numRows = denseMatrix.getNumRows();
+    numCols = denseMatrix.getNumRows();
 
     // Resize the CSR matrix data structures
     values.clear();
@@ -32,9 +33,9 @@ CSRMatrix<T>::CSRMatrix(const std::vector<std::vector<T>>& denseMatrix)
         rowPtr[i] = values.size();
         for (int j = 0; j < numCols; ++j)
         {
-            if (denseMatrix[i][j] != 0.0)
+            if (denseMatrix.at(i, j) != 0.0)
             {
-                values.push_back(denseMatrix[i][j]);
+                values.push_back(denseMatrix.at(i, j));
                 colIndices.push_back(j);
             }
         }
@@ -242,6 +243,24 @@ template <typename T>
 std::vector<int> CSRMatrix<T>::getRowPtr() const
 {
     return rowPtr;
+}
+
+template <typename T>
+void CSRMatrix<T>::setValues(const std::vector<T>& values)
+{
+    this->values = values;
+}
+
+template <typename T>
+void CSRMatrix<T>::setColIndices(const std::vector<int>& colIndices)
+{
+    this->colIndices = colIndices;
+}
+
+template <typename T>
+void CSRMatrix<T>::setRowPtr(const std::vector<int>& rowPtr)
+{
+    this->rowPtr = rowPtr;
 }
 
 // Instantiate the versions of the class that we need

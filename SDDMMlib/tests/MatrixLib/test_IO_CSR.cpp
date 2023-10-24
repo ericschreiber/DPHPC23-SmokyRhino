@@ -5,11 +5,12 @@
 #include <iostream>
 
 #include "CSRMatrix.hpp"
+#include "DenseMatrix.hpp"
 
 int main()
 {
-    CSRMatrix<double> matrixDouble(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    CSRMatrix<int> matrixInt(std::vector<std::vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    CSRMatrix<double> matrixDouble(DenseMatrix(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}));
+    CSRMatrix<int> matrixInt(DenseMatrix(std::vector<std::vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}));
 
     // Write matrixDouble to file
     matrixDouble.writeToFile("testDouble.txt");

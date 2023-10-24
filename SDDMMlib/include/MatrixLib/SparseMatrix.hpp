@@ -32,6 +32,10 @@ class SparseMatrix
         virtual std::vector<T> getValues() const = 0;
         virtual std::vector<int> getColIndices() const = 0;
         virtual std::vector<int> getRowPtr() const = 0;
+
+        virtual void setValues(const std::vector<T>& values) = 0;
+        virtual void setColIndices(const std::vector<int>& colIndices) = 0;
+        virtual void setRowPtr(const std::vector<int>& rowPtr) = 0;
 };
 
 #endif  // SPARSE_MATRIX_HPP

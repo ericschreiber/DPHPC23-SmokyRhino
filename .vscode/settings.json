@@ -80,4 +80,5 @@
         "__string": "cpp",
         "chrono": "cpp"
     },
+    "cmake.sourceDirectory": "${workspaceFolder}"
 }

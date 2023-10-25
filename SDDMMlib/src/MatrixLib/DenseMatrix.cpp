@@ -33,9 +33,9 @@ DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
     std::vector<std::vector<T>> vals(this->numRows, std::vector<T>(this->numCols, 0));
 
     // main loop
-    std::vector<int> rowIndices = csrMatrix.getRowPtr();
-    std::vector<int> columnIndices = csrMatrix.getColIndices();
-    std::vector<T> values = csrMatrix.getValues();
+    const std::vector<int>& rowIndices = csrMatrix.getRowPtr();
+    const std::vector<int>& columnIndices = csrMatrix.getColIndices();
+    const std::vector<T>& values = csrMatrix.getValues();
     for (int rowIndicesArrayRunner = 0; rowIndicesArrayRunner < rowIndices.size(); rowIndicesArrayRunner++)
     {
         int num_elems_in_row = rowIndices[rowIndicesArrayRunner + 1] - rowIndices[rowIndicesArrayRunner];
@@ -46,7 +46,6 @@ DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
             int value = values[index];
             vals[rowIndicesArrayRunner][column_index] = value;
         }
-        rowIndicesArrayRunner++;
     }
 
     this->values = vals;
@@ -66,7 +65,7 @@ int DenseMatrix<T>::getNumCols() const
 
 // added this, don't see why we should not have it
 template <typename T>
-std::vector<std::vector<T>> DenseMatrix<T>::getValues()
+const std::vector<std::vector<T>>& DenseMatrix<T>::getValues()
 {
     return this->values;
 }

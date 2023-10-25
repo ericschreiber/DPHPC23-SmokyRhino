@@ -80,5 +80,5 @@
         "__string": "cpp",
         "chrono": "cpp"
     },
-    "cmake.sourceDirectory": "/Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline"
+    "cmake.sourceDirectory": "${workspaceFolder}"
 }

@@ -27,6 +27,7 @@ CSRMatrix<T>::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols)
     rowPtr.resize(rows + 1, 0);
 }
 
+// this constructor is used to convert a dense matrix to CSR format
 template <typename T>
 CSRMatrix<T>::CSRMatrix(const DenseMatrix<T>& denseMatrix)
 {

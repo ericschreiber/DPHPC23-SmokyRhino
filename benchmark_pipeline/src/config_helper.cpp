@@ -9,10 +9,11 @@
 //
 // The format of the config file is as follows:
 // - Each line contains a function class and a dataset separated by a comma
+// - The dataset is comprised of 3 paths separated by a comma
 //
 // *************************************************************************************************
 
-void read_config_file(std::string config_file_path, std::vector<std::tuple<std::string, std::string>>& functions_to_run)
+void read_config_file(std::string config_file_path, std::vector<std::tuple<std::string, dataset_paths>>& functions_to_run)
 {
     assert(check_config_file(config_file_path));
     // Open the file for reading
@@ -37,10 +38,13 @@ void read_config_file(std::string config_file_path, std::vector<std::tuple<std::
         std::string cell;
         while (std::getline(line_stream, cell, ','))
         {
+            // Remove all whitespace from the cell
+            cell.erase(std::remove_if(cell.begin(), cell.end(), ::isspace), cell.end());
             line_split.push_back(cell);
         }
         // Add the line to the list of functions to run
-        functions_to_run.push_back(std::make_tuple(line_split[0], line_split[1]));
+        dataset_paths dataset = dataset_paths(line_split[1], line_split[2], line_split[3]);
+        functions_to_run.push_back(std::make_tuple(line_split[0], dataset));
     }
     // Close the file
     config_file.close();
@@ -50,11 +54,12 @@ void read_config_file(std::string config_file_path, std::vector<std::tuple<std::
 //
 // The format of the config file is as follows:
 // - Each line contains a function class and a dataset separated by a comma
+// - The dataset is comprised of 3 paths separated by a comma
 //
 // We check the following:
 // - The file can be opened
 // - The file is not empty
-// - Each line has two values separated by a comma
+// - Each line has four values separated by a comma
 //
 // *************************************************************************************************
 bool check_config_file(std::string config_file_path)
@@ -95,7 +100,7 @@ bool check_config_file(std::string config_file_path)
         {
             line_split.push_back(cell);
         }
-        if (line_split.size() != 2)
+        if (line_split.size() != 4)
         {
             std::cerr << "Invalid line in config file: " << line << std::endl;
             return false;

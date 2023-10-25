@@ -15,7 +15,8 @@ runner<T>::runner(std::string config_file_path, std::string out_path)
     std::string command = "mkdir -p " + out_path;
     system(command.c_str());
     _out_path = out_path;
-    _results_file_path = _out_path + "/results.csv";
+    // Create a results file with results_timestamp.csv
+    _results_file_path = _out_path + "/results_" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count()) + ".csv";
     std::ofstream results_file(_results_file_path);
     results_file << "function,dataset,result" << std::endl;
     results_file.close();
@@ -36,26 +37,19 @@ void runner<T>::run()
     DenseMatrix<T> matrixC = DenseMatrix<T>();
     CSRMatrix<T> calculatedSolution;
 
-    std::string dataset_before = "";
+    dataset_paths dataset_before = dataset_paths();
     for (auto& function_to_run : _functions_to_run)
     {
         // Get the function class and dataset
         std::string function_class = std::get<0>(function_to_run);
-        std::string dataset = std::get<1>(function_to_run);
+        dataset_paths dataset = std::get<1>(function_to_run);
         SDDMMlib<T>* class_to_run = get_implemented_class<T>(function_class);
         // Check if the dataset has changed
         if (dataset != dataset_before)
         {
-            // Read the dataset
-            // ************************************************************
-            // TODO: Implement this
-            // ************************************************************
-            // For the moment we just initialize the matrices here
-            std::cout << "!!!!!!PLEASE IMPLEMENT MATRIX LOADING!!!!!!" << std::endl;
-            matrixA.readFromFile("/Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/csrmatrix_test.txt");
-            matrixB.readFromFile("/Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/densematrix_test.txt");
-            matrixC.readFromFile("/Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/densematrix_test.txt");
-
+            matrixA.readFromFile(dataset.SparseMatrix_path);
+            matrixB.readFromFile(dataset.DenseMatrixA_path);
+            matrixC.readFromFile(dataset.DenseMatrixB_path);
             dataset_before = dataset;
         }
         // Time the function
@@ -90,7 +84,7 @@ void runner<T>::init_result_file()
 {
     // Create the results file
     std::ofstream results_file(_results_file_path);
-    results_file << "function,dataset,result" << std::endl;
+    results_file << "function,path/to/first/dense/matrix,path/to/second/dense/matrix,path/to/first/sparse/matrix,result" << std::endl;
     results_file.close();
 }
 
@@ -98,15 +92,20 @@ template <typename T>
 void runner<T>::write_result()
 {
     // Write the last result to the results file
-    // The structure is string, string, vector<double>
+    // The structure is string, string, string, string, vector<double>
+    auto last_result = _results.back();
     std::string durations_string = "";
-    for (auto& duration : std::get<2>(_results.back()))
+    for (auto& duration : std::get<2>(last_result))
     {
         durations_string += std::to_string(duration) + ",";
     }
+    dataset_paths dataset = std::get<1>(last_result);
+    std::string dataset_string = dataset.DenseMatrixA_path + "," +
+                                 dataset.DenseMatrixB_path + "," +
+                                 dataset.SparseMatrix_path;
     std::ofstream results_file(_results_file_path, std::ios::app);
-    results_file << std::get<0>(_results.back()) << ","
-                 << std::get<1>(_results.back()) << ","
+    results_file << std::get<0>(last_result) << ","
+                 << dataset_string << ","
                  << durations_string << std::endl;
 }
 

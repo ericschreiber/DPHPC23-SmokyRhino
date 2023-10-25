@@ -1,6 +1,7 @@
 #ifndef RUNNER_HPP
 #define RUNNER_HPP
 
+#include <dataset_paths.hpp>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -22,13 +23,13 @@ class runner
         std::string _results_file_path;
         // A list of tuples to be run. Each tuple contains:
         // - The name of the function class to be run
-        // - The name of the dataset to be used
-        std::vector<std::tuple<std::string, std::string>> _functions_to_run;
+        // - an instance of dataset_paths
+        std::vector<std::tuple<std::string, dataset_paths>> _functions_to_run;
         // A list of tuples containing the results of the runs. Each tuple contains:
         // - The name of the function class that was run
         // - The name of the dataset that was used
         // - Where the results are stored
-        std::vector<std::tuple<std::string, std::string, std::vector<double>>> _results;
+        std::vector<std::tuple<std::string, dataset_paths, std::vector<double>>> _results;
 };
 
 #endif  // RUNNER_HPP

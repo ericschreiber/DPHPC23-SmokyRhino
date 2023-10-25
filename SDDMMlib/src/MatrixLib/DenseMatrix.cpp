@@ -129,15 +129,11 @@ template <typename T>
 void DenseMatrix<T>::readFromFile(const std::string& filePath)
 {
     std::ifstream file(filePath);
-    if (!file.is_open())
-    {
-        std::cerr << "Error: Could not open file for reading: " << filePath << std::endl;
-        return;
-    }
+    assert(file.is_open() && "Error: Could not open file for reading");
 
     std::string datatype;
 
-    // Read numRows, numCols, datatype
+    // Read numRows, numCols, datatype and they are separated by a comma
     file >> numRows >> numCols >> datatype;
     values.resize(numRows, std::vector<T>(numCols, T()));
 
@@ -145,7 +141,7 @@ void DenseMatrix<T>::readFromFile(const std::string& filePath)
     if (datatype != typeid(T).name())
     {
         std::cerr << "Error: Datatype in file does not match the datatype of the matrix. Is: " << datatype << " Should be: " << typeid(T).name() << std::endl;
-        return;
+        assert(false);
     }
 
     // Read the values

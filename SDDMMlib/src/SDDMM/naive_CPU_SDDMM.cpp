@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 #include "CSRMatrix.hpp"
 
@@ -13,52 +14,48 @@ void naive_CPU_SDDMM<T>::SDDMM(
     const SparseMatrix<T>& z,
     SparseMatrix<T>& result) const
 {
-    // Dense-Dense multiplication
+    // SDDMM Sampled implementation:
 
-    if (x.getNumCols() != y.getNumCols())
+    std::vector<int> RowPtr = z.getRowPtr();
+    std::vector<int> ColIndices = z.getColIndices();
+    std::vector<T> values = z.getValues();
+    std::vector<int> calcRowPtr = {0};
+    std::vector<int> calcColIndices;
+    std::vector<T> calcValues;
+    T XY_element, h;
+    int start_el, end_el, col, row = 0;
+
+    // Iterating over RowPointer
+    for (int row_i = 0; row_i < RowPtr.size() - 1; row_i++)
     {
-        throw std::length_error("Error: The dimensions of your matrices x and y don't match");
-    }
+        start_el = RowPtr[row_i];
+        end_el = RowPtr[row_i + 1];
 
-    DenseMatrix<double> XY(x.getNumRows(), y.getNumRows());
-    int XY_element = 0;
-
-    for (int i = 0; i < x.getNumRows(); i++)
-    {
-        for (int j = 0; j < y.getNumRows(); j++)
+        // Iterating over values and their column in a row
+        for (int i = start_el; i < end_el; i++)
         {
             XY_element = 0;
-            for (int k = 0; k < y.getNumCols(); k++)
+            col = ColIndices[i];
+            // Iterating over K
+            for (int k = 0; k < x.getNumCols(); k++)
             {
-                XY_element += x.at(i, k) * y.at(j, k);
+                XY_element += x.at(row, k) * y.at(col, k);
             }
-            XY.setValue(i, j, XY_element);
-        }
-    }
-
-    if (XY.getNumCols() != z.getNumRows())
-    {
-        throw std::length_error("Error: The dimensions of your matrices XY and z don't match");
-    }
-
-    DenseMatrix<double> XYZ(XY.getNumRows(), z.getNumCols());
-    int XYZ_element = 0;
-    // Dense-Sparse Multiplication
-
-    for (int i = 0; i < XY.getNumRows(); i++)
-    {
-        for (int j = 0; j < z.getNumCols(); j++)
-        {
-            XYZ_element = 0;
-            for (int k = 0; k < z.getNumRows(); k++)
+            // Hadamard product
+            h = values[i] * XY_element;
+            if (h != 0)
             {
-                XYZ_element += XY.at(i, k) * z.at(k, j);
+                calcValues.push_back(h);
+                calcColIndices.push_back(col);
             }
-            std::cout << XYZ_element << " ";
-            XYZ.setValue(i, j, XYZ_element);
         }
-        std::cout << std::endl;
+        calcRowPtr.push_back(calcValues.size());
+        row += 1;
     }
+
+    result.setValues(calcValues);
+    result.setColIndices(calcColIndices);
+    result.setRowPtr(calcRowPtr);
 
     return;
 }

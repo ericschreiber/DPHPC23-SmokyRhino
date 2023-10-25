@@ -1,6 +1,7 @@
 // DenseMatrix.cpp
 #include "DenseMatrix.hpp"
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -97,23 +98,66 @@ void DenseMatrix<T>::setValue(int row, int col, T value)
 }
 
 // Should this method ever become too slow/consume to much memory implement this:
-// "Use the fact that you are switching positions of only two variables. So you only need a variable to save one, copy the other and save the intermediate to the first position."
+// The unnecesary extra storage created for a MxK matrix given M>K is M*K-K^2. So bad for long and thin matrices.
+// Improve by inserting and cuting out as you go.
 template <typename T>
 void DenseMatrix<T>::transpose()
 {
-    std::vector<std::vector<T>> vals = this->values;
-    std::vector<std::vector<T>> transposedVals(this->numCols, std::vector<T>(this->numRows, 0));
-    for (int i = 0; i < this->numRows; i++)
-    {
-        for (int j = 0; j < this->numCols; j++)
+    T min = std::min(this->numCols, this->numRows);
+    T temp;
+
+    if (this->numRows < this->numCols)
+    {  // append rows
+        for (int i = this->numRows; i < this->numCols; i++)
         {
-            transposedVals[j][i] = vals[i][j];
+            this->values.push_back(std::vector<T>());
+
+            for (int j = 0; j < this->numRows; j++)
+            {
+                this->values[i].push_back(this->values[j][i]);
+            }
+        }
+
+        // delete elements in row:
+        for (int i = 0; i < this->numRows; i++)
+        {
+            for (int j = this->numRows; j < this->numCols; j++)
+            {
+                this->values[i].pop_back();
+            }
         }
     }
-    this->values = transposedVals;
-    int temp = this->numRows;
-    this->numRows = this->numCols;
-    this->numCols = temp;
+    else if (this->numCols < this->numRows)
+    {
+        // append end numbers:
+        for (int i = 0; i < this->numCols; i++)
+        {
+            for (int j = this->numCols; j < this->numRows; j++)
+            {
+                this->values[i].push_back(this->values[j][i]);
+            }
+        }
+        // remove end rows
+        for (int i = this->numCols; i < this->numRows; i++)
+        {
+            this->values.pop_back();
+        }
+    }
+
+    // Shift core
+    for (int i = 0; i < min; i++)
+    {
+        for (int j = i + 1; j < min; j++)
+        {
+            temp = this->values[i][j];
+            this->values[i][j] = this->values[j][i];
+            this->values[j][i] = temp;
+        }
+    }
+
+    temp = this->numCols;
+    this->numCols = this->numRows;
+    this->numRows = temp;
 }
 
 template <typename T>

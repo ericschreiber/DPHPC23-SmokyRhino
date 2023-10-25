@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "C/C++: clang build and debug active file",
+            "name": "C/C++: cpp build and debug active file",
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
@@ -11,8 +11,8 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb",
-            "preLaunchTask": "C/C++: clang build active file"
-        }
+            "preLaunchTask": "C/C++: cpp build active file"
+        },
     ],
     "version": "2.0.0"
 }

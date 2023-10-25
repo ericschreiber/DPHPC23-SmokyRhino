@@ -8,11 +8,11 @@
 
 int main()
 {
-    CSRMatrix<double> matrixA(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    CSRMatrix<double> matrixA(DenseMatrix(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}));
     DenseMatrix<double> matrixB(std::vector<std::vector<double>>{{1}, {2}, {3}});
     DenseMatrix<double> matrixC(std::vector<std::vector<double>>{{1}, {2}, {3}});
-    CSRMatrix<double> calculatedSolution(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
-    CSRMatrix<double> expectedSolution(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
+    CSRMatrix<double> calculatedSolution(DenseMatrix(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+    CSRMatrix<double> expectedSolution(DenseMatrix(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
 
     // Call multiply and pass the multiplication function from the library
     matrixA.SDDMM(

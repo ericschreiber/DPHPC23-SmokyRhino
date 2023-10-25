@@ -15,6 +15,7 @@ class DenseMatrix
 {
     public:
         // Constructors
+        DenseMatrix();
         DenseMatrix(int rows, int cols);                         // Constructor for an empty dense matrix
         DenseMatrix(const std::vector<std::vector<T>>& values);  // Copy constructor
         DenseMatrix(CSRMatrix<T>& csrMatrix);                    // constructor to convert CSR matrix to dense matrix

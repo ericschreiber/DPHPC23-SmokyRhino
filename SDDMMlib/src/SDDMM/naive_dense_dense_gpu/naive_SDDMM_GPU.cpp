@@ -114,8 +114,8 @@ void naive_SDDMM_GPU<T>::SDDMM(
     DenseMatrix<float> matrixResult_dense_HOST(matrixResult_HOST);
 
     // transpose matrixB to B^t
-    DenseMatrix<float> matrixB_transpose_HOST;
-    matrixB_transpose_HOST = matrixB_transpose_HOST.transpose();
+    DenseMatrix<float> matrixB_transpose_HOST();
+    matrixB_transpose_HOST = matrixB_HOST.transpose();
 
     // call naive_SDDMM_GPU to compute the SDDMM
     SDDMM_DENSE(

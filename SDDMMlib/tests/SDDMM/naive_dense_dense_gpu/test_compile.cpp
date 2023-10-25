@@ -8,16 +8,45 @@
 
 int main()
 {
-    CSRMatrix<float> matrixA_HOST(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    DenseMatrix<float> matrixB_HOST(std::vector<std::vector<float>>{{1}, {2}, {3}});
-    DenseMatrix<float> matrixC_HOST(std::vector<std::vector<float>>{{1}, {2}, {3}});
-    CSRMatrix<float> calculatedSolution_HOST(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
-    CSRMatrix<float> expectedSolution_HOST(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
+    // matrixC
+    std::vector<std::vector<float>> matrixC = {
+        {1.1, 2.2, 3.3},
+        {4.4, 5.5, 6.6},
+        {7.7, 8.8, 9.9}};
+    DenseMatrix<float> matrixC_Dense(matrixC);
+    CSRMatrix<float> matrixC_HOST(matrixC_Dense);
+
+    // matrixA
+    std::vector<std::vector<float>> matrixA = {
+        {2.0, 4.0, 6.0},
+        {8.0, 10.0, 12.0},
+        {14.0, 16.0, 18.0}};
+    DenseMatrix<float> matrixA_HOST(matrixA);
+
+    // matrixB
+    std::vector<std::vector<float>> matrixB = {
+        {0.5, 1.0, 1.5},
+        {2.0, 2.5, 3.0},
+        {3.5, 4.0, 4.5}};
+    DenseMatrix<float> matrixB_HOST(matrixB);
+
+    // matrixcalculatedSolution
+    std::vector<std::vector<float>> zeroMatrix(3, std::vector<float>(3, 0.0));
+    DenseMatrix<float> matrix_Zeroes(zeroMatrix);
+    CSRMatrix<float> calculatedSolution_HOST(matrix_Zeroes);
+
+    // expectedSolution
+    std::vector<std::vector<float>> solution = {
+        {30.25, 83.6, 158.85},
+        {297.8, 506, 763.2},
+        {825.45, 1280.8, 1838.95}};
+    DenseMatrix<float> expectedSolution_Dense(solution);
+    CSRMatrix<float> expectedSolution_HOST(expectedSolution_Dense);
 
     // Call multiply and pass the multiplication function from the library
-    matrixA_HOST.SDDMM(
+    matrixC_HOST.SDDMM(
+        matrixA_HOST,
         matrixB_HOST,
-        matrixC_HOST,
         calculatedSolution_HOST,
         std::bind(
             &naive_SDDMM_GPU<float>::SDDMM,

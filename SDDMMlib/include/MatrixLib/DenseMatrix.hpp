@@ -11,13 +11,16 @@ template <typename T>
 class CSRMatrix;
 
 template <typename T>
+class SparseMatrix;
+
+template <typename T>
 class DenseMatrix
 {
     public:
         // Constructors
         DenseMatrix(int rows, int cols);                         // Constructor for an empty dense matrix
         DenseMatrix(const std::vector<std::vector<T>>& values);  // Copy constructor
-        DenseMatrix(CSRMatrix<T>& csrMatrix);                    // constructor to convert CSR matrix to dense matrix
+        DenseMatrix(SparseMatrix<T>& sparseMatrix);              // constructor to convert sparse matrix to dense matrix
 
         int getNumRows() const;
         int getNumCols() const;
@@ -30,6 +33,7 @@ class DenseMatrix
         void writeToFile(const std::string& filePath) const;
 
     private:
+        void convert_csr_dense(CSRMatrix<T>& csrMatrix);  // constructor to convert CSR matrix to dense matrix
         std::vector<std::vector<T>> values;
         int numRows;
         int numCols;

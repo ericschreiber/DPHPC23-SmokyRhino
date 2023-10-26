@@ -22,10 +22,10 @@ DenseMatrix<T>::DenseMatrix(const std::vector<std::vector<T>>& values) : numRows
 }
 
 template <typename T>
-DenseMatrix<T>::DenseMatrix(SparseMatrix<T>& sparseMatrix)
+DenseMatrix<T>::DenseMatrix(const SparseMatrix<T>& sparseMatrix)
 {
     // Check if SparseMatrix is a CSRMatrix
-    CSRMatrix<T>* csrMatrix = dynamic_cast<CSRMatrix<T>*>(&sparseMatrix);
+    const CSRMatrix<T>* csrMatrix = dynamic_cast<const CSRMatrix<T>*>(&sparseMatrix);
     if (csrMatrix == nullptr)
     {
         throw std::invalid_argument("Error: DenseMatrix::DenseMatrix(SparseMatrix<T>& sparseMatrix) only accepts CSRMatrix<T> as input");
@@ -38,7 +38,7 @@ DenseMatrix<T>::DenseMatrix(SparseMatrix<T>& sparseMatrix)
 
 // constructor to convert CSR matrix to dense matrix
 template <typename T>
-void DenseMatrix<T>::convert_csr_dense(CSRMatrix<T>& csrMatrix)
+void DenseMatrix<T>::convert_csr_dense(const CSRMatrix<T>& csrMatrix)
 {
     this->numRows = csrMatrix.getNumRows();
     this->numCols = csrMatrix.getNumCols();

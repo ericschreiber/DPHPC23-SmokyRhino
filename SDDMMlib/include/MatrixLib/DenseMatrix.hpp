@@ -21,6 +21,7 @@ class DenseMatrix
         DenseMatrix(int rows, int cols);                         // Constructor for an empty dense matrix
         DenseMatrix(const std::vector<std::vector<T>>& values);  // Copy constructor
         DenseMatrix(const SparseMatrix<T>& sparseMatrix);        // constructor to convert sparse matrix to dense matrix
+        DenseMatrix(const DenseMatrix<T>& denseMatrix);          // Copy constructor
 
         int getNumRows() const;
         int getNumCols() const;

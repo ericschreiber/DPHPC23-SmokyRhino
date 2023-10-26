@@ -25,6 +25,13 @@ DenseMatrix<T>::DenseMatrix(
 }
 
 template <typename T>
+DenseMatrix<T>::DenseMatrix(const DenseMatrix<T>& denseMatrix) : numRows(denseMatrix.getNumRows()),
+                                                                 numCols(denseMatrix.getNumCols()),
+                                                                 values(denseMatrix.getValues())
+{
+}
+
+template <typename T>
 DenseMatrix<T>::DenseMatrix(const SparseMatrix<T>& sparseMatrix)
 {
     // Check if SparseMatrix is a CSRMatrix

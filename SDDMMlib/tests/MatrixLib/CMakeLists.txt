@@ -3,7 +3,7 @@
 # cmake --build . -j20 # -j20 is optional and limiting the number of threads, Compile time ~20 min 
 
 cmake_minimum_required(VERSION 3.25)
-set(CMAKE_CXX_STANDARD 17)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # create compile_commands.json file
 
 project(testcasesMatrixLib)

@@ -2,16 +2,18 @@
 #include "naive_dense_dense_gpu/naive_SDDMM_GPU.hpp"
 
 #include <iostream>
+#include <type_traits>
+#include <typeinfo>
 
 #include "naive_dense_dense_gpu/naive_dense_dense.cuh"
 #include "utils.h"
 
-template <typename T>
-void naive_SDDMM_GPU<T>::SDDMM_DENSE(
-    const DenseMatrix<T>& matrixA_HOST,
-    const DenseMatrix<T>& matrixB_transpose_HOST,
-    const DenseMatrix<T>& matrixC_HOST,
-    DenseMatrix<T>& matrixResult_dense_HOST) const
+template <>
+void naive_SDDMM_GPU<float>::SDDMM_DENSE(
+    const DenseMatrix<float>& matrixA_HOST,
+    const DenseMatrix<float>& matrixB_transpose_HOST,
+    const DenseMatrix<float>& matrixC_HOST,
+    DenseMatrix<float>& matrixResult_dense_HOST) const
 {
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
     int m = matrixA_HOST.getNumRows();
@@ -44,25 +46,25 @@ void naive_SDDMM_GPU<T>::SDDMM_DENSE(
     CUDA_CHECK(
         cudaMemcpy(
             matrixA_GPU,
-            matrixA_HOST,
+            &matrixA_HOST,
             m * k * sizeof(float),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
             matrixB_transpose_GPU,
-            matrixB_transpose_HOST,
+            &matrixB_transpose_HOST,
             n * k * sizeof(float),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
             matrixC_GPU,
-            matrixC_HOST,
+            &matrixC_HOST,
             m * n * sizeof(float),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
             matrixResult_GPU,
-            matrixResult_dense_HOST,
+            &matrixResult_dense_HOST,
             m * n * sizeof(float),
             cudaMemcpyHostToDevice));
 
@@ -79,7 +81,7 @@ void naive_SDDMM_GPU<T>::SDDMM_DENSE(
     // copy result from the GPU
     CUDA_CHECK(
         cudaMemcpy(
-            matrixResult_dense_HOST,
+            &matrixResult_dense_HOST,
             matrixResult_GPU,
             m * n * sizeof(float),
             cudaMemcpyDeviceToHost));
@@ -102,12 +104,12 @@ void naive_SDDMM_GPU<T>::SDDMM_DENSE(
     return;
 }
 
-template <typename T>
-void naive_SDDMM_GPU<T>::SDDMM_CSR(
-    const DenseMatrix<T>& matrixA_HOST,
-    const DenseMatrix<T>& matrixB_HOST,
-    const CSRMatrix<T>& matrixC_HOST,
-    CSRMatrix<T>& matrixResult_HOST) const
+template <>
+void naive_SDDMM_GPU<float>::SDDMM_CSR(
+    const DenseMatrix<float>& matrixA_HOST,
+    const DenseMatrix<float>& matrixB_HOST,
+    const CSRMatrix<float>& matrixC_HOST,
+    CSRMatrix<float>& matrixResult_HOST) const
 {
     // change matrixB_transpose and matrixResult to a dense matrix
     DenseMatrix<float> matrixC_dense_HOST(matrixC_HOST);
@@ -125,12 +127,52 @@ void naive_SDDMM_GPU<T>::SDDMM_CSR(
         matrixResult_dense_HOST);
 
     // change matrixResult to a sparse matrix
-    CSRMatrix<float> matrixResult_finished_HOST(matrixResult_dense_HOST);
+    CSRMatrix<float>
+        matrixResult_finished_HOST(matrixResult_dense_HOST);
     matrixResult_HOST = matrixResult_finished_HOST;
 
     std::cout
         << "naive_SDDMM was executed :)" << std::endl;
     return;
+}
+
+template <>
+void naive_SDDMM_GPU<float>::SDDMM(
+    const DenseMatrix<float>& matrixA_HOST,
+    const DenseMatrix<float>& matrixB_HOST,
+    const SparseMatrix<float>& matrixC_HOST,
+    SparseMatrix<float>& matrixResult_HOST) const
+{
+    static_assert(std::is_same<T, float>::value, "Error: naive_SDDMM_GPU only accepts float as input");
+    const CSRMatrix<T>* csrMatrixC = dynamic_cast<const CSRMatrix<T>*>(&matrixC_HOST);
+    CSRMatrix<T>* csrMatrixResult = dynamic_cast<CSRMatrix<T>*>(&matrixResult_HOST);
+    if (csrMatrixC == nullptr || csrMatrixResult == nullptr)
+    {
+        throw std::invalid_argument("Error: conver Sparse to CSR before using this function");
+    }
+    else
+    {
+        // check the typename to be float
+        if (typeid(T) != typeid(float))
+        {
+            throw std::invalid_argument("Error: naive_SDDMM_GPU only accepts float as input");
+        }
+        else
+        {
+            if (std::is_floating_point<T>::value)
+            {
+                SDDMM_CSR(
+                    matrixA_HOST,
+                    matrixB_HOST,
+                    *csrMatrixC,
+                    *csrMatrixResult);
+            }
+            else
+            {
+                throw std::invalid_argument("Error: naive_SDDMM_GPU only accepts float as input");
+            }
+        }
+    }
 }
 
 template <typename T>
@@ -140,20 +182,7 @@ void naive_SDDMM_GPU<T>::SDDMM(
     const SparseMatrix<T>& matrixC_HOST,
     SparseMatrix<T>& matrixResult_HOST) const
 {
-    const CSRMatrix<T>* csrMatrixC = dynamic_cast<const CSRMatrix<T>*>(&matrixC_HOST);
-    CSRMatrix<T>* csrMatrixResult = dynamic_cast<CSRMatrix<T>*>(&matrixResult_HOST);
-    if (csrMatrixC == nullptr || csrMatrixResult == nullptr)
-    {
-        throw std::invalid_argument("Error: conver Sparse to CSR before using this function");
-    }
-    else
-    {
-        SDDMM_CSR(
-            matrixA_HOST,
-            matrixB_HOST,
-            *csrMatrixC,
-            *csrMatrixResult);
-    }
+    assert(false && "function only implemented for float")
 }
 
 // Explicit template instantiation

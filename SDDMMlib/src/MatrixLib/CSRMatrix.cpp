@@ -263,6 +263,21 @@ void CSRMatrix<T>::setRowPtr(const std::vector<int>& rowPtr)
     this->rowPtr = rowPtr;
 }
 
+template <typename T>
+std::vector<int> CSRMatrix<T>::getCOORows() const
+{
+    std::vector<int> coo_rows = (values.size())
+
+        for (int i = 0; i < numRows; i++)
+    {
+        for (int j = rowPtr[i]; j < rowPtr[i + 1]; j++)
+        {
+            coo_rows[j] = i;
+        }
+    }
+    return coo_rows;
+}
+
 // Instantiate the versions of the class that we need
 template class CSRMatrix<float>;
 template class CSRMatrix<double>;

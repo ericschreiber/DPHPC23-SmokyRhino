@@ -46,6 +46,7 @@ class CSRMatrix : virtual public SparseMatrix<T>
         virtual std::vector<T> getValues() const override;
         virtual std::vector<int> getColIndices() const override;
         virtual std::vector<int> getRowPtr() const override;
+        virtual std::vector<int> getCOORows() const override;
 
         virtual void setValues(const std::vector<T>& values) override;
         virtual void setColIndices(const std::vector<int>& colIndices) override;

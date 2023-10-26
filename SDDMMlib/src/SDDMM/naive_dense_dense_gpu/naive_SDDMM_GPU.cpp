@@ -8,7 +8,6 @@
 #include "naive_dense_dense_gpu/naive_dense_dense.cuh"
 #include "utils.h"
 
-template <>
 void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_transpose_HOST,
@@ -104,7 +103,6 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     return;
 }
 
-template <>
 void naive_SDDMM_GPU<float>::SDDMM_CSR(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
@@ -136,42 +134,25 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
     return;
 }
 
-template <>
 void naive_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
     SparseMatrix<float>& matrixResult_HOST) const
 {
-    static_assert(std::is_same<T, float>::value, "Error: naive_SDDMM_GPU only accepts float as input");
-    const CSRMatrix<T>* csrMatrixC = dynamic_cast<const CSRMatrix<T>*>(&matrixC_HOST);
-    CSRMatrix<T>* csrMatrixResult = dynamic_cast<CSRMatrix<T>*>(&matrixResult_HOST);
+    const CSRMatrix<float>* csrMatrixC = dynamic_cast<const CSRMatrix<float>*>(&matrixC_HOST);
+    CSRMatrix<float>* csrMatrixResult = dynamic_cast<CSRMatrix<float>*>(&matrixResult_HOST);
     if (csrMatrixC == nullptr || csrMatrixResult == nullptr)
     {
-        throw std::invalid_argument("Error: conver Sparse to CSR before using this function");
+        throw std::invalid_argument("Error: convert Sparse to CSR before using this function");
     }
     else
     {
-        // check the typename to be float
-        if (typeid(T) != typeid(float))
-        {
-            throw std::invalid_argument("Error: naive_SDDMM_GPU only accepts float as input");
-        }
-        else
-        {
-            if (std::is_floating_point<T>::value)
-            {
-                SDDMM_CSR(
-                    matrixA_HOST,
-                    matrixB_HOST,
-                    *csrMatrixC,
-                    *csrMatrixResult);
-            }
-            else
-            {
-                throw std::invalid_argument("Error: naive_SDDMM_GPU only accepts float as input");
-            }
-        }
+        SDDMM_CSR(
+            matrixA_HOST,
+            matrixB_HOST,
+            *csrMatrixC,
+            *csrMatrixResult);
     }
 }
 
@@ -182,10 +163,10 @@ void naive_SDDMM_GPU<T>::SDDMM(
     const SparseMatrix<T>& matrixC_HOST,
     SparseMatrix<T>& matrixResult_HOST) const
 {
-    assert(false && "function only implemented for float")
+    assert(false && "Error: naive_SDDMM_GPU::SDDMM() only accepts float as input. Other types are not supported");
 }
 
 // Explicit template instantiation
-template class naive_SDDMM_GPU<float>;
+// template class naive_SDDMM_GPU<float>;
 template class naive_SDDMM_GPU<double>;
 template class naive_SDDMM_GPU<int>;

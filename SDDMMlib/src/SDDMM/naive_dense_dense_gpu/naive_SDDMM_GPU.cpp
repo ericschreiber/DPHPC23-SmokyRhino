@@ -103,11 +103,11 @@ void naive_SDDMM_GPU<T>::SDDMM_DENSE(
 }
 
 template <typename T>
-void naive_SDDMM_GPU<T>::SDDMM(
+void naive_SDDMM_GPU<T>::SDDMM_CSR(
     const DenseMatrix<T>& matrixA_HOST,
     const DenseMatrix<T>& matrixB_HOST,
-    const SparseMatrix<T>& matrixC_HOST,
-    SparseMatrix<T>& matrixResult_HOST) const
+    const CSRMatrix<T>& matrixC_HOST,
+    CSRMatrix<T>& matrixResult_HOST) const
 {
     // change matrixB_transpose and matrixResult to a dense matrix
     DenseMatrix<float> matrixC_dense_HOST(matrixC_HOST);
@@ -131,6 +131,29 @@ void naive_SDDMM_GPU<T>::SDDMM(
     std::cout
         << "naive_SDDMM was executed :)" << std::endl;
     return;
+}
+
+template <typename T>
+void naive_SDDMM_GPU<T>::SDDMM(
+    const DenseMatrix<T>& matrixA_HOST,
+    const DenseMatrix<T>& matrixB_HOST,
+    const SparseMatrix<T>& matrixC_HOST,
+    SparseMatrix<T>& matrixResult_HOST) const
+{
+    const CSRMatrix<T>* csrMatrixC = dynamic_cast<const CSRMatrix<T>*>(&matrixC_HOST);
+    CSRMatrix<T>* csrMatrixResult = dynamic_cast<CSRMatrix<T>*>(&matrixResult_HOST);
+    if (csrMatrixC == nullptr || csrMatrixResult == nullptr)
+    {
+        throw std::invalid_argument("Error: conver Sparse to CSR before using this function");
+    }
+    else
+    {
+        SDDMM_CSR(
+            matrixA_HOST,
+            matrixB_HOST,
+            *csrMatrixC,
+            *csrMatrixResult);
+    }
 }
 
 // Explicit template instantiation

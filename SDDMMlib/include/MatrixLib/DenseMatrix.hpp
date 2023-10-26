@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <cassert>
 
 // if I include "CRSMatrix.hpp" here, I get a circular dependency error
 // when I build the project therefore I am now trying forward declaration

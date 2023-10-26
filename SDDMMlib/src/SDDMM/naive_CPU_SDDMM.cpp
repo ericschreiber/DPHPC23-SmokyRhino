@@ -14,7 +14,7 @@ void naive_CPU_SDDMM<T>::SDDMM(
     const SparseMatrix<T>& z,
     SparseMatrix<T>& result) const
 {
-    // SDDMM Sampled implementation:
+    // SDDMM Sampled implementation for CSR matrix:
 
     std::vector<int> RowPtr = z.getRowPtr();
     std::vector<int> ColIndices = z.getColIndices();

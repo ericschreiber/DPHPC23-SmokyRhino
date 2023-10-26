@@ -25,7 +25,7 @@ class DenseMatrix
 
         int getNumRows() const;
         int getNumCols() const;
-        const std::vector<std::vector<T>>& getValues();  // added this, don't see why we should not have it
+        const std::vector<std::vector<T>>& getValues() const;  // added this, don't see why we should not have it
         T at(int row, int col) const;
         void setValue(int row, int col, T value);
         void transpose();

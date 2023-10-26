@@ -87,9 +87,9 @@ int DenseMatrix<T>::getNumCols() const
 
 // added this, don't see why we should not have it
 template <typename T>
-const std::vector<std::vector<T>>& DenseMatrix<T>::getValues()
+const std::vector<std::vector<T>>& DenseMatrix<T>::getValues() const
 {
-    return this->values;
+    return values;
 }
 
 template <typename T>

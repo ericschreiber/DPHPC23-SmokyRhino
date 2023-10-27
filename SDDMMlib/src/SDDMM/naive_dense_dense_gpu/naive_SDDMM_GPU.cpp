@@ -137,7 +137,7 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
     std::cout
         << "I'm here in SDDMM_CSR.cpp" << std::endl;
     CSRMatrix<float> matrixResult_finished_HOST(matrixResult_dense_HOST);
-    matrixResult_HOST = matrixResult_finished_HOST;
+    matrixResult_HOST.setValues(matrixResult_finished_HOST.getValues());
 
     std::cout
         << "I'm done in SDDMM_CSR.cpp" << std::endl;
@@ -163,6 +163,8 @@ void naive_SDDMM_GPU<float>::SDDMM(
             matrixB_HOST,
             *csrMatrixC,
             *csrMatrixResult);
+        std::cout
+            << "I'm done in SDDMM.cpp" << std::endl;
     }
 }
 

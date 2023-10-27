@@ -8,10 +8,17 @@
 template <typename T>
 CSRMatrix<T>::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols)
 {
-    // Initialize CSRMatrix with zeros
-    values.clear();
-    colIndices.clear();
-    rowPtr.resize(rows + 1, 0);
+    try
+    {
+        // Initialize CSRMatrix with zeros
+        values.clear();
+        colIndices.clear();
+        rowPtr.resize(rows + 1, 0);
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Error: 1 " << e.what() << std::endl;
+    }
 }
 
 // this constructor is used to convert a dense matrix to CSR format
@@ -22,10 +29,17 @@ CSRMatrix<T>::CSRMatrix(const DenseMatrix<T>& denseMatrix)
     numRows = denseMatrix.getNumRows();
     numCols = denseMatrix.getNumRows();
 
-    // Resize the CSR matrix data structures
-    values.clear();
-    colIndices.clear();
-    rowPtr.resize(numRows + 1, 0);
+    try
+    {
+        // Resize the CSR matrix data structures
+        values.clear();
+        colIndices.clear();
+        rowPtr.resize(numRows + 1, 0);
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Error: 2 " << e.what() << std::endl;
+    }
 
     // Iterate over the dense matrix and add non-zero values to the CSR matrix
     for (int i = 0; i < numRows; ++i)
@@ -74,10 +88,17 @@ void CSRMatrix<T>::readFromFile(const std::string& filePath)
     std::string dataType;
     file >> dataType;
 
-    // Resize the CSR matrix data structures
-    values.resize(numNonZeros);
-    colIndices.resize(numNonZeros);
-    rowPtr.resize(numRows + 1);
+    try
+    {
+        // Resize the CSR matrix data structures
+        values.resize(numNonZeros);
+        colIndices.resize(numNonZeros);
+        rowPtr.resize(numRows + 1);
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Error: 3 " << e.what() << std::endl;
+    }
 
     // Read the values, column indices, and row pointers from the file
     for (int i = 0; i < numNonZeros; ++i)

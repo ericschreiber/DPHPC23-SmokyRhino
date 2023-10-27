@@ -152,9 +152,16 @@ void DenseMatrix<T>::readFromFile(const std::string& filePath)
 
     std::string datatype;
 
-    // Read numRows, numCols, datatype
-    file >> numRows >> numCols >> datatype;
-    values.resize(numRows, std::vector<T>(numCols, T()));
+    try
+    {
+        // Read numRows, numCols, datatype
+        file >> numRows >> numCols >> datatype;
+        values.resize(numRows, std::vector<T>(numCols, T()));
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Error: 4 " << e.what() << std::endl;
+    }
 
     // Check the datatype
     if (datatype != typeid(T).name())

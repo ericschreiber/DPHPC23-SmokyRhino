@@ -27,14 +27,16 @@ CSRMatrix<T>::CSRMatrix(const DenseMatrix<T>& denseMatrix)
 {
     // Convert a dense matrix to CSR format
     numRows = denseMatrix.getNumRows();
-    numCols = denseMatrix.getNumRows();
+    numCols = denseMatrix.getNumCols();
 
     try
     {
         // Resize the CSR matrix data structures
-        values.clear();
-        colIndices.clear();
-        rowPtr.resize(numRows + 1, 0);
+        this->values.clear();
+        this->colIndices.clear();
+        // initialize rowPtr with zeros
+        this->rowPtr.reserve(numRows + 1);
+        this->rowPtr.resize(numRows + 1, 0);
     }
     catch (const std::exception& e)
     {
@@ -44,17 +46,16 @@ CSRMatrix<T>::CSRMatrix(const DenseMatrix<T>& denseMatrix)
     // Iterate over the dense matrix and add non-zero values to the CSR matrix
     for (int i = 0; i < numRows; ++i)
     {
-        rowPtr[i] = values.size();
         for (int j = 0; j < numCols; ++j)
         {
-            if (denseMatrix.at(i, j) != 0.0)
+            if (denseMatrix.at(i, j) != 0)
             {
                 values.push_back(denseMatrix.at(i, j));
                 colIndices.push_back(j);
+                rowPtr[i + 1]++;
             }
         }
     }
-    rowPtr[numRows] = values.size();
 }
 
 template <typename T>

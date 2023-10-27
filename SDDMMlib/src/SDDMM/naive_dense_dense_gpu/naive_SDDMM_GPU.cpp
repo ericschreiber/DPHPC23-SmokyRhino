@@ -8,6 +8,15 @@
 #include "naive_dense_dense_gpu/naive_dense_dense.cuh"
 #include "utils.h"
 
+void compute(
+    int,
+    int,
+    int,
+    float*,
+    float*,
+    float*,
+    float*);
+
 void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_transpose_HOST,
@@ -125,12 +134,13 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
         matrixResult_dense_HOST);
 
     // change matrixResult to a sparse matrix
-    CSRMatrix<float>
-        matrixResult_finished_HOST(matrixResult_dense_HOST);
+    std::cout
+        << "I'm here in SDDMM_CSR.cpp" << std::endl;
+    CSRMatrix<float> matrixResult_finished_HOST(matrixResult_dense_HOST);
     matrixResult_HOST = matrixResult_finished_HOST;
 
     std::cout
-        << "naive_SDDMM was executed :)" << std::endl;
+        << "I'm done in SDDMM_CSR.cpp" << std::endl;
     return;
 }
 

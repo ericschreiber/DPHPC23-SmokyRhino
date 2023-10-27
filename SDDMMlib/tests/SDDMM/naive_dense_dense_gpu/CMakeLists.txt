@@ -15,5 +15,4 @@ add_executable(test_compile test_compile.cpp)
 # Link the library
 target_link_libraries(test_compile 
                         MatrixLib
-                        SDDMMlib
-)
+                        SDDMMlib)

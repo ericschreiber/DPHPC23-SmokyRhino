@@ -56,6 +56,7 @@ int main()
             std::placeholders::_3,
             std::placeholders::_4));
 
+    std::cout << "Function returned" << std::endl;
     // Check if the calculated solution is equal to the expected solution
     if (calculatedSolution_HOST == expectedSolution_HOST)
     {

@@ -37,8 +37,8 @@ class DenseMatrix
     private:
         void convert_csr_dense(const CSRMatrix<T>& csrMatrix);  // constructor to convert CSR matrix to dense matrix
         T* values = nullptr;
-        int numRows;
-        int numCols;
+        int numRows = 0;
+        int numCols = 0;
 };
 
 #endif  // DENSEMATRIX_HPP

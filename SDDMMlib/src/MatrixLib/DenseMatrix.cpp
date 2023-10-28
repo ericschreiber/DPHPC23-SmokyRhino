@@ -95,6 +95,7 @@ void DenseMatrix<T>::convert_csr_dense(const CSRMatrix<T>& csrMatrix)
     const std::vector<int>& rowIndices = csrMatrix.getRowPtr();
     const std::vector<int>& columnIndices = csrMatrix.getColIndices();
     const std::vector<T>& CSR_values = csrMatrix.getValues();
+
     for (int rowIndex = 0; rowIndex < csrMatrix.getNumRows(); rowIndex++)
     {
         for (int colIndex = rowIndices[rowIndex]; colIndex < rowIndices[rowIndex + 1]; colIndex++)

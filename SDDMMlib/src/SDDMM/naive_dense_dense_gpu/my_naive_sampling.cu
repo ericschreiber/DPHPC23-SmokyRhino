@@ -65,10 +65,10 @@ void my_naive_sampling(
     }
     std::cout << std::endl;
 
-    // naivesampling<<<blocks, 1024>>>(
-    //     size,
-    //     A,
-    //     B);
+    naivesampling<<<blocks, 1024>>>(
+        size,
+        A,
+        B);
     CUDA_CHECK(cudaGetLastError());
 
     // synchronization not needed if implicit in the time measurement

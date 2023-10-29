@@ -36,41 +36,41 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     assert(matrixResult_dense_HOST.getNumRows() == m && "Error: matrixResult has incompatible dimensions m");
     assert(matrixResult_dense_HOST.getNumCols() == n && "Error: matrixResult has incompatible dimensions n");
 
-    // make a float array of the values of matrixA_Host
-    std::cout << "matrixA_HOST: " << std::endl;
-    for (int i = 0; i < m * k; ++i)
-    {
-        std::cout << matrixA_HOST.getValues()[i] << " ";
-    }
-    std::cout << std::endl;
+    // // make a float array of the values of matrixA_Host
+    // std::cout << "matrixA_HOST: " << std::endl;
+    // for (int i = 0; i < m * k; ++i)
+    // {
+    //     std::cout << matrixA_HOST.getValues()[i] << " ";
+    // }
+    // std::cout << std::endl;
 
-    // Print the values of matrixB_transpose_HOST
-    std::cout << "matrixB_transpose_HOST: " << std::endl;
-    for (int i = 0; i < n * k; ++i)
-    {
-        std::cout << matrixB_transpose_HOST.getValues()[i] << " ";
-    }
-    std::cout << std::endl;
+    // // Print the values of matrixB_transpose_HOST
+    // std::cout << "matrixB_transpose_HOST: " << std::endl;
+    // for (int i = 0; i < n * k; ++i)
+    // {
+    //     std::cout << matrixB_transpose_HOST.getValues()[i] << " ";
+    // }
+    // std::cout << std::endl;
 
-    // Print the values of matrixC_HOST
-    std::cout << "matrixC_HOST: " << std::endl;
-    for (int i = 0; i < m * n; ++i)
-    {
-        std::cout << matrixC_HOST.getValues()[i] << " ";
-    }
-    std::cout << std::endl;
+    // // Print the values of matrixC_HOST
+    // std::cout << "matrixC_HOST: " << std::endl;
+    // for (int i = 0; i < m * n; ++i)
+    // {
+    //     std::cout << matrixC_HOST.getValues()[i] << " ";
+    // }
+    // std::cout << std::endl;
 
-    // PRint C but with function
-    std::cout << "matrixC_HOST with at(): " << std::endl;
-    for (int i = 0; i < m; ++i)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            std::cout << matrixC_HOST.at(i, j) << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
+    // // PRint C but with function
+    // std::cout << "matrixC_HOST with at(): " << std::endl;
+    // for (int i = 0; i < m; ++i)
+    // {
+    //     for (int j = 0; j < n; j++)
+    //     {
+    //         std::cout << matrixC_HOST.at(i, j) << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
 
     // allocate memory for the matrices on the GPU
     float* matrixA_GPU;
@@ -98,7 +98,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     CUDA_CHECK(
         cudaMemcpy(
             matrixA_GPU,
-            &(matrixA_HOST.getValues())[2],
+            matrixA_HOST.getValues(),
             m * k * sizeof(float),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
@@ -166,13 +166,13 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
     const DenseMatrix<float> matrixC_dense_HOST = DenseMatrix<float>(matrixC_HOST);
     DenseMatrix<float> matrixResult_dense_HOST = DenseMatrix<float>(matrixResult_HOST);
 
-    // Print the values of matrixC_HOST
-    std::cout << "matrixC_dense_HOST: " << std::endl;
-    for (int i = 0; i < matrixC_dense_HOST.getNumRows() * matrixC_dense_HOST.getNumCols(); ++i)
-    {
-        std::cout << matrixC_dense_HOST.getValues()[i] << " ";
-    }
-    std::cout << std::endl;
+    // // Print the values of matrixC_HOST
+    // std::cout << "matrixC_dense_HOST: " << std::endl;
+    // for (int i = 0; i < matrixC_dense_HOST.getNumRows() * matrixC_dense_HOST.getNumCols(); ++i)
+    // {
+    //     std::cout << matrixC_dense_HOST.getValues()[i] << " ";
+    // }
+    // std::cout << std::endl;
 
     // transpose matrixB to B^t
     DenseMatrix<float> matrixB_transpose_HOST = DenseMatrix<float>(matrixB_HOST);
@@ -189,6 +189,8 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
     std::cout
         << "I'm here in SDDMM_CSR.cpp" << std::endl;
     CSRMatrix<float> matrixResult_finished_HOST(matrixResult_dense_HOST);
+    std::cout
+        << "I'm in the middle of SDDMM_CSR.cpp" << std::endl;
     matrixResult_HOST.setValues(matrixResult_finished_HOST.getValues());
 
     std::cout

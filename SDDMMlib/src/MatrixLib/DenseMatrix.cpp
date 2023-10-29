@@ -152,6 +152,22 @@ void DenseMatrix<T>::setValue(int row, int col, T value)
     }
 }
 
+template <typename T>
+void DenseMatrix<T>::setValues(const T* values, int size)
+{
+    if (size != this->numRows * this->numCols)
+    {
+        throw std::invalid_argument("Error: DenseMatrix::setValues() size does not match");
+    }
+    else
+    {
+        for (int i = 0; i < size; i++)
+        {
+            this->values[i] = values[i];
+        }
+    }
+}
+
 // Should this method ever become too slow/consume to much memory implement this:
 // "Use the fact that you are switching positions of only two variables. So you only need a variable to save one, copy the other and save the intermediate to the first position."
 template <typename T>

@@ -30,6 +30,7 @@ class DenseMatrix
         T at(int row, int col) const;
         void setValue(int row, int col, T value);
         void transpose();
+        void setValues(const T* values, int size);
 
         void readFromFile(const std::string& filePath);
         void writeToFile(const std::string& filePath) const;

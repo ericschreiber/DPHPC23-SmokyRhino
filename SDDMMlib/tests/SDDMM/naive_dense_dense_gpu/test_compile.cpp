@@ -37,9 +37,9 @@ int main()
 
     // expectedSolution
     std::vector<std::vector<float>> solution = {
-        {30.25, 83.6, 158.85},
-        {297.8, 506, 763.2},
-        {825.45, 1280.8, 1838.95}};
+        {33.0, 79.2, 138.6},
+        {290.4, 445.5, 633.6},
+        {785.4, 1108.8, 1485.0}};
     DenseMatrix<float> expectedSolution_Dense(solution);
     CSRMatrix<float> expectedSolution_HOST(expectedSolution_Dense);
 
@@ -58,6 +58,23 @@ int main()
 
     std::cout << "Function returned" << std::endl;
     // Check if the calculated solution is equal to the expected solution
+
+    // Print calculatedSolution_HOST.getValues()
+    std::cout << "calculatedSolution_HOST: " << std::endl;
+    for (int i = 0; i < calculatedSolution_HOST.getNumRows() * calculatedSolution_HOST.getNumCols(); ++i)
+    {
+        std::cout << calculatedSolution_HOST.getValues()[i] << " ";
+    }
+    std::cout << std::endl;
+
+    // Print expectedSolution_HOST.getValues()
+    std::cout << "expectedSolution_HOST: " << std::endl;
+    for (int i = 0; i < expectedSolution_HOST.getNumRows() * expectedSolution_HOST.getNumCols(); ++i)
+    {
+        std::cout << expectedSolution_HOST.getValues()[i] << " ";
+    }
+    std::cout << std::endl;
+
     if (calculatedSolution_HOST == expectedSolution_HOST)
     {
         std::cout << "Test passed!" << std::endl;

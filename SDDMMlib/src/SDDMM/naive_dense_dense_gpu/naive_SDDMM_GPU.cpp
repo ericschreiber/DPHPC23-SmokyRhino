@@ -130,13 +130,15 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
         matrixC_GPU,
         matrixResult_GPU);
 
+    float* return_values = new float[m * n];
     // copy result from the GPU
     CUDA_CHECK(
         cudaMemcpy(
-            &matrixResult_dense_HOST,
+            return_values,
             matrixResult_GPU,
             m * n * sizeof(float),
             cudaMemcpyDeviceToHost));
+    matrixResult_dense_HOST.setValues(return_values, m * n);
 
     // free memory on the device
     CUDA_CHECK(
@@ -151,6 +153,14 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     CUDA_CHECK(
         cudaFree(
             matrixResult_GPU));
+
+    // Print the values of matrixResult_dense_HOST
+    std::cout << "matrixResult_dense_HOST: " << std::endl;
+    for (int i = 0; i < m * n; ++i)
+    {
+        std::cout << matrixResult_dense_HOST.getValues()[i] << " ";
+    }
+    std::cout << std::endl;
 
     std::cout << "naive_SDDMM was executed :)" << std::endl;
     return;

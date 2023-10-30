@@ -231,7 +231,7 @@ T CSRMatrix<T>::at(int row, int col) const
 }
 
 template <typename T>
-std::vector<T> CSRMatrix<T>::getValues() const
+const std::vector<T>& CSRMatrix<T>::getValues() const
 {
     return values;
 }
@@ -243,13 +243,13 @@ int CSRMatrix<T>::getNumValues() const
 }
 
 template <typename T>
-std::vector<int> CSRMatrix<T>::getColIndices() const
+const std::vector<int>& CSRMatrix<T>::getColIndices() const
 {
     return colIndices;
 }
 
 template <typename T>
-std::vector<int> CSRMatrix<T>::getRowPtr() const
+const std::vector<int>& CSRMatrix<T>::getRowPtr() const
 {
     return rowPtr;
 }

@@ -6,8 +6,8 @@ Have your function included in `/include/implemented_classes.hpp`! Otherwise it 
 ## How to run
 0. Create matrices
 1. Build the project with cmake into a build folder which is top level to the project.
-2. Run the bash file `run_benchmark.sh` with the following arguments:
-    - `./run_benchmark.sh <path/to/config/file> <path/to/out/dir>
+2. Run the bash file `benchmark_run.sh` with the following arguments:
+    - `./benchmark_run.sh <path/to/config/file> <path/to/out/dir>
 3. Get the results from the out directory. The file is named `results<timestamp>.csv` 
 
 ## Config file

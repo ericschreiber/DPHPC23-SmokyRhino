@@ -79,6 +79,5 @@
         "__nullptr": "cpp",
         "__string": "cpp",
         "chrono": "cpp"
-    },
-    "cmake.sourceDirectory": "${workspaceFolder}"
+    }
 }

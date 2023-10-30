@@ -84,5 +84,6 @@
         "semaphore": "cpp",
         "stop_token": "cpp",
         "thread": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/users/eschreib/eric/DPHPC23-SmokyRhino/SDDMMlib"
 }

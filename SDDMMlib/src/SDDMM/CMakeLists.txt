@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.21)
 
 find_package(CUDAToolkit REQUIRED)
 
@@ -10,7 +10,7 @@ set(THIRD_PARTY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 set_source_files_properties(*.cu PROPERTIES LANGUAGE CUDA)
 
 add_library(SDDMMlib 
-            #naive_SDDMM.cpp
+            naive_SDDMM.cpp
             naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
             naive_dense_dense_gpu/naive_dense_dense.cu
             naive_dense_dense_gpu/my_naive_sampling.cu

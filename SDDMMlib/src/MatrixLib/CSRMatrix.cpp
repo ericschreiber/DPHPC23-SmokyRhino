@@ -26,35 +26,30 @@ template <typename T>
 CSRMatrix<T>::CSRMatrix(const DenseMatrix<T>& denseMatrix)
 {
     // Convert a dense matrix to CSR format
-    numRows = denseMatrix.getNumRows();
-    numCols = denseMatrix.getNumRows();
+    this->numRows = denseMatrix.getNumRows();
+    this->numCols = denseMatrix.getNumCols();
 
-    try
-    {
-        // Resize the CSR matrix data structures
-        values.clear();
-        colIndices.clear();
-        rowPtr.resize(numRows + 1, 0);
-    }
-    catch (const std::exception& e)
-    {
-        std::cout << "Error: 2 " << e.what() << std::endl;
-    }
+    int nnz = 0;
+    // Delete the previous values
+    this->values.clear();
+    this->colIndices.clear();
+    this->rowPtr.clear();
 
-    // Iterate over the dense matrix and add non-zero values to the CSR matrix
+    this->rowPtr.push_back(0);
+
     for (int i = 0; i < numRows; ++i)
     {
-        rowPtr[i] = values.size();
         for (int j = 0; j < numCols; ++j)
         {
-            if (denseMatrix.at(i, j) != 0.0)
+            if (denseMatrix.at(i, j) != 0)
             {
                 values.push_back(denseMatrix.at(i, j));
                 colIndices.push_back(j);
+                nnz++;
             }
         }
+        rowPtr.push_back(nnz);
     }
-    rowPtr[numRows] = values.size();
 }
 
 template <typename T>
@@ -180,15 +175,30 @@ bool CSRMatrix<T>::operator==(const SparseMatrix<T>& other) const
     }
 
     // Check if the values are the same
-    if (values != other.getValues())
+    for (int i = 0; i < values.size(); ++i)
     {
-        std::cout << "Error: Values are not the same" << std::endl;
-        for (int i = 0; i < values.size(); ++i)
+        if (values[i] - other.getValues()[i] > 1e-4)
         {
-            std::cout << values[i] << " " << other.getValues()[i] << std::endl;
+            std::cout << "Error: Values are not the same" << std::endl;
+            for (int i = 0; i < values.size(); ++i)
+            {
+                std::cout << values[i] << " " << other.getValues()[i] << std::endl;
+                bool a = values[i] == other.getValues()[i];
+                std::cout << a << std::endl;
+            }
+            return false;
         }
-        return false;
     }
+
+    // if (values != other.getValues())
+    // {
+    //     std::cout << "Error: Values are not the same" << std::endl;
+    //     for (int i = 0; i < values.size(); ++i)
+    //     {
+    //         std::cout << values[i] << " " << other.getValues()[i] << std::endl;
+    //     }
+    //     return false;
+    // }
 
     // Check if the column indices are the same
     if (colIndices != other.getColIndices())

@@ -15,7 +15,7 @@
 
 void read_config_file(std::string config_file_path, std::vector<std::tuple<std::string, dataset_paths>>& functions_to_run)
 {
-    assert(check_config_file(config_file_path));
+    assert(check_config_file(config_file_path) && "Config file has problems");
     // Open the file for reading
     std::ifstream config_file(config_file_path);
     // Read the file line by line
@@ -104,6 +104,18 @@ bool check_config_file(std::string config_file_path)
         {
             std::cerr << "Invalid line in config file: " << line << std::endl;
             return false;
+        }
+        // check that all the paths exist (cell 1, 2, 3)
+        for (int i = 1; i < 4; i++)
+        {
+            // Remove all whitespace from the cell
+            line_split[i].erase(std::remove_if(line_split[i].begin(), line_split[i].end(), ::isspace), line_split[i].end());
+            std::ifstream file(line_split[i]);
+            if (!file.good())
+            {
+                std::cerr << "File does not exist: " << line_split[i] << std::endl;
+                return false;
+            }
         }
     }
     // Close the file

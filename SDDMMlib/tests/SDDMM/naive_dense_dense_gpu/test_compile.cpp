@@ -57,39 +57,39 @@ int main()
             std::placeholders::_4));
 
     std::cout << "Function returned" << std::endl;
+
     // Check if the calculated solution is equal to the expected solution
+    // // Print calculatedSolution_HOST.getValues()
+    // std::cout << "calculatedSolution_HOST: " << std::endl;
+    // for (int i = 0; i < calculatedSolution_HOST.getNumRows() * calculatedSolution_HOST.getNumCols(); ++i)
+    // {
+    //     std::cout << calculatedSolution_HOST.getValues()[i] << " ";
+    // }
+    // std::cout << std::endl;
 
-    // Print calculatedSolution_HOST.getValues()
-    std::cout << "calculatedSolution_HOST: " << std::endl;
-    for (int i = 0; i < calculatedSolution_HOST.getNumRows() * calculatedSolution_HOST.getNumCols(); ++i)
-    {
-        std::cout << calculatedSolution_HOST.getValues()[i] << " ";
-    }
-    std::cout << std::endl;
+    // // Print expectedSolution_HOST.getValues()
+    // std::cout << "expectedSolution_HOST: " << std::endl;
+    // for (int i = 0; i < expectedSolution_HOST.getNumRows() * expectedSolution_HOST.getNumCols(); ++i)
+    // {
+    //     std::cout << expectedSolution_HOST.getValues()[i] << " ";
+    // }
+    // std::cout << std::endl;
 
-    // Print expectedSolution_HOST.getValues()
-    std::cout << "expectedSolution_HOST: " << std::endl;
-    for (int i = 0; i < expectedSolution_HOST.getNumRows() * expectedSolution_HOST.getNumCols(); ++i)
-    {
-        std::cout << expectedSolution_HOST.getValues()[i] << " ";
-    }
-    std::cout << std::endl;
+    // // Print other.getColIndices()
+    // std::cout << "colIndices expected: " << std::endl;
+    // for (int i = 0; i < expectedSolution_HOST.getColIndices().size(); ++i)
+    // {
+    //     std::cout << expectedSolution_HOST.getColIndices()[i] << " ";
+    // }
+    // std::cout << std::endl;
 
-    // Print other.getColIndices()
-    std::cout << "colIndices expected: " << std::endl;
-    for (int i = 0; i < expectedSolution_HOST.getColIndices().size(); ++i)
-    {
-        std::cout << expectedSolution_HOST.getColIndices()[i] << " ";
-    }
-    std::cout << std::endl;
-
-    // Print other.getRowPtr()
-    std::cout << "colIndices calculated: " << std::endl;
-    for (int i = 0; i < calculatedSolution_HOST.getColIndices().size(); ++i)
-    {
-        std::cout << calculatedSolution_HOST.getColIndices()[i] << " ";
-    }
-    std::cout << std::endl;
+    // // Print other.getRowPtr()
+    // std::cout << "colIndices calculated: " << std::endl;
+    // for (int i = 0; i < calculatedSolution_HOST.getColIndices().size(); ++i)
+    // {
+    //     std::cout << calculatedSolution_HOST.getColIndices()[i] << " ";
+    // }
+    // std::cout << std::endl;
 
     if (calculatedSolution_HOST == expectedSolution_HOST)
     {

@@ -154,13 +154,13 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
         cudaFree(
             matrixResult_GPU));
 
-    // Print the values of matrixResult_dense_HOST
-    std::cout << "matrixResult_dense_HOST: " << std::endl;
-    for (int i = 0; i < m * n; ++i)
-    {
-        std::cout << matrixResult_dense_HOST.getValues()[i] << " ";
-    }
-    std::cout << std::endl;
+    // // Print the values of matrixResult_dense_HOST
+    // std::cout << "matrixResult_dense_HOST: " << std::endl;
+    // for (int i = 0; i < m * n; ++i)
+    // {
+    //     std::cout << matrixResult_dense_HOST.getValues()[i] << " ";
+    // }
+    // std::cout << std::endl;
 
     std::cout << "naive_SDDMM was executed :)" << std::endl;
     return;
@@ -196,11 +196,9 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
         matrixResult_dense_HOST);
 
     // change matrixResult to a sparse matrix
-    std::cout
-        << "I'm here in SDDMM_CSR.cpp" << std::endl;
     CSRMatrix<float> matrixResult_finished_HOST(matrixResult_dense_HOST);
-    std::cout
-        << "I'm in the middle of SDDMM_CSR.cpp" << std::endl;
+
+    // set the values of matrixResult_HOST to the values of matrixResult_finished_HOST
     matrixResult_HOST.setValues(matrixResult_finished_HOST.getValues());
     matrixResult_HOST.setColIndices(matrixResult_finished_HOST.getColIndices());
     matrixResult_HOST.setRowPtr(matrixResult_finished_HOST.getRowPtr());

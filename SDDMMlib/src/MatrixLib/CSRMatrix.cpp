@@ -177,7 +177,7 @@ bool CSRMatrix<T>::operator==(const SparseMatrix<T>& other) const
     // Check if the values are the same
     for (int i = 0; i < values.size(); ++i)
     {
-        if (values[i] != other.getValues()[i])
+        if (values[i] - other.getValues()[i] > 1e-6)
         {
             std::cout << "Error: Values are not the same" << std::endl;
             for (int i = 0; i < values.size(); ++i)

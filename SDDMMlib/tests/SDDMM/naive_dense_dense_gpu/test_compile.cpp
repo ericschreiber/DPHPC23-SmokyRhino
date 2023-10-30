@@ -75,6 +75,22 @@ int main()
     }
     std::cout << std::endl;
 
+    // Print other.getColIndices()
+    std::cout << "colIndices expected: " << std::endl;
+    for (int i = 0; i < expectedSolution_HOST.getColIndices().size(); ++i)
+    {
+        std::cout << expectedSolution_HOST.getColIndices()[i] << " ";
+    }
+    std::cout << std::endl;
+
+    // Print other.getRowPtr()
+    std::cout << "colIndices calculated: " << std::endl;
+    for (int i = 0; i < calculatedSolution_HOST.getColIndices().size(); ++i)
+    {
+        std::cout << calculatedSolution_HOST.getColIndices()[i] << " ";
+    }
+    std::cout << std::endl;
+
     if (calculatedSolution_HOST == expectedSolution_HOST)
     {
         std::cout << "Test passed!" << std::endl;

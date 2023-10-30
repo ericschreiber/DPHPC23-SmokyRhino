@@ -202,6 +202,8 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
     std::cout
         << "I'm in the middle of SDDMM_CSR.cpp" << std::endl;
     matrixResult_HOST.setValues(matrixResult_finished_HOST.getValues());
+    matrixResult_HOST.setColIndices(matrixResult_finished_HOST.getColIndices());
+    matrixResult_HOST.setRowPtr(matrixResult_finished_HOST.getRowPtr());
 
     std::cout
         << "I'm done in SDDMM_CSR.cpp" << std::endl;

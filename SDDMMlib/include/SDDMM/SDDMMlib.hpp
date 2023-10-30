@@ -23,7 +23,7 @@ class SDDMMlib
         }
 
     protected:
-        ExecutionTimer *_timer;
+        ExecutionTimer *_timer = nullptr;
 };
 
 #endif  // SDDMMLIB_HPP

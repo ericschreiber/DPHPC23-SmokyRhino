@@ -19,8 +19,8 @@ class naive_SDDMM : public SDDMMlib<T>
             const DenseMatrix<T>& y,
             const SparseMatrix<T>& z,
             SparseMatrix<T>& result) const override;
-        virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE
-        virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
+        virtual void start_run() const override {}  // Would need to be implemented but we don't need it because the class can never be constructed except for float
+        virtual void stop_run() const override {}
 };
 
 // Implement naive SDDMM for all types but return an error if the input is not of type float
@@ -28,6 +28,7 @@ template <>
 class naive_SDDMM<float> : public SDDMMlib<float>
 {
     public:
+        naive_SDDMM() {}
         naive_SDDMM(ExecutionTimer* timer) { this->_timer = timer; }
         virtual void SDDMM(
             const DenseMatrix<float>& x,

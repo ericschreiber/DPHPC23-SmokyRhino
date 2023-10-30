@@ -18,7 +18,7 @@ class ExecutionTimer
         void stop_cpu_run();
         void reset_run();
         void reset_all();
-        std::vector<double> get_runs();
+        std::vector<double> get_runtimes();
 
     private:
         std::chrono::time_point<std::chrono::high_resolution_clock> start_time;

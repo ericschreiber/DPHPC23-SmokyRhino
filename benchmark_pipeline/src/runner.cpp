@@ -72,7 +72,7 @@ void runner<T>::run()
                 std::placeholders::_3,
                 std::placeholders::_4));
 
-        auto durations = timer.get_runs();
+        auto durations = timer.get_runtimes();
         // Append the result to the results list
         _results.push_back(std::make_tuple(function_class, dataset, durations));
         write_result();

@@ -59,7 +59,7 @@ void ExecutionTimer::reset_all()
     elapsed_times.clear();
 }
 
-std::vector<double> ExecutionTimer::get_runs()
+std::vector<double> ExecutionTimer::get_runtimes()
 {
     return elapsed_times;
 }

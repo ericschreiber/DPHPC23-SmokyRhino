@@ -24,7 +24,7 @@ class SparseMatrix
         virtual void readFromFile(const std::string& filePath) = 0;
         virtual void writeToFile(const std::string& filePath) const = 0;
         virtual ~SparseMatrix() {}
-        virtual bool operator==(const SparseMatrix& other) const = 0;
+        bool operator==(const SparseMatrix& other) const { return isEqual(other); }
         virtual int getNumRows() const = 0;
         virtual int getNumCols() const = 0;
         virtual T at(int row, int col) const = 0;
@@ -36,6 +36,9 @@ class SparseMatrix
         virtual void setValues(const std::vector<T>& values) = 0;
         virtual void setColIndices(const std::vector<int>& colIndices) = 0;
         virtual void setRowPtr(const std::vector<int>& rowPtr) = 0;
+
+    private:
+        virtual bool isEqual(const SparseMatrix& other) const = 0;
 };
 
 #endif  // SPARSE_MATRIX_HPP

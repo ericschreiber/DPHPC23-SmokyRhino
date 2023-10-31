@@ -5,10 +5,18 @@ set(CMAKE_CXX_STANDARD 20)
 # enable debug mode
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
-# set cuda archtitecture for V100
-if(NOT DEFINED ${CMAKE_CUDA_ARCHITECTURES})
-    set(CMAKE_CUDA_ARCHITECTURES 70)
+if (USE_CUDA STREQUAL "True")
+    message(STATUS "Building with CUDA")
+    # set cuda archtitecture for V100
+    if(NOT DEFINED ${CMAKE_CUDA_ARCHITECTURES})
+        set(CMAKE_CUDA_ARCHITECTURES 70)
+    endif()
+elseif(USE_CUDA STREQUAL "False")
+    message(STATUS "Building without CUDA")
+else()
+    message(FATAL_ERROR "USE_CUDA must be set to True or False")
 endif()
+
 
 # if apple set -DCMAKE_APPLE_SILICON_PROCESSOR="arm64"
 if (APPLE)

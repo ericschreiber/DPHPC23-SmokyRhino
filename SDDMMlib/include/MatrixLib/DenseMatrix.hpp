@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <cassert>
 
 // if I include "CRSMatrix.hpp" here, I get a circular dependency error
 // when I build the project therefore I am now trying forward declaration
@@ -18,6 +19,7 @@ class DenseMatrix
 {
     public:
         // Constructors
+        DenseMatrix();
         DenseMatrix(int rows, int cols);                         // Constructor for an empty dense matrix
         DenseMatrix(const std::vector<std::vector<T>>& values);  // Help for using the constructor
         DenseMatrix(const SparseMatrix<T>& sparseMatrix);        // constructor to convert sparse matrix to dense matrix

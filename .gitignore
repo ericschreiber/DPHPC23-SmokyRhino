@@ -5,3 +5,11 @@ SDDMMlib/tests/MatrixLib/cmake
 .vscode/launch.json
 .vscode/tasks.json
 .DS_Store
+benchmark_pipeline/data/datasets/*
+benchmark_pipeline/data/matrices/*
+
+
+# But not these files...
+!benchmark_pipeline/data/datasets/Dataset001_test/
+!benchmark_pipeline/data/runs
+!benchmark_pipeline/data/matrices/.gitkeep

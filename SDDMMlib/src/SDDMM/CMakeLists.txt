@@ -11,6 +11,7 @@ if (USE_CUDA STREQUAL "False")
     )
 
     target_link_libraries(SDDMMlib
+                            TimingLib
                             MatrixLib)
 
 
@@ -43,7 +44,8 @@ else()
                                 )
 
     target_link_libraries(SDDMMlib
-                            MatrixLib
+                        MatrixLib
+                        TimingLib
                             CUDA::cublas
                             CUDA::cudart
                             CUDA::cuda_driver)

@@ -11,7 +11,7 @@ IMPORTANT NOTE: Whenever you add or change something in here WRITE A TEST CASE a
 To see how to use the library read the readme in the SDDMMlib folder.
 
 ## Benchmark Pipeline
-Here we will implement a pipeline to benchmark the different algorithms. We will use the SDDMMlib to do so.
+Here we will implement a pipeline to benchmark the different algorithms. We will use the SDDMMlib to do so. To build the pipeline go to /build and run the same commands as above.
 
 ## third_party
 If you need third party libraries put them here. If you need to build them put the build files in the third_party/build folder.

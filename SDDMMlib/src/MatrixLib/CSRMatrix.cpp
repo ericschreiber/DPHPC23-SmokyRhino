@@ -6,6 +6,19 @@
 #include <iostream>
 
 template <typename T>
+CSRMatrix<T>::CSRMatrix()
+{
+    // Default constructor
+    // empty instance of values, colIndices, rowPtr
+    values = std::vector<T>();
+    colIndices = std::vector<int>();
+    rowPtr = std::vector<int>();
+
+    numRows = 0;
+    numCols = 0;
+}
+
+template <typename T>
 CSRMatrix<T>::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols)
 {
     try
@@ -69,11 +82,7 @@ void CSRMatrix<T>::readFromFile(const std::string& filePath)
     // Read CSR matrix from a file where a matrix was stored in CSR format using
     // writeToFile()
     std::ifstream file(filePath);
-    if (!file.is_open())
-    {
-        std::cerr << "Error: Could not open file for reading: " << filePath << std::endl;
-        return;
-    }
+    assert(file.is_open() && "Error: Could not open file for reading");
 
     // Read numRows, numCols, and the number of non-zero values from the file
     // and the datatype

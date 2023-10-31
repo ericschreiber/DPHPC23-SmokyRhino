@@ -3,7 +3,7 @@
 ## SDDMMlib
 This library contains implementations for matrices and the sddmm algorithms. To build it go to /SDDMMlib/build and run (with true or false depending on if you want to use cuda)
 ```
-cmake -DUSE_CUDA=<True/False> ..
+cmake -DUSE_CUDA=<0/1> ..
 cmake --build .
 ```
 This will create the necessary libraries and test cases. You can find the files to run in the folder.

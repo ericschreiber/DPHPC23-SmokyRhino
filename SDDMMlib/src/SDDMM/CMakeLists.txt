@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
 set(THIRD_PARTY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 
-if (USE_CUDA STREQUAL "False")
+if (USE_CUDA EQUAL 0)
 
     add_library(SDDMMlib
                 naive_SDDMM.cpp)   

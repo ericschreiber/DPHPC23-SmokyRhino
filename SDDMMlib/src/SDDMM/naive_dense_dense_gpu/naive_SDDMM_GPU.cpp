@@ -242,6 +242,17 @@ void naive_SDDMM_GPU<T>::SDDMM(
     assert(false && "Error: naive_SDDMM_GPU::SDDMM() only accepts float as input. Other types are not supported");
 }
 
+void naive_SDDMM_GPU<float>::start_run() const
+{
+    assert(this->_timer != nullptr && "Error: naive_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
+    this->_timer->start_gpu_run();
+}
+
+void naive_SDDMM_GPU<float>::stop_run() const
+{
+    this->_timer->stop_gpu_run();
+}
+
 // Explicit template instantiation
 // template class naive_SDDMM_GPU<float>;
 template class naive_SDDMM_GPU<double>;

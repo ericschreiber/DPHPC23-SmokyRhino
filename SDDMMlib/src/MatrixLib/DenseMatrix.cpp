@@ -106,6 +106,7 @@ void DenseMatrix<T>::transpose()
     T min = std::min(this->numCols, this->numRows);
     T temp;
 
+    
     if (this->numRows < this->numCols)
     {  // append rows
         for (int i = this->numRows; i < this->numCols; i++)
@@ -118,7 +119,7 @@ void DenseMatrix<T>::transpose()
             }
         }
 
-        // delete elements in row:
+        // delete col elements in row:
         for (int i = 0; i < this->numRows; i++)
         {
             for (int j = this->numRows; j < this->numCols; j++)

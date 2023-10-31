@@ -11,6 +11,8 @@ target_include_directories(SDDMMlib PUBLIC
                             ../../include/SDDMM
                             )
 
-target_link_libraries(SDDMMlib MatrixLib)
+target_link_libraries(SDDMMlib 
+                        MatrixLib
+                        TimingLib)
 
 # Add third party code if needed here

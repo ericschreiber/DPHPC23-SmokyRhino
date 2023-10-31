@@ -6,6 +6,19 @@
 #include <iostream>
 
 template <typename T>
+CSRMatrix<T>::CSRMatrix()
+{
+    // Default constructor
+    // empty instance of values, colIndices, rowPtr
+    values = std::vector<T>();
+    colIndices = std::vector<int>();
+    rowPtr = std::vector<int>();
+
+    numRows = 0;
+    numCols = 0;
+}
+
+template <typename T>
 CSRMatrix<T>::CSRMatrix(int rows, int cols) : numRows(rows), numCols(cols)
 {
     // Initialize CSRMatrix with zeros
@@ -60,11 +73,7 @@ void CSRMatrix<T>::readFromFile(const std::string& filePath)
     // Read CSR matrix from a file where a matrix was stored in CSR format using
     // writeToFile()
     std::ifstream file(filePath);
-    if (!file.is_open())
-    {
-        std::cerr << "Error: Could not open file for reading: " << filePath << std::endl;
-        return;
-    }
+    assert(file.is_open() && "Error: Could not open file for reading");
 
     // Read numRows, numCols, and the number of non-zero values from the file
     // and the datatype
@@ -222,7 +231,7 @@ T CSRMatrix<T>::at(int row, int col) const
 }
 
 template <typename T>
-std::vector<T> CSRMatrix<T>::getValues() const
+const std::vector<T>& CSRMatrix<T>::getValues() const
 {
     return values;
 }
@@ -234,13 +243,13 @@ int CSRMatrix<T>::getNumValues() const
 }
 
 template <typename T>
-std::vector<int> CSRMatrix<T>::getColIndices() const
+const std::vector<int>& CSRMatrix<T>::getColIndices() const
 {
     return colIndices;
 }
 
 template <typename T>
-std::vector<int> CSRMatrix<T>::getRowPtr() const
+const std::vector<int>& CSRMatrix<T>::getRowPtr() const
 {
     return rowPtr;
 }

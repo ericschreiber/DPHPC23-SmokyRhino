@@ -22,6 +22,9 @@ void naive_SDDMM<float>::SDDMM(
         naive_SDDMM_CSR(x, y, *csrMatrix, *csrResult);
     }
 
+    csrMatrix = nullptr;
+    csrResult = nullptr;
+
     return;
 }
 

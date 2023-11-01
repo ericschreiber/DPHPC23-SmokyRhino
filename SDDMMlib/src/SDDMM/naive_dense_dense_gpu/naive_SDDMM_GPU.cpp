@@ -84,7 +84,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
             m * n * sizeof(float),
             cudaMemcpyHostToDevice));
 
-    this->start_run();
+    // this->start_run();
     // call compute in naive_dense_dense.cu
     compute(
         m,
@@ -94,7 +94,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
         matrixB_transpose_GPU,
         matrixC_GPU,
         matrixResult_GPU);
-    this->stop_run();
+    // this->stop_run();
 
     float* return_values = new float[m * n];
     // copy result from the GPU

@@ -36,42 +36,6 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     assert(matrixResult_dense_HOST.getNumRows() == m && "Error: matrixResult has incompatible dimensions m");
     assert(matrixResult_dense_HOST.getNumCols() == n && "Error: matrixResult has incompatible dimensions n");
 
-    // // make a float array of the values of matrixA_Host
-    // std::cout << "matrixA_HOST: " << std::endl;
-    // for (int i = 0; i < m * k; ++i)
-    // {
-    //     std::cout << matrixA_HOST.getValues()[i] << " ";
-    // }
-    // std::cout << std::endl;
-
-    // // Print the values of matrixB_transpose_HOST
-    // std::cout << "matrixB_transpose_HOST: " << std::endl;
-    // for (int i = 0; i < n * k; ++i)
-    // {
-    //     std::cout << matrixB_transpose_HOST.getValues()[i] << " ";
-    // }
-    // std::cout << std::endl;
-
-    // // Print the values of matrixC_HOST
-    // std::cout << "matrixC_HOST: " << std::endl;
-    // for (int i = 0; i < m * n; ++i)
-    // {
-    //     std::cout << matrixC_HOST.getValues()[i] << " ";
-    // }
-    // std::cout << std::endl;
-
-    // // PRint C but with function
-    // std::cout << "matrixC_HOST with at(): " << std::endl;
-    // for (int i = 0; i < m; ++i)
-    // {
-    //     for (int j = 0; j < n; j++)
-    //     {
-    //         std::cout << matrixC_HOST.at(i, j) << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-    // std::cout << std::endl;
-
     // allocate memory for the matrices on the GPU
     float* matrixA_GPU;
     float* matrixB_transpose_GPU;
@@ -156,13 +120,6 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
         cudaFree(
             matrixResult_GPU));
 
-    // // Print the values of matrixResult_dense_HOST
-    // std::cout << "matrixResult_dense_HOST: " << std::endl;
-    // for (int i = 0; i < m * n; ++i)
-    // {
-    //     std::cout << matrixResult_dense_HOST.getValues()[i] << " ";
-    // }
-    // std::cout << std::endl;
     return;
 }
 
@@ -175,14 +132,6 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
     // change matrixB_transpose and matrixResult to a dense matrix
     const DenseMatrix<float> matrixC_dense_HOST = DenseMatrix<float>(matrixC_HOST);
     DenseMatrix<float> matrixResult_dense_HOST = DenseMatrix<float>(matrixResult_HOST);
-
-    // // Print the values of matrixC_HOST
-    // std::cout << "matrixC_dense_HOST: " << std::endl;
-    // for (int i = 0; i < matrixC_dense_HOST.getNumRows() * matrixC_dense_HOST.getNumCols(); ++i)
-    // {
-    //     std::cout << matrixC_dense_HOST.getValues()[i] << " ";
-    // }
-    // std::cout << std::endl;
 
     // transpose matrixB to B^t
     DenseMatrix<float> matrixB_transpose_HOST = DenseMatrix<float>(matrixB_HOST);

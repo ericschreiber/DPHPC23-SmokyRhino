@@ -12,6 +12,8 @@ void naive_sequential_sampled_SDDMM_HOST<T>::SDDMM(const DenseMatrix<T>& x, cons
     int n = x.getNumCols();
     int k = y.getNumCols();
 
+    std::vector<T> temp_vals;
+
     // I assume a size check has been done for now, but we might want to make that one explicitly
     // Please note that the paper uses A[M][K] and B[N][K]. I.e. B already seems to be transposed!
     // I am making the same assumption
@@ -23,7 +25,7 @@ void naive_sequential_sampled_SDDMM_HOST<T>::SDDMM(const DenseMatrix<T>& x, cons
         {
             for (int l = 0; l < k; l++)
             {
-                result.getValues()[j] += x.at(i, l) * y.at(z.getColIndices()[j], l);
+                temp_vals[j] += x.at(i, l) * y.at(z.getColIndices()[j], l);
             }
         }
     }
@@ -32,9 +34,13 @@ void naive_sequential_sampled_SDDMM_HOST<T>::SDDMM(const DenseMatrix<T>& x, cons
     {
         for (int j = z.getRowPtr()[i]; j < z.getRowPtr()[i + 1]; j++)
         {
-            result.getValues()[j] *= z.getValues()[j];
+            temp_vals[j] *= z.getValues()[j];
         }
     }
+
+    result.setValues(temp_vals);
+    result.setColIndices(z.getColIndices());
+    result.setRowPtr(z.getRowPtr());
 
     std::cout << "naive_sequential_sampled_SDDMM was executed :)" << std::endl;
     return;

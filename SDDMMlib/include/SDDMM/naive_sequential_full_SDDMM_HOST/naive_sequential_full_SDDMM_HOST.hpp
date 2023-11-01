@@ -15,6 +15,35 @@ class naive_sequential_full_SDDMM_HOST : public SDDMMlib<T>
             const DenseMatrix<T>& y,
             const SparseMatrix<T>& z,
             SparseMatrix<T>& result) const override;
+        virtual void start_run() const override {}  // Would need to be implemented but we don't need it because the class can never be constructed except for float
+        virtual void stop_run() const override {}
+};
+
+template <>
+class naive_sequential_full_SDDMM_HOST<float> : public SDDMMlib<float>
+{
+    public:
+        virtual void SDDMM(
+            const DenseMatrix<float>& matrixA_HOST,
+            const DenseMatrix<float>& matrixB_HOST,
+            const SparseMatrix<float>& matrixC_HOST,
+            SparseMatrix<float>& matrixResult_HOST) const override;
+
+    private:
+        void SDDMM_CSR(
+            const DenseMatrix<float>& matrixA_HOST,
+            const DenseMatrix<float>& matrixB_HOST,
+            const CSRMatrix<float>& matrixC_HOST,
+            CSRMatrix<float>& matrixResult_HOST) const;
+
+        void SDDMM_DENSE(
+            const DenseMatrix<float>& matrixA_HOST,
+            const DenseMatrix<float>& matrixB_transpose_HOST,
+            const DenseMatrix<float>& matrixC_HOST,
+            DenseMatrix<float>& matrixResult_HOST) const;
+
+        virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE
+        virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 };
 
 #endif  // NAIVE_SEQUENTIAL_FULL_SDDMM_HOST_HPP

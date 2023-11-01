@@ -8,6 +8,15 @@
 #include "CSRMatrix.hpp"
 
 template <typename T>
+DenseMatrix<T>::DenseMatrix()
+{
+    // Default constructor
+    values = std::vector<std::vector<T>>();
+    numRows = 0;
+    numCols = 0;
+}
+
+template <typename T>
 DenseMatrix<T>::DenseMatrix(int rows, int cols) : numRows(rows),
                                                   numCols(cols),
                                                   values(rows, std::vector<T>(cols, T()))
@@ -21,18 +30,33 @@ DenseMatrix<T>::DenseMatrix(const std::vector<std::vector<T>>& values) : numRows
 {
 }
 
+template <typename T>
+DenseMatrix<T>::DenseMatrix(const SparseMatrix<T>& sparseMatrix)
+{
+    // Check if SparseMatrix is a CSRMatrix
+    const CSRMatrix<T>* csrMatrix = dynamic_cast<const CSRMatrix<T>*>(&sparseMatrix);
+    if (csrMatrix == nullptr)
+    {
+        throw std::invalid_argument("Error: DenseMatrix::DenseMatrix(SparseMatrix<T>& sparseMatrix) only accepts CSRMatrix<T> as input");
+    }
+    else
+    {
+        convert_csr_dense(*csrMatrix);
+    }
+}
+
 // constructor to convert CSR matrix to dense matrix
 template <typename T>
-DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
+void DenseMatrix<T>::convert_csr_dense(const CSRMatrix<T>& csrMatrix)
 {
     this->numRows = csrMatrix.getNumRows();
     this->numCols = csrMatrix.getNumCols();
     std::vector<std::vector<T>> vals(this->numRows, std::vector<T>(this->numCols, 0));
 
     // main loop
-    std::vector<int> rowIndices = csrMatrix.getRowPtr();
-    std::vector<int> columnIndices = csrMatrix.getColIndices();
-    std::vector<T> values = csrMatrix.getValues();
+    const std::vector<int>& rowIndices = csrMatrix.getRowPtr();
+    const std::vector<int>& columnIndices = csrMatrix.getColIndices();
+    const std::vector<T>& values = csrMatrix.getValues();
     for (int rowIndicesArrayRunner = 0; rowIndicesArrayRunner < rowIndices.size(); rowIndicesArrayRunner++)
     {
         int num_elems_in_row = rowIndices[rowIndicesArrayRunner + 1] - rowIndices[rowIndicesArrayRunner];
@@ -43,7 +67,6 @@ DenseMatrix<T>::DenseMatrix(CSRMatrix<T>& csrMatrix)
             int value = values[index];
             vals[rowIndicesArrayRunner][column_index] = value;
         }
-        rowIndicesArrayRunner++;
     }
 
     this->values = vals;
@@ -63,7 +86,7 @@ int DenseMatrix<T>::getNumCols() const
 
 // added this, don't see why we should not have it
 template <typename T>
-std::vector<std::vector<T>> DenseMatrix<T>::getValues()
+const std::vector<std::vector<T>>& DenseMatrix<T>::getValues()
 {
     return this->values;
 }
@@ -120,23 +143,19 @@ template <typename T>
 void DenseMatrix<T>::readFromFile(const std::string& filePath)
 {
     std::ifstream file(filePath);
-    if (!file.is_open())
-    {
-        std::cerr << "Error: Could not open file for reading: " << filePath << std::endl;
-        return;
-    }
+    assert(file.is_open() && "Error: Could not open file for reading");
 
     std::string datatype;
 
-    // Read numRows, numCols, datatype
+    // Read numRows, numCols, datatype and they are separated by a comma
     file >> numRows >> numCols >> datatype;
     values.resize(numRows, std::vector<T>(numCols, T()));
 
     // Check the datatype
     if (datatype != typeid(T).name())
     {
-        std::cerr << "Error: Datatype in file does not match the datatype of the matrix" << std::endl;
-        return;
+        std::cerr << "Error: Datatype in file does not match the datatype of the matrix. Is: " << datatype << " Should be: " << typeid(T).name() << std::endl;
+        assert(false);
     }
 
     // Read the values

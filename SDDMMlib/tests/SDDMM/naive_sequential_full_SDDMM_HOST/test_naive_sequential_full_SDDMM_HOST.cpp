@@ -8,18 +8,10 @@
 
 int main()
 {
-    std::cout << "entered the main of the test" << std::endl;
-
-    // DenseMatrix<double> matrixA(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    // DenseMatrix<double> matrixB(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    // CSRMatrix<double> matrixC(std::vector<std::vector<double>>{{1, 2, 3}, {0, 1, 2}, {0, 1, 2, 3}});
-    // CSRMatrix<double> calculatedSolution(std::vector<std::vector<double>>{{0}, {0}, {0}});
-    // CSRMatrix<double> expectedSolution(std::vector<std::vector<double>>{{30, 162, 450}, {0, 1, 2}, {0, 1, 2, 3}});
-
     std::vector<std::vector<float>> matrixC = {
-        {1, 2, 3},
-        {0, 1, 2},
-        {0, 1, 2, 3}
+        {1, 0, 0},
+        {0, 2, 0},
+        {0, 0, 3}
     };
     DenseMatrix<float> matrixC_Dense(matrixC);
     CSRMatrix<float> matrixC_HOST(matrixC_Dense);
@@ -30,7 +22,7 @@ int main()
     DenseMatrix<float> matrixA_Dense(matrixA);
 
     std::vector<std::vector<float>> matrixB = {
-        {1, 2, 3}, {4, 5, 6}, {7, 8, 9}
+        {1, 4, 7}, {2, 5, 8}, {3, 6, 9}
     };
     DenseMatrix<float> matrixB_Dense(matrixB);
 
@@ -46,8 +38,8 @@ int main()
     DenseMatrix<float> expectedSolution_Dense(expectedSolution);
     CSRMatrix<float> expectedSolution_Host(expectedSolution_Dense);
 
-    std::cout << "created Matrices" << std::endl;
-
+    ExecutionTimer timer = ExecutionTimer();
+    naive_sequential_full_SDDMM_HOST<float>* class_to_run = new naive_sequential_full_SDDMM_HOST<float>(&timer);
     
 
     // Call multiply and pass the multiplication function from the library
@@ -57,11 +49,14 @@ int main()
         calculatedSolution_Host,
         std::bind(
             &naive_sequential_full_SDDMM_HOST<float>::SDDMM,
-            naive_sequential_full_SDDMM_HOST<float>(),
+            class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
             std::placeholders::_4));
+
+    delete class_to_run;
+    class_to_run = nullptr;
 
     // Check if the calculated solution is equal to the expected solution
     if (calculatedSolution_Host == expectedSolution_Host)

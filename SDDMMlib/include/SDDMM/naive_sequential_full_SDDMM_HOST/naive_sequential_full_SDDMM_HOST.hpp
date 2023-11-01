@@ -2,17 +2,18 @@
 #ifndef NAIVE_SEQUENTIAL_FULL_SDDMM_HOST_HPP
 #define NAIVE_SEQUENTIAL_FULL_SDDMM_HOST_HPP
 
+#include "CSRMatrix.hpp"
 #include "DenseMatrix.hpp"
 #include "SDDMMlib.hpp"
 #include "SparseMatrix.hpp"
 
+// Implement naive SDDMM for all types but return an error if the input is not of type double
 template <typename T>
 class naive_sequential_full_SDDMM_HOST : public SDDMMlib<T>
 {
     public:
         naive_sequential_full_SDDMM_HOST() { assert(false && "Error: naive_sequential_full_SDDMM_HOST<T>::naive_SDDMM() is only implemented for float."); }
         naive_sequential_full_SDDMM_HOST(ExecutionTimer* timer) { assert(false && "Error: naive_sequential_full_SDDMM_HOST<T>::naive_SDDMM() is only implemented for float."); }
-        
         virtual void SDDMM(
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,
@@ -22,6 +23,7 @@ class naive_sequential_full_SDDMM_HOST : public SDDMMlib<T>
         virtual void stop_run() const override {}
 };
 
+// Implement naive SDDMM for all types but return an error if the input is not of type float
 template <>
 class naive_sequential_full_SDDMM_HOST<float> : public SDDMMlib<float>
 {

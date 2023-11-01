@@ -1,9 +1,30 @@
 // naive_sequential_full_SDDMM.cpp
 #include "naive_sequential_full_SDDMM_HOST/naive_sequential_full_SDDMM_HOST.hpp"
-
 #include <iostream>
-
 #include "DenseMatrix.hpp"
+
+
+// Only the float type of the class is valid all other types will throw an error
+void naive_sequential_full_SDDMM_HOST<float>::SDDMM(
+    const DenseMatrix<float>& x,
+    const DenseMatrix<float>& y,
+    const SparseMatrix<float>& z,
+    SparseMatrix<float>& result) const
+{
+    // Check if CSRMatrix
+    const CSRMatrix<float>* csrMatrix = dynamic_cast<const CSRMatrix<float>*>(&z);
+    CSRMatrix<float>* csrResult = dynamic_cast<CSRMatrix<float>*>(&result);
+    if (csrMatrix == nullptr || csrResult == nullptr)
+    {
+        throw std::invalid_argument("Error: naive_sequential_full_SDDMM_HOST::SDDMM() only accepts CSRMatrix<float> as input. Other formats are not supported yet");
+    }
+    else
+    {
+        naive_sequential_full_SDDMM_HOST_CSR(x, y, *csrMatrix, *csrResult);
+    }
+
+    return;
+}
 
 template <typename T>
 void naive_sequential_full_SDDMM_HOST<T>::SDDMM(
@@ -12,6 +33,17 @@ void naive_sequential_full_SDDMM_HOST<T>::SDDMM(
     const SparseMatrix<T>& z,
     SparseMatrix<T>& result) const
 {
+    assert(false && "Error: naive_sequential_full_SDDMM_HOST::SDDMM() only accepts float as input. Other types are not supported yet");
+}
+
+void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_CSR(
+    const DenseMatrix<float>& x,
+    const DenseMatrix<float>& y,
+    const CSRMatrix<float>& z,
+    CSRMatrix<float>& result) const
+{
+    
+    this->start_run();
     // This is a very dumb implementation, because it samples only AFTER the
     // matrix x matrix multiplication
 
@@ -19,8 +51,8 @@ void naive_sequential_full_SDDMM_HOST<T>::SDDMM(
     int n = x.getNumCols();
     int k = y.getNumCols();
 
-    auto xy = DenseMatrix<T>(m, n);
-    std::vector<T> temp_vals;
+    auto xy = DenseMatrix<float>(m, n);
+    std::vector<float> temp_vals(z.getNumValues());
 
     // I assume a size check has been done for now, but we might want to make that
     // one explicitly Please note that the paper uses A[M][K] and B[N][K]. I.e. B
@@ -44,9 +76,7 @@ void naive_sequential_full_SDDMM_HOST<T>::SDDMM(
     {
         for (int j = z.getRowPtr()[i]; j < z.getRowPtr()[i + 1]; j++)
         {
-
-            auto temp = xy.at(i, z.getColIndices()[j]);
-            temp_vals[j] = temp * z.getValues()[j];
+            temp_vals[j] = xy.at(i, z.getColIndices()[j]) * z.getValues()[j];   
         }
     }
 
@@ -55,10 +85,22 @@ void naive_sequential_full_SDDMM_HOST<T>::SDDMM(
     result.setRowPtr(z.getRowPtr());
 
     std::cout << "naive_sequential_sampled_SDDMM was executed :)" << std::endl;
+    this->stop_run();
     return;
 }
 
+void naive_sequential_full_SDDMM_HOST<float>::start_run() const
+{
+    assert(this->_timer != nullptr && "Error: naive_sequential_full_SDDMM_HOST::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
+    this->_timer->start_cpu_run();  // OR _timer.start_gpu_run();
+}
+
+void naive_sequential_full_SDDMM_HOST<float>::stop_run() const
+{
+    this->_timer->stop_cpu_run();  // OR _timer.stop_gpu_run();
+}
+
 // Explicit template instantiation
-template class naive_sequential_full_SDDMM_HOST<float>;
+// template class naive_sequential_full_SDDMM_HOST<float>;
 template class naive_sequential_full_SDDMM_HOST<double>;
 template class naive_sequential_full_SDDMM_HOST<int>;

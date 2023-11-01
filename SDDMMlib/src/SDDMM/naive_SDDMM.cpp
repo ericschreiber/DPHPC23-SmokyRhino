@@ -45,8 +45,21 @@ void naive_SDDMM<float>::naive_SDDMM_CSR(
     CSRMatrix<float>& result) const
 {
     // please implement
+    this->start_run();
     std::cout << "naive_SDDMM was executed :)" << std::endl;
+    this->stop_run();
     return;
+}
+
+void naive_SDDMM<float>::start_run() const
+{
+    assert(this->_timer != nullptr && "Error: naive_SDDMM::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
+    this->_timer->start_cpu_run();  // OR _timer.start_gpu_run();
+}
+
+void naive_SDDMM<float>::stop_run() const
+{
+    this->_timer->stop_cpu_run();  // OR _timer.stop_gpu_run();
 }
 
 // Explicit template instantiation

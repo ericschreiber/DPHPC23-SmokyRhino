@@ -1,0 +1,4 @@
+# This is an example for a run config file
+# naive_SDDMM, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/first/sparse/matrix
+naive_SDDMM, /Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/densematrix_test.txt, /Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/densematrix_test.txt, /Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/csrmatrix_test.txt
+naive_SDDMM, /Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/densematrix_test.txt, /Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/densematrix_test.txt, /Users/ericschreiber/dev/ETH/HPC_ETH/project/benchmark_pipeline/benchmark_pipeline/tests/csrmatrix_test.txt

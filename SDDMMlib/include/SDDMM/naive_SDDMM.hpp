@@ -2,6 +2,8 @@
 #ifndef NAIVE_SDDMM_HPP
 #define NAIVE_SDDMM_HPP
 
+#include <cassert>
+
 #include "CSRMatrix.hpp"
 #include "DenseMatrix.hpp"
 #include "SDDMMlib.hpp"

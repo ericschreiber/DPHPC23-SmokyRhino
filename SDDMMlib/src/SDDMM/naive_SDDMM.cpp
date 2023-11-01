@@ -1,6 +1,7 @@
 // naive_SDDMM.cpp
 #include "naive_SDDMM.hpp"
 
+#include <cassert>
 #include <iostream>
 
 // Only the float type of the class is valid all other types will throw an error

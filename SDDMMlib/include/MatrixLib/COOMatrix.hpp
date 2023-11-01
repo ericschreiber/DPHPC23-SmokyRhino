@@ -34,12 +34,12 @@ class COOMatrix : virtual public SparseMatrix<T>
         virtual int getNumCols() const override;
         virtual int getNumValues() const override;
         virtual const std::vector<T>& getValues() const override;
-        virtual const std::vector<int>& getRowIndices() const;
+        virtual const std::vector<int>& getRowPtr() const override;
         virtual const std::vector<int>& getColIndices() const override;
         // setters
         virtual T at(int row, int col) const override;  // set on element
         virtual void setValues(const std::vector<T>& values) override;
-        virtual void setRowIndices(const std::vector<int>& rowIndices);
+        virtual void setRowPtr(const std::vector<int>& rowPtr) override;
         virtual void setColIndices(const std::vector<int>& colIndices) override;
         // file IO
         virtual void readFromFile(const std::string& filePath) override;
@@ -47,11 +47,6 @@ class COOMatrix : virtual public SparseMatrix<T>
         // other
         virtual ~COOMatrix() {}
         virtual bool operator==(const SparseMatrix<T>& other) const override;
-
-        // TODO: have the discussion about the SparseMatrix interface
-        // (and maybe rm the following methods afterwards)
-        virtual const std::vector<int>& getRowPtr() const override;
-        virtual void setRowPtr(const std::vector<int>& rowPtr) override;
 
     private:
         std::vector<T> values;

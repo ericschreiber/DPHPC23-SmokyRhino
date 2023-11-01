@@ -1,5 +1,7 @@
 #include "COOMatrix.hpp"
 
+#include <algorithm>
+
 //////////////// CONSTRUCTORS ////////////////
 
 // this constructor is used to create an empty COO matrix
@@ -26,8 +28,8 @@ COOMatrix<T>::COOMatrix(const DenseMatrix<T>& denseMatrix)
     this->rowIndices = std::vector<int>();
     this->colIndices = std::vector<int>();
 
-    T* valuesPointer = denseMatrix.getValues();
-    int numElems = denseMatrix->getNumRows() * denseMatrix->getNumCols();
+    const T* valuesPointer = denseMatrix.getValues();
+    int numElems = denseMatrix.getNumRows() * denseMatrix.getNumCols();
     for (int i = 0; i < numElems; i++)
     {
         T value = *valuesPointer;
@@ -92,7 +94,7 @@ const std::vector<T>& COOMatrix<T>::getValues() const
 
 // returns a reference to the vector
 template <typename T>
-const std::vector<int>& COOMatrix<T>::getRowIndices() const
+const std::vector<int>& COOMatrix<T>::getRowPtr() const
 {
     return this->rowIndices;
 }
@@ -128,6 +130,7 @@ T COOMatrix<T>::at(int row, int col) const
         {
             return values[runner];
         }
+        runner++;
     }
     // if we get here the value is 0 (since we are a sparse matrix
     // and we have made sure that row and col are not out of bounds)
@@ -141,7 +144,7 @@ void COOMatrix<T>::setValues(const std::vector<T>& values)
 }
 
 template <typename T>
-void COOMatrix<T>::setRowIndices(const std::vector<int>& rowIndices)
+void COOMatrix<T>::setRowPtr(const std::vector<int>& rowIndices)
 {
     this->rowIndices = rowIndices;
 }
@@ -178,46 +181,81 @@ bool COOMatrix<T>::operator==(const SparseMatrix<T>& other) const
 {
     // compare values arrays
     //
-    // since I am using refs the following operations should be in place
-    std::vector<T>& valsReference1 = this->getValues();
-    std::vector<T>& valsReference2 = other.getValues();
+    // if I sort the original vectors c++ will complain, hence I have to make copies
+    std::vector<T> vals1 = this->getValues();
+    std::vector<T> vals2 = other.getValues();
+    std::vector<T> valsCopy1 = std::vector<T>();  // create two empty vectors
+    std::vector<T> valsCopy2 = std::vector<T>();
+    std::copy(vals1.begin(), vals1.end(), std::back_inserter(valsCopy1));  // copy the original vectors into the empty vectors
+    std::copy(vals2.begin(), vals2.end(), std::back_inserter(valsCopy2));
+    std::vector<T>& valsReference1 = valsCopy1;  // get references to the copies
+    std::vector<T>& valsReference2 = valsCopy2;
     std::sort(valsReference1.begin(), valsReference1.end());
     std::sort(valsReference2.begin(), valsReference2.end());
-    // now both this->values and other.values are sorted since
-    // if we call sort on a reference it will modify the original object
-    if (this->values != other.values)
+    if (valsReference1.size() != valsReference2.size())  // std::equal requires us to ensure that the sizes are equal
     {
         return false;
     }
+    else
+    {
+        // comparing references to vectors is not what we want here so we need to use std::equal
+        if (!std::equal(valsReference1.begin(), valsReference1.end(), valsReference2.begin()))
+        {
+            return false;
+        }
+    }
+
     // compare row indices arrays
-    std::vector<int>& rowIndicesReference1 = this->getRowIndices();
-    std::vector<int>& rowIndicesReference2 = other.getRowIndices();
+    std::vector<int> rowIndices1 = this->getRowPtr();
+    std::vector<int> rowIndices2 = other.getRowPtr();
+    std::vector<int> rowIndicesCopy1 = std::vector<int>();
+    std::vector<int> rowIndicesCopy2 = std::vector<int>();
+    std::copy(rowIndices1.begin(), rowIndices1.end(), std::back_inserter(rowIndicesCopy1));
+    std::copy(rowIndices2.begin(), rowIndices2.end(), std::back_inserter(rowIndicesCopy2));
+    std::vector<int>& rowIndicesReference1 = rowIndicesCopy1;
+    std::vector<int>& rowIndicesReference2 = rowIndicesCopy2;
     std::sort(rowIndicesReference1.begin(), rowIndicesReference1.end());
     std::sort(rowIndicesReference2.begin(), rowIndicesReference2.end());
-    if (this->rowIndices != other.rowIndices)
+    if (rowIndicesReference1.size() != rowIndicesReference2.size())
     {
         return false;
     }
+    else
+    {
+        if (!std::equal(rowIndicesReference1.begin(), rowIndicesReference1.end(), rowIndicesReference2.begin()))
+        {
+            return false;
+        }
+    }
+
     // compare col indices arrays
-    std::vector<int>& colIndicesReference1 = this->getColIndices();
-    std::vector<int>& colIndicesReference2 = other.getColIndices();
+    std::vector<int> colIndices1 = this->getColIndices();
+    std::vector<int> colIndices2 = other.getColIndices();
+    std::vector<int> colIndicesCopy1 = std::vector<int>();
+    std::vector<int> colIndicesCopy2 = std::vector<int>();
+    std::copy(colIndices1.begin(), colIndices1.end(), std::back_inserter(colIndicesCopy1));
+    std::copy(colIndices2.begin(), colIndices2.end(), std::back_inserter(colIndicesCopy2));
+    std::vector<int>& colIndicesReference1 = colIndicesCopy1;
+    std::vector<int>& colIndicesReference2 = colIndicesCopy2;
     std::sort(colIndicesReference1.begin(), colIndicesReference1.end());
     std::sort(colIndicesReference2.begin(), colIndicesReference2.end());
-    if (this->colIndices != other.colIndices)
+    if (colIndicesReference1.size() != colIndicesReference2.size())
     {
         return false;
     }
+    else
+    {
+        if (!std::equal(colIndicesReference1.begin(), colIndicesReference1.end(), colIndicesReference2.begin()))
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
-// TODO: have the discussion about the SparseMatrix interface
-// (and maybe rm the following methods afterwards)
-
-template <typename T>
-const std::vector<int>& COOMatrix<T>::getRowPtr() const
-{
-}
-
-template <typename T>
-void COOMatrix<T>::setRowPtr(const std::vector<int>& rowPtr)
-{
-}
+// we need these declarations for every instantiation of the SparseMatrix interface
+// (otherwise the linker will complain that it can't find the implementations)
+template class COOMatrix<float>;
+template class COOMatrix<double>;
+template class COOMatrix<int>;

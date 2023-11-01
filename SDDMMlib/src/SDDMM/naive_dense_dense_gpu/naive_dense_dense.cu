@@ -35,6 +35,7 @@ void compute(
     float *d_C,
     float *d_D)
 {
+    CUDA_CHECK(cudaGetLastError());
     // alpha and beta are needed for Sgemm
     float alpha = 1;
     float beta = 0;

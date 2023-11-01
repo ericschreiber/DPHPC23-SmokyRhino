@@ -6,6 +6,8 @@
 #ifndef CUDATIMER_CUH_OBWAUHTQ
 #define CUDATIMER_CUH_OBWAUHTQ
 
+#include <cuda_runtime.h>
+
 #include <cassert>
 
 // timer

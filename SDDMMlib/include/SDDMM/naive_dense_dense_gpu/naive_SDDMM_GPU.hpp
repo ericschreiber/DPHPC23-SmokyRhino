@@ -20,6 +20,8 @@ class naive_SDDMM_GPU : public SDDMMlib<T>
             const DenseMatrix<T>& matrixB_HOST,
             const SparseMatrix<T>& matrixC_HOST,
             SparseMatrix<T>& matrixResult_HOST) const override;
+        virtual void start_run() const override {}  // Would need to be implemented but we don't need it because the class can never be constructed except for float
+        virtual void stop_run() const override {}
 };
 
 template <>
@@ -44,6 +46,8 @@ class naive_SDDMM_GPU<float> : public SDDMMlib<float>
             const DenseMatrix<float>& matrixB_transpose_HOST,
             const DenseMatrix<float>& matrixC_HOST,
             DenseMatrix<float>& matrixResult_HOST) const;
+        virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE
+        virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 };
 
 #endif  // NAIVE_SDDMM_GPU_HPP

@@ -120,6 +120,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
             m * n * sizeof(float),
             cudaMemcpyHostToDevice));
 
+    this->start_run();
     // call compute in naive_dense_dense.cu
     compute(
         m,
@@ -129,6 +130,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
         matrixB_transpose_GPU,
         matrixC_GPU,
         matrixResult_GPU);
+    this->stop_run();
 
     float* return_values = new float[m * n];
     // copy result from the GPU
@@ -161,8 +163,6 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     //     std::cout << matrixResult_dense_HOST.getValues()[i] << " ";
     // }
     // std::cout << std::endl;
-
-    std::cout << "naive_SDDMM was executed :)" << std::endl;
     return;
 }
 
@@ -203,8 +203,6 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
     matrixResult_HOST.setColIndices(matrixResult_finished_HOST.getColIndices());
     matrixResult_HOST.setRowPtr(matrixResult_finished_HOST.getRowPtr());
 
-    std::cout
-        << "I'm done in SDDMM_CSR.cpp" << std::endl;
     return;
 }
 
@@ -227,8 +225,6 @@ void naive_SDDMM_GPU<float>::SDDMM(
             matrixB_HOST,
             *csrMatrixC,
             *csrMatrixResult);
-        std::cout
-            << "I'm done in SDDMM.cpp" << std::endl;
     }
 }
 
@@ -245,12 +241,12 @@ void naive_SDDMM_GPU<T>::SDDMM(
 void naive_SDDMM_GPU<float>::start_run() const
 {
     assert(this->_timer != nullptr && "Error: naive_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
-    this->_timer->start_gpu_run();
+    this->_timer->start_cpu_run();
 }
 
 void naive_SDDMM_GPU<float>::stop_run() const
 {
-    this->_timer->stop_gpu_run();
+    this->_timer->stop_cpu_run();
 }
 
 // Explicit template instantiation

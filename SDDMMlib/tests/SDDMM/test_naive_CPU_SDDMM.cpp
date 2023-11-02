@@ -22,11 +22,14 @@ int main()
         calculatedSolution,
         std::bind(
             &naive_CPU_SDDMM<double>::SDDMM,
-            naive_CPU_SDDMM<double>(),
+            class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
             std::placeholders::_4));
+
+    delete class_to_run;
+    class_to_run = nullptr;
 
     if (calculatedSolution == expectedSolution)
     {

@@ -46,7 +46,6 @@ class COOMatrix : virtual public SparseMatrix<T>
         virtual void writeToFile(const std::string& filePath) const override;
         // other
         virtual ~COOMatrix() {}
-        virtual bool operator==(const SparseMatrix<T>& other) const override;
 
     private:
         std::vector<T> values;
@@ -54,6 +53,7 @@ class COOMatrix : virtual public SparseMatrix<T>
         std::vector<int> colIndices;
         int numRows;
         int numCols;
+        virtual bool isEqual(const SparseMatrix<T>& other) const override;
 };
 
 #endif

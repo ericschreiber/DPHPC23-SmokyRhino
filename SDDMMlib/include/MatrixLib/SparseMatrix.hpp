@@ -37,7 +37,6 @@ class SparseMatrix
         virtual void setValues(const std::vector<T>& values) = 0;
         virtual void setColIndices(const std::vector<int>& colIndices) = 0;
         virtual void setRowArray(const std::vector<int>& rowPtr) = 0;
-        virtual void setRowArray(const std::vector<int>& rowPtr) = 0;
 
     private:
         virtual bool isEqual(const SparseMatrix& other) const = 0;

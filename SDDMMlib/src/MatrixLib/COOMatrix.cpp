@@ -177,7 +177,7 @@ void COOMatrix<T>::writeToFile(const std::string& filePath) const
 // the ~ thing apparently implements itself...
 
 template <typename T>
-bool COOMatrix<T>::operator==(const SparseMatrix<T>& other) const
+bool COOMatrix<T>::isEqual(const SparseMatrix<T>& other) const
 {
     // compare values arrays
     //

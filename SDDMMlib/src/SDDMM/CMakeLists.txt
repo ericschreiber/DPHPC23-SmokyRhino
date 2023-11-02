@@ -3,9 +3,6 @@ set(THIRD_PARTY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 
 if (USE_CUDA EQUAL 0)
 
-add_library(SDDMMlib 
-            naive_SDDMM.cpp
-)      
     add_library(SDDMMlib
                 naive_SDDMM.cpp)   
                 

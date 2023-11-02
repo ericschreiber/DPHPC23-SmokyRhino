@@ -34,12 +34,12 @@ class COOMatrix : virtual public SparseMatrix<T>
         virtual int getNumCols() const override;
         virtual int getNumValues() const override;
         virtual const std::vector<T>& getValues() const override;
-        virtual const std::vector<int>& getRowPtr() const override;
+        virtual const std::vector<int>& getRowArray() const override;
         virtual const std::vector<int>& getColIndices() const override;
         // setters
         virtual T at(int row, int col) const override;  // set on element
         virtual void setValues(const std::vector<T>& values) override;
-        virtual void setRowPtr(const std::vector<int>& rowPtr) override;
+        virtual void setRowArray(const std::vector<int>& rowPtr) override;
         virtual void setColIndices(const std::vector<int>& colIndices) override;
         // file IO
         virtual void readFromFile(const std::string& filePath) override;

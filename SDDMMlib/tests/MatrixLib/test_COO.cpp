@@ -13,7 +13,7 @@ void mainTest()
     std::vector<std::vector<int>> in = {{1, 2, 0}, {0, 5, 6}, {0, 0, 9}};
     COOMatrix<int> coo = COOMatrix<int>(DenseMatrix<int>(in));
     std::vector<int> values = coo.getValues();
-    std::vector<int> rowIndices = coo.getRowPtr();
+    std::vector<int> rowIndices = coo.getRowArray();
     std::vector<int> colIndices = coo.getColIndices();
     assert(values.size() == 5);
     assert(rowIndices.size() == 5);

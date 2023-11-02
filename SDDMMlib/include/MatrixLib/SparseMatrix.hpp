@@ -31,11 +31,12 @@ class SparseMatrix
         virtual int getNumValues() const = 0;
         virtual const std::vector<T>& getValues() const = 0;
         virtual const std::vector<int>& getColIndices() const = 0;
-        virtual const std::vector<int>& getRowPtr() const = 0;
+        virtual const std::vector<int>& getRowArray() const = 0;  // a "rowArray" can either be the rowPointer vector (CSR) or a vector of rowIndices (COO).
+                                                                  // Which one getRowArray returns depends on the class that implements the SparseMatrix interface.
 
         virtual void setValues(const std::vector<T>& values) = 0;
         virtual void setColIndices(const std::vector<int>& colIndices) = 0;
-        virtual void setRowPtr(const std::vector<int>& rowPtr) = 0;
+        virtual void setRowArray(const std::vector<int>& rowPtr) = 0;
 };
 
 #endif  // SPARSE_MATRIX_HPP

@@ -94,7 +94,7 @@ const std::vector<T>& COOMatrix<T>::getValues() const
 
 // returns a reference to the vector
 template <typename T>
-const std::vector<int>& COOMatrix<T>::getRowPtr() const
+const std::vector<int>& COOMatrix<T>::getRowArray() const
 {
     return this->rowIndices;
 }
@@ -144,7 +144,7 @@ void COOMatrix<T>::setValues(const std::vector<T>& values)
 }
 
 template <typename T>
-void COOMatrix<T>::setRowPtr(const std::vector<int>& rowIndices)
+void COOMatrix<T>::setRowArray(const std::vector<int>& rowIndices)
 {
     this->rowIndices = rowIndices;
 }
@@ -206,8 +206,8 @@ bool COOMatrix<T>::operator==(const SparseMatrix<T>& other) const
     }
 
     // compare row indices arrays
-    std::vector<int> rowIndices1 = this->getRowPtr();
-    std::vector<int> rowIndices2 = other.getRowPtr();
+    std::vector<int> rowIndices1 = this->getRowArray();
+    std::vector<int> rowIndices2 = other.getRowArray();
     std::vector<int> rowIndicesCopy1 = std::vector<int>();
     std::vector<int> rowIndicesCopy2 = std::vector<int>();
     std::copy(rowIndices1.begin(), rowIndices1.end(), std::back_inserter(rowIndicesCopy1));

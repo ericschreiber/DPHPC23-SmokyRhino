@@ -12,23 +12,64 @@ template <typename T>
 DenseMatrix<T>::DenseMatrix()
 {
     // Default constructor
-    values = std::vector<std::vector<T>>();
+    values = nullptr;
     numRows = 0;
     numCols = 0;
 }
 
 template <typename T>
-DenseMatrix<T>::DenseMatrix(int rows, int cols) : numRows(rows),
-                                                  numCols(cols),
-                                                  values(rows, std::vector<T>(cols, T()))
+DenseMatrix<T>::DenseMatrix(
+    int rows,
+    int cols) : numRows(rows),
+                numCols(cols),
+                values(new T[rows * cols])
 {
+    // Initialize DenseMatrix with zeros
+    for (int i = 0; i < rows * cols; ++i)
+    {
+        values[i] = 0;
+    }
 }
 
 template <typename T>
-DenseMatrix<T>::DenseMatrix(const std::vector<std::vector<T>>& values) : numRows(values.size()),
-                                                                         numCols(values[0].size()),
-                                                                         values(values)
+DenseMatrix<T>::DenseMatrix(
+    const std::vector<std::vector<T>>& values)
 {
+    this->numRows = values.size();
+    this->numCols = values[0].size();
+    this->values = new T[this->numRows * this->numCols];
+
+    // copy values
+    for (int i = 0; i < this->numRows; i++)
+    {
+        for (int j = 0; j < this->numCols; j++)
+        {
+            this->values[i * this->numCols + j] = values[i][j];
+        }
+    }
+}
+
+template <typename T>
+DenseMatrix<T>::DenseMatrix(const DenseMatrix<T>& denseMatrix)
+{
+    this->numRows = denseMatrix.getNumRows();
+    this->numCols = denseMatrix.getNumCols();
+    this->values = new T[this->numRows * this->numCols];
+    // Copy the values
+    for (int i = 0; i < this->numRows; ++i)
+    {
+        for (int j = 0; j < this->numCols; ++j)
+        {
+            this->values[i * this->numCols + j] = denseMatrix.at(i, j);
+        }
+    }
+}
+
+template <typename T>
+DenseMatrix<T>::~DenseMatrix()
+{
+    // Delete the values
+    delete[] values;
 }
 
 template <typename T>
@@ -52,25 +93,26 @@ void DenseMatrix<T>::convert_csr_dense(const CSRMatrix<T>& csrMatrix)
 {
     this->numRows = csrMatrix.getNumRows();
     this->numCols = csrMatrix.getNumCols();
-    std::vector<std::vector<T>> vals(this->numRows, std::vector<T>(this->numCols, 0));
+    delete[] this->values;
+    this->values = new T[this->numRows * this->numCols];
+    // initialize values with zeros
+    for (int i = 0; i < this->numRows * this->numCols; i++)
+    {
+        this->values[i] = 0;
+    }
 
     // main loop
     const std::vector<int>& rowIndices = csrMatrix.getRowPtr();
     const std::vector<int>& columnIndices = csrMatrix.getColIndices();
-    const std::vector<T>& values = csrMatrix.getValues();
-    for (int rowIndicesArrayRunner = 0; rowIndicesArrayRunner < rowIndices.size(); rowIndicesArrayRunner++)
+    const std::vector<T>& CSR_values = csrMatrix.getValues();
+
+    for (int rowIndex = 0; rowIndex < csrMatrix.getNumRows(); rowIndex++)
     {
-        int num_elems_in_row = rowIndices[rowIndicesArrayRunner + 1] - rowIndices[rowIndicesArrayRunner];
-        for (int i = 0; i < num_elems_in_row; i++)
+        for (int colIndex = rowIndices[rowIndex]; colIndex < rowIndices[rowIndex + 1]; colIndex++)
         {
-            int index = rowIndices[rowIndicesArrayRunner] + i;  // this index indexes columnIndices and values
-            int column_index = columnIndices[index];
-            int value = values[index];
-            vals[rowIndicesArrayRunner][column_index] = value;
+            this->values[rowIndex * this->numCols + columnIndices[colIndex]] = CSR_values[colIndex];
         }
     }
-
-    this->values = vals;
 }
 
 template <typename T>
@@ -87,9 +129,9 @@ int DenseMatrix<T>::getNumCols() const
 
 // added this, don't see why we should not have it
 template <typename T>
-const std::vector<std::vector<T>>& DenseMatrix<T>::getValues()
+const T* DenseMatrix<T>::getValues() const
 {
-    return this->values;
+    return values;
 }
 
 template <typename T>
@@ -102,7 +144,7 @@ T DenseMatrix<T>::at(int row, int col) const
     }
     else
     {
-        return values[row][col];
+        return values[row * numCols + col];
     }
 }
 
@@ -116,7 +158,23 @@ void DenseMatrix<T>::setValue(int row, int col, T value)
     }
     else
     {
-        values[row][col] = value;
+        values[row * numCols + col] = value;
+    }
+}
+
+template <typename T>
+void DenseMatrix<T>::setValues(const T* values, int size)
+{
+    if (size != this->numRows * this->numCols)
+    {
+        throw std::invalid_argument("Error: DenseMatrix::setValues() size does not match");
+    }
+    else
+    {
+        for (int i = 0; i < size; i++)
+        {
+            this->values[i] = values[i];
+        }
     }
 }
 
@@ -126,62 +184,19 @@ void DenseMatrix<T>::setValue(int row, int col, T value)
 template <typename T>
 void DenseMatrix<T>::transpose()
 {
-    T min = std::min(this->numCols, this->numRows);
-    T temp;
-
-    
-    if (this->numRows < this->numCols)
-    {  // append rows
-        for (int i = this->numRows; i < this->numCols; i++)
-        {
-            this->values.push_back(std::vector<T>());
-
-            for (int j = 0; j < this->numRows; j++)
-            {
-                this->values[i].push_back(this->values[j][i]);
-            }
-        }
-
-        // delete col elements in row:
-        for (int i = 0; i < this->numRows; i++)
-        {
-            for (int j = this->numRows; j < this->numCols; j++)
-            {
-                this->values[i].pop_back();
-            }
-        }
-    }
-    else if (this->numCols < this->numRows)
+    T* transposedVals = new T[this->numRows * this->numCols];
+    for (int i = 0; i < this->numRows; i++)
     {
-        // append end numbers:
-        for (int i = 0; i < this->numCols; i++)
+        for (int j = 0; j < this->numCols; j++)
         {
-            for (int j = this->numCols; j < this->numRows; j++)
-            {
-                this->values[i].push_back(this->values[j][i]);
-            }
-        }
-        // remove end rows
-        for (int i = this->numCols; i < this->numRows; i++)
-        {
-            this->values.pop_back();
+            transposedVals[j * this->numRows + i] = this->values[i * this->numCols + j];
         }
     }
-
-    // Shift core
-    for (int i = 0; i < min; i++)
-    {
-        for (int j = i + 1; j < min; j++)
-        {
-            temp = this->values[i][j];
-            this->values[i][j] = this->values[j][i];
-            this->values[j][i] = temp;
-        }
-    }
-
-    temp = this->numCols;
-    this->numCols = this->numRows;
-    this->numRows = temp;
+    delete[] this->values;
+    this->values = transposedVals;
+    int temp = this->numRows;
+    this->numRows = this->numCols;
+    this->numCols = temp;
 }
 
 template <typename T>
@@ -194,7 +209,8 @@ void DenseMatrix<T>::readFromFile(const std::string& filePath)
 
     // Read numRows, numCols, datatype and they are separated by a comma
     file >> numRows >> numCols >> datatype;
-    values.resize(numRows, std::vector<T>(numCols, T()));
+    delete[] this->values;
+    this->values = new T[this->numRows * this->numCols];
 
     // Check the datatype
     if (datatype != typeid(T).name())
@@ -208,7 +224,7 @@ void DenseMatrix<T>::readFromFile(const std::string& filePath)
     {
         for (int j = 0; j < numCols; j++)
         {
-            if (!(file >> values[i][j]))
+            if (!(file >> this->values[i * this->numCols + j]))
             {
                 std::cerr << "Error: Could not read value from file even though more should be there." << std::endl;
                 return;
@@ -240,7 +256,7 @@ void DenseMatrix<T>::writeToFile(const std::string& filePath) const
     {
         for (int j = 0; j < numCols; j++)
         {
-            file << values[i][j] << " ";
+            file << values[i * this->numCols + j] << " ";
         }
         file << std::endl;
     }

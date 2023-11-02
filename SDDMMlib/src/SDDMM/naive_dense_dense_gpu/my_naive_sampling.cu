@@ -19,8 +19,8 @@
 
 __global__ void naivesampling(
     const int size,
-    const float *const A,
-    float *const B)
+    const float* __restrict__ const A,
+    float* __restrict__ const B)
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 

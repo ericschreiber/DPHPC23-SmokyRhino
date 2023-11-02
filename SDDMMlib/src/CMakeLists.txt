@@ -5,3 +5,4 @@ set(CMAKE_CXX_STANDARD 17)
 # Add the two libraries
 add_subdirectory(MatrixLib)
 add_subdirectory(SDDMM)
+add_subdirectory(TimingLib)

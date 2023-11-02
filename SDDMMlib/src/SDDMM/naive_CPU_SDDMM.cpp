@@ -14,7 +14,8 @@ void naive_CPU_SDDMM<T>::SDDMM(
     const SparseMatrix<T>& z,
     SparseMatrix<T>& result) const
 {
-    // SDDMM Sampled implementation for CSR matrix:
+    // this->start_run();
+    //  SDDMM Sampled implementation for CSR matrix:
 
     std::vector<int> RowPtr = z.getRowPtr();
     std::vector<int> ColIndices = z.getColIndices();
@@ -57,7 +58,21 @@ void naive_CPU_SDDMM<T>::SDDMM(
     result.setColIndices(calcColIndices);
     result.setRowPtr(calcRowPtr);
 
+    // this->stop_run();
     return;
+}
+
+template <typename T>
+void naive_CPU_SDDMM<T>::start_run() const
+{
+    assert(this->_timer != nullptr && "Error: naive_sequential_full_SDDMM_HOST::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
+    this->_timer->start_cpu_run();  // OR _timer.start_gpu_run();
+}
+
+template <typename T>
+void naive_CPU_SDDMM<T>::stop_run() const
+{
+    this->_timer->stop_cpu_run();  // OR _timer.stop_gpu_run();
 }
 
 // Explicit template instantiation

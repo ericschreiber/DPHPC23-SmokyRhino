@@ -11,33 +11,10 @@ int main()
     CSRMatrix<double> matrixS(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
     CSRMatrix<double> calculatedSolution(std::vector<std::vector<double>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
     CSRMatrix<double> expectedSolution(std::vector<std::vector<double>>{{16, 20, 12}, {152, 120, 60}, {420, 304, 144}});
-    //This both testes the  DenseMatrix.transpose() printing out the matrices and the the Sparsematrix.SDDMM() (for CSR matrix)
+    // This testes the Sparsematrix.SDDMM() (for CSR matrix)
 
-    //Matrix transpose test
-    matrixA.transpose();
-
-    std::cout << "Matrix transpose test" << std::endl;
-    for (int i = 0; i < matrixA.getNumRows(); i++)
-    {
-        for (int j = 0; j < matrixA.getNumCols(); j++)
-        {
-            std::cout << matrixA.at(i, j) << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    matrixA.transpose();
-
-    std::cout << "Matrix transposed back" << std::endl;
-
-    for (int i = 0; i < matrixA.getNumRows(); i++)
-    {
-        for (int j = 0; j < matrixA.getNumCols(); j++)
-        {
-            std::cout << matrixA.at(i, j) << " ";
-        }
-        std::cout << std::endl;
-    }
+    ExecutionTimer timer = ExecutionTimer();
+    naive_CPU_SDDMM<double>* class_to_run = new naive_CPU_SDDMM<double>(&timer);
 
     matrixS.SDDMM(
         matrixA,

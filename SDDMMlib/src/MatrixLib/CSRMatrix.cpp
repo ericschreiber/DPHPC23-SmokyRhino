@@ -174,7 +174,7 @@ void CSRMatrix<T>::writeToFile(const std::string& filePath) const
 
 // OPerator overloading ==
 template <typename T>
-bool CSRMatrix<T>::operator==(const SparseMatrix<T>& other) const
+bool CSRMatrix<T>::isEqual(const SparseMatrix<T>& other) const
 {
     // Check if the dimensions are the same
     if (numRows != other.getNumCols() || numCols != other.getNumCols())

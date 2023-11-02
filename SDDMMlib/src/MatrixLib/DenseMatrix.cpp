@@ -11,15 +11,17 @@ template <typename T>
 DenseMatrix<T>::DenseMatrix()
 {
     // Default constructor
-    values = std::vector<std::vector<T>>();
+    values = nullptr;
     numRows = 0;
     numCols = 0;
 }
 
 template <typename T>
-DenseMatrix<T>::DenseMatrix(int rows, int cols) : numRows(rows),
-                                                  numCols(cols),
-                                                  values(rows, std::vector<T>(cols, T()))
+DenseMatrix<T>::DenseMatrix(
+    int rows,
+    int cols) : numRows(rows),
+                numCols(cols),
+                values(new T[rows * cols])
 {
     // Initialize DenseMatrix with zeros
     for (int i = 0; i < rows * cols; ++i)
@@ -99,7 +101,7 @@ void DenseMatrix<T>::convert_csr_dense(const CSRMatrix<T>& csrMatrix)
     }
 
     // main loop
-    const std::vector<int>& rowIndices = csrMatrix.getRowArray();
+    const std::vector<int>& rowIndices = csrMatrix.getRowPtr();
     const std::vector<int>& columnIndices = csrMatrix.getColIndices();
     const std::vector<T>& CSR_values = csrMatrix.getValues();
 

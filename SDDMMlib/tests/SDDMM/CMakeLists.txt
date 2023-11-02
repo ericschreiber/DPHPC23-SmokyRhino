@@ -2,8 +2,9 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Define your project and set its name
-project(tests)
+project(testcasessddmm)
 
 # Add subdirectories for the library and executable
-add_subdirectory(MatrixLib)
-add_subdirectory(SDDMM)
+if(USE_CUDA EQUAL 1)
+add_subdirectory(naive_dense_dense_gpu)
+endif()

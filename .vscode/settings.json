@@ -81,5 +81,5 @@
         "__string": "cpp",
         "chrono": "cpp"
     },
-    "cmake.sourceDirectory": "${workspaceFolder}/SDDMMlib"
+    "cmake.sourceDirectory": "${workspaceFolder}"
 }

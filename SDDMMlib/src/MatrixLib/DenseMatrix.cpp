@@ -179,8 +179,7 @@ void DenseMatrix<T>::setValues(const T* values, int size)
 }
 
 // Should this method ever become too slow/consume to much memory implement this:
-// The unnecesary extra storage created for a MxK matrix given M>K is M*K-K^2. So bad for long and thin matrices.
-// Improve by inserting and cuting out as you go.
+// "Use the fact that you are switching positions of only two variables. So you only need a variable to save one, copy the other and save the intermediate to the first position."
 template <typename T>
 void DenseMatrix<T>::transpose()
 {

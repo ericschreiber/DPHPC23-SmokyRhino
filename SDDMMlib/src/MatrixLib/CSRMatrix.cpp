@@ -272,7 +272,6 @@ void CSRMatrix<T>::setRowPtr(const std::vector<int>& rowPtr)
     this->rowPtr = rowPtr;
 }
 
-
 // Instantiate the versions of the class that we need
 template class CSRMatrix<float>;
 template class CSRMatrix<double>;

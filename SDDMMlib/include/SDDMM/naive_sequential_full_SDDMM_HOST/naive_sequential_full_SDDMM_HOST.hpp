@@ -12,8 +12,8 @@ template <typename T>
 class naive_sequential_full_SDDMM_HOST : public SDDMMlib<T>
 {
     public:
-        naive_sequential_full_SDDMM_HOST() { assert(false && "Error: naive_sequential_full_SDDMM_HOST<T>::naive_SDDMM() is only implemented for float."); }
-        naive_sequential_full_SDDMM_HOST(ExecutionTimer* timer) { assert(false && "Error: naive_sequential_full_SDDMM_HOST<T>::naive_SDDMM() is only implemented for float."); }
+        naive_sequential_full_SDDMM_HOST() { assert(false && "Error: naive_sequential_full_SDDMM_HOST<T>::naive_sequential_full_SDDMM_HOST() is only implemented for float."); }
+        naive_sequential_full_SDDMM_HOST(ExecutionTimer* timer) { assert(false && "Error: naive_sequential_full_SDDMM_HOST<T>::naive_sequential_full_SDDMM_HOST() is only implemented for float."); }
         virtual void SDDMM(
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,

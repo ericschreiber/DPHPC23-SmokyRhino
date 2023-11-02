@@ -34,8 +34,6 @@ class DenseMatrix
         void readFromFile(const std::string& filePath);
         void writeToFile(const std::string& filePath) const;
 
-        // T operator[](int row, int col) const;
-        
     private:
         void convert_csr_dense(const CSRMatrix<T>& csrMatrix);  // constructor to convert CSR matrix to dense matrix
         std::vector<std::vector<T>> values;

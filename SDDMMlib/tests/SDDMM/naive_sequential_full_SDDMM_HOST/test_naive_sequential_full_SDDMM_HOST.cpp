@@ -17,12 +17,16 @@ int main()
     CSRMatrix<float> matrixC_HOST(matrixC_Dense);
 
     std::vector<std::vector<float>> matrixA ={
-        {1, 2, 3}, {4, 5, 6}, {7, 8, 9}
+        {1, 2, 3},
+        {4, 5, 6},
+        {7, 8, 9}
     };
     DenseMatrix<float> matrixA_Dense(matrixA);
 
     std::vector<std::vector<float>> matrixB = {
-        {1, 4, 7}, {2, 5, 8}, {3, 6, 9}
+        {1, 4, 7},
+        {2, 5, 8},
+        {3, 6, 9}
     };
     DenseMatrix<float> matrixB_Dense(matrixB);
 

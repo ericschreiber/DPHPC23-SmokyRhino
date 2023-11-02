@@ -1,8 +1,9 @@
 // naive_sequential_full_SDDMM.cpp
 #include "naive_sequential_full_SDDMM_HOST/naive_sequential_full_SDDMM_HOST.hpp"
-#include <iostream>
-#include "DenseMatrix.hpp"
 
+#include <iostream>
+
+#include "DenseMatrix.hpp"
 
 // Only the float type of the class is valid all other types will throw an error
 void naive_sequential_full_SDDMM_HOST<float>::SDDMM(
@@ -23,6 +24,9 @@ void naive_sequential_full_SDDMM_HOST<float>::SDDMM(
         naive_sequential_full_SDDMM_HOST_CSR(x, y, *csrMatrix, *csrResult);
     }
 
+    csrMatrix = NULL;
+    csrResult = NULL;
+
     return;
 }
 
@@ -42,8 +46,6 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
     const CSRMatrix<float>& z,
     CSRMatrix<float>& result) const
 {
-    
-    this->start_run();
     // This is a very dumb implementation, because it samples only AFTER the
     // matrix x matrix multiplication
 
@@ -51,13 +53,19 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
     int n = x.getNumCols();
     int k = y.getNumCols();
 
+    // size check
+    assert(m == z.getNumRows());
+    assert(n == z.getNumCols());
+    assert(k == n);
+
     auto xy = DenseMatrix<float>(m, n);
     std::vector<float> temp_vals(z.getNumValues());
 
-    // I assume a size check has been done for now, but we might want to make that
     // one explicitly Please note that the paper uses A[M][K] and B[N][K]. I.e. B
     // already seems to be transposed! I am making the same assumption
     // I also assume we are taking a CRS matrix
+
+    this->start_run();
 
     for (int i = 0; i < m; i++)
     {
@@ -76,16 +84,17 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
     {
         for (int j = z.getRowPtr()[i]; j < z.getRowPtr()[i + 1]; j++)
         {
-            temp_vals[j] = xy.at(i, z.getColIndices()[j]) * z.getValues()[j];   
+            temp_vals[j] = xy.at(i, z.getColIndices()[j]) * z.getValues()[j];
         }
     }
+
+    this->stop_run();
 
     result.setValues(temp_vals);
     result.setColIndices(z.getColIndices());
     result.setRowPtr(z.getRowPtr());
 
-    std::cout << "naive_sequential_sampled_SDDMM was executed :)" << std::endl;
-    this->stop_run();
+    std::cout << "naive_sequential_full_SDDMM was executed :)" << std::endl;
     return;
 }
 

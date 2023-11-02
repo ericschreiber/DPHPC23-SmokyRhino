@@ -3,8 +3,6 @@
 
 #include <iostream>
 
-
-
 // Only the float type of the class is valid all other types will throw an error
 void naive_sequential_sampled_SDDMM_HOST<float>::SDDMM(
     const DenseMatrix<float>& x,
@@ -23,7 +21,8 @@ void naive_sequential_sampled_SDDMM_HOST<float>::SDDMM(
     {
         naive_sequential_sampled_SDDMM_HOST_CSR(x, y, *csrMatrix, *csrResult);
     }
-
+    csrMatrix = NULL;
+    csrResult = NULL;
     return;
 }
 
@@ -43,20 +42,24 @@ void naive_sequential_sampled_SDDMM_HOST<float>::naive_sequential_sampled_SDDMM_
     const CSRMatrix<float>& z,
     CSRMatrix<float>& result) const
 {
-    // please implement
-    this->start_run();
     // This is literally just a straightforward implementation of Algorithm 2 in the SDMM HPC Paper
 
     int m = x.getNumRows();
     int n = x.getNumCols();
     int k = y.getNumCols();
 
+    // size check
+    assert(m == z.getNumRows());
+    assert(n == z.getNumCols());
+    assert(k == n);
+
     std::vector<float> temp_vals(z.getNumValues());
 
-    // I assume a size check has been done for now, but we might want to make that one explicitly
     // Please note that the paper uses A[M][K] and B[N][K]. I.e. B already seems to be transposed!
     // I am making the same assumption
     // I also assume we are taking a CRS matrix
+
+    this->start_run();
 
     for (int i = 0; i < m; i++)
     {
@@ -77,12 +80,13 @@ void naive_sequential_sampled_SDDMM_HOST<float>::naive_sequential_sampled_SDDMM_
         }
     }
 
+    this->stop_run();
+
     result.setValues(temp_vals);
     result.setColIndices(z.getColIndices());
     result.setRowPtr(z.getRowPtr());
 
     std::cout << "naive_sequential_sampled_SDDMM was executed :)" << std::endl;
-    this->stop_run();
     return;
 }
 

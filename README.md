@@ -1,7 +1,7 @@
 # Smokey Rhino
 
 ## SDDMMlib
-This library contains implementations for matrices and the sddmm algorithms. To build it go to /SDDMMlib/build and run (with true or false depending on if you want to use cuda)
+This library contains implementations for matrices and the sddmm algorithms. To build it go to /SDDMMlib/build and run (with true or false depending on if you want to use cuda). To run in debug mode add `-DCMAKE_BUILD_TYPE=DEBUG` to the cmake command.
 ```
 cmake -DUSE_CUDA=<0/1> ..
 cmake --build .

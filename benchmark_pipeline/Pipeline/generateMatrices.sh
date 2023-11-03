@@ -5,13 +5,22 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 EXECUTABLE=$SCRIPT_DIR"/../../build/benchmark_pipeline/src/generateMatrices"
 DATASET_DIR=$SCRIPT_DIR"/../data/matrices"
 
+# Yell at user if they don't provide the correct number of arguments
+if [ "$#" -ne 6 ];
+then
+    echo "Usage: 
+    ./generateMatrices.sh <MIN_N> <MAX_N> <MIN_M> <MAX_M> <min_sparsity> <max_sparsity>
+    (both sparsities integers that represent percentages)"
+    exit 1
+fi
+
 # PARAMETER RANGES
-MIN_N=5
-MAX_N=5
-MIN_M=5
-MAX_M=5
-MIN_sparsity=0
-MAX_sparsity=0  # in percent
+MIN_N=$1
+MAX_N=$2
+MIN_M=$3
+MAX_M=$4
+MIN_sparsity=$5
+MAX_sparsity=$6  
 
 # Loop through different values of n and m
 for ((n = MIN_N; n <= MAX_N; n++)); do

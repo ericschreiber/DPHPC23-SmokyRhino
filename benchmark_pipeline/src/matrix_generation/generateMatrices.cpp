@@ -1,10 +1,5 @@
 // TODO: maybe also parametrize the type of the matrix (float, double, int, etc.)
 
-// Note: to compile this into a "standalone" executable and not into as part of a library I threw
-// this file into tests/MatrixLib and then added the following line to the CMakeLists.txt file:
-// under "Link the excecutable" I added: "add_executable(generateMatrices generateMatrices.cpp)"
-// under "Link the library" I added: "target_link_libraries(generateMatrices MatrixLib)"
-
 #include <iostream>
 
 #include "DenseMatrix.hpp"

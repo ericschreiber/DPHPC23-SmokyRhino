@@ -36,7 +36,6 @@ Each matrix is being saved to it's own file since I think we will probably gener
 
 Resulting matrices will be saved intp generated_matrices. If this folder already contains files these files will not be deleted.
 
-
 ## Adding new tests
 New functions must be added in the `/include/implemented_classes.hpp` file. The function must be templated and must have the following signature:
 ```

@@ -23,7 +23,6 @@ The script `generateMatrix.sh` can be used to generate matrices. It takes the fo
 ```
 ./generateMatrix.sh <path/to/output/dir> <matrix_type> <matrix_shape> (optional: <matrix_density>)
 ```
-```
 Please put all the matrices into /data/datasets/ and create a dataset folder for each kind of matrix (dense, sparse, ultra sparse, etc.).
 
 

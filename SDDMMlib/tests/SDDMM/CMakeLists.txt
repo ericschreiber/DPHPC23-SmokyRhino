@@ -20,4 +20,5 @@ endif()
 # Link the executable
 add_executable(test_naive_CPU_SDDMM test_naive_CPU_SDDMM.cpp)
 target_link_libraries(test_naive_CPU_SDDMM
-                        MatrixLib)
+                        MatrixLib
+                        SDDMMlib)

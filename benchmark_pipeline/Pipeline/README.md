@@ -30,10 +30,12 @@ Please put all the matrices into /data/datasets/ and create a dataset folder for
 
 The script `generateMatrices.sh` will generate a number of matrices with values in a given range.
 
+```
 Usage: 
     ./generateMatrices.sh <MIN_N> <MAX_N> <MIN_M> <MAX_M> <min_sparsity> <max_sparsity> <stride>
     - both sparsities integers that represent percentages
     - if <stride> is not provided, it defaults to 1"
+```
 
 Note that stride has to divide (max_sparsity - min_sparsity)
 

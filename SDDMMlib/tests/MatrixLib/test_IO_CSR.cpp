@@ -32,7 +32,7 @@ int main()
     // Check if matrixIntFromFile is equal to matrixInt
     assert(matrixInt == matrixIntFromFile && "matrixIntFromFile is not equal to matrixInt");
 
-    std::cout << "Test passed!" << std::endl;
+    std::cout << "IO CSR: all tests passed!" << std::endl;
 
     // remove the temporary files
     remove("testDouble.txt");

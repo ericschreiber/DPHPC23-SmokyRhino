@@ -1,5 +1,7 @@
 // TODO: maybe also parametrize the type of the matrix (float, double, int, etc.)
 
+#include <chrono>
+#include <cstdint>
 #include <iostream>
 
 #include "DenseMatrix.hpp"
@@ -14,13 +16,16 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // set fresh seed for random number generator (time(0) is too coarse since we invoke this script multiple times in quick succession)
+    uint64_t time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    srand(time);
+
     int n = std::stoi(argv[1]);
     int m = std::stoi(argv[2]);
-    // maybe this arg can be made optional, for now just set to 0 in case of dense matrix
     float sparsity = std::stof(argv[3]);
     std::string dst_path = argv[4];
 
-    // populate array with uniofrmly distributed random numbers (respecting the degree of sparsity)
+    // populate array with uniformly distributed random numbers (respecting the degree of sparsity)
     std::vector<std::vector<float> > vals(n, std::vector<float>(m, 0));
     for (int i = 0; i < n; i++)
     {
@@ -40,6 +45,7 @@ int main(int argc, char *argv[])
                     vals[i][j] = rand_num;
                 }
             }
+            // new line
         }
     }
 

@@ -5,10 +5,6 @@ if (USE_CUDA EQUAL 0)
 
     add_library(SDDMMlib
                 naive_SDDMM.cpp)   
-                
-    target_include_directories(SDDMMlib PUBLIC 
-                                ../../include/SDDMM
-    )
 
 # Add our own code
 target_include_directories(SDDMMlib PUBLIC 

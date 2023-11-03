@@ -164,12 +164,18 @@ void COOMatrix<T>::readFromFile(const std::string& filePath)
     // generating CSR matrices (and the matrix generation script is
     // the only place where we want to save matrices to a file
     // (if I am not mistaken))?
+    //
+    // throw not implemented error for now
+    throw std::runtime_error("error: COOMatrix<T>::readFromFile() not implemented");
 }
 
 template <typename T>
 void COOMatrix<T>::writeToFile(const std::string& filePath) const
 {
     // TODO: same comment as in readFromFile
+    //
+    // throw not implemented error for now
+    throw std::runtime_error("error: COOMatrix<T>::writeToFile() not implemented");
 }
 
 //////////////// OTHER ////////////////

@@ -48,6 +48,29 @@ void mainTest()
     std::vector<std::vector<int>> in2 = {{1, 2, 0}, {0, 5, 6}, {0, 0, 10}};
     COOMatrix<int> coo3 = COOMatrix<int>(DenseMatrix<int>(in2));
     assert((coo == coo3) == false);
+
+    // assert the not implemented errors for writeToFile and readFromFile
+    bool exceptionThrown = false;
+    try
+    {
+        coo.writeToFile("test.txt");
+    }
+    catch (const std::runtime_error& e)
+    {
+        exceptionThrown = true;
+    }
+    assert(exceptionThrown);
+
+    exceptionThrown = false;
+    try
+    {
+        coo.readFromFile("test.txt");
+    }
+    catch (const std::runtime_error& e)
+    {
+        exceptionThrown = true;
+    }
+    assert(exceptionThrown);
 }
 
 int main()

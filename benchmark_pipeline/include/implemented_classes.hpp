@@ -3,6 +3,7 @@
 #define IMPLEMENTED_CLASSES_HPP
 
 #include "SDDMMlib.hpp"
+#include "naive_CPU_SDDMM.hpp"
 #include "naive_SDDMM.hpp"
 
 // Put your cuda classes here. They wont be compiled if the flag USE_CUDA is not set to 1
@@ -17,6 +18,10 @@ SDDMMlib<T>* get_implemented_class(std::string class_name)
     if (class_name == "naive_SDDMM")
     {
         return new naive_SDDMM<T>();
+    }
+    else if (class_name == "naive_CPU_SDDMM")
+    {
+        return new naive_CPU_SDDMM<T>();
     }
 
 // Put your cuda classes here. They wont be compiled if the flag USE_CUDA is not set to 1

@@ -1,6 +1,7 @@
 // DenseMatrix.cpp
 #include "DenseMatrix.hpp"
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>

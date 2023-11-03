@@ -19,13 +19,14 @@ function_name, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/
 Comments can be added by starting a line with `#`. A sample config file is provided in `/tests`.
 
 ## Generating matrices
+### generateMatrix.sh
 The script `generateMatrix.sh` can be used to generate matrices. It takes the following arguments:
 ```
 ./generateMatrix.sh <path/to/output/dir> <matrix_type> <matrix_shape> (optional: <matrix_density>)
 ```
 Please put all the matrices into /data/datasets/ and create a dataset folder for each kind of matrix (dense, sparse, ultra sparse, etc.).
 
-
+### generateMatrices.sh
 
 The script `generateMatrices.sh` will generate a number of matrices with values in a given range.
 

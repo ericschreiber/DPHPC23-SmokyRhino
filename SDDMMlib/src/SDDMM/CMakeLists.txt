@@ -10,10 +10,6 @@ if (USE_CUDA EQUAL 0)
                                 ../../include/SDDMM
     )
 
-# Add our own code
-target_include_directories(SDDMMlib PUBLIC 
-                            ../../include/SDDMM
-                            )
     target_link_libraries(SDDMMlib
                             TimingLib
                             MatrixLib)
@@ -32,7 +28,8 @@ else()
                 naive_SDDMM.cpp
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
                 naive_dense_dense_gpu/naive_dense_dense.cu
-                naive_dense_dense_gpu/my_naive_sampling.cu)      
+                naive_dense_dense_gpu/my_naive_sampling.cu
+                naive_coo_gpu/naive_coo_SDDMM_GPU.cpp)      
 
     # Add our own code
     target_include_directories(SDDMMlib PUBLIC 

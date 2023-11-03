@@ -7,4 +7,13 @@ project(testcasessddmm)
 # Add subdirectories for the library and executable
 if(USE_CUDA EQUAL 1)
 add_subdirectory(naive_dense_dense_gpu)
+
+add_executable(test_naive_coo_SDDMM_GPU
+               test_naive_coo_SDDMM_GPU.cpp
+)
+target_link_libraries(test_naive_coo_SDDMM_GPU 
+                       MatrixLib
+                       SDDMMlib
+)
+
 endif()

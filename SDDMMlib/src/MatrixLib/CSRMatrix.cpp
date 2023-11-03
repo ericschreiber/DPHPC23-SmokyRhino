@@ -217,7 +217,7 @@ bool CSRMatrix<T>::isEqual(const SparseMatrix<T>& other) const
     }
 
     // Check if the row pointers are the same
-    if (rowPtr != other.getRowPtr())
+    if (rowPtr != other.getRowArray())
     {
         std::cout << "Error: Row pointers are not the same" << std::endl;
         return false;
@@ -280,7 +280,7 @@ const std::vector<int>& CSRMatrix<T>::getColIndices() const
 }
 
 template <typename T>
-const std::vector<int>& CSRMatrix<T>::getRowPtr() const
+const std::vector<int>& CSRMatrix<T>::getRowArray() const
 {
     return rowPtr;
 }
@@ -298,7 +298,7 @@ void CSRMatrix<T>::setColIndices(const std::vector<int>& colIndices)
 }
 
 template <typename T>
-void CSRMatrix<T>::setRowPtr(const std::vector<int>& rowPtr)
+void CSRMatrix<T>::setRowArray(const std::vector<int>& rowPtr)
 {
     this->rowPtr = rowPtr;
 }

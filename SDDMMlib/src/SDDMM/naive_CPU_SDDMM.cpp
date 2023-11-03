@@ -17,7 +17,7 @@ void naive_CPU_SDDMM<T>::SDDMM(
     this->start_run();
     //  SDDMM Sampled implementation for CSR matrix:
 
-    std::vector<int> RowPtr = z.getRowPtr();
+    std::vector<int> RowPtr = z.getRowArray();
     std::vector<int> ColIndices = z.getColIndices();
     std::vector<T> values = z.getValues();
     std::vector<int> calcRowPtr = {0};
@@ -56,7 +56,7 @@ void naive_CPU_SDDMM<T>::SDDMM(
 
     result.setValues(calcValues);
     result.setColIndices(calcColIndices);
-    result.setRowPtr(calcRowPtr);
+    result.setRowArray(calcRowPtr);
 
     this->stop_run();
     return;

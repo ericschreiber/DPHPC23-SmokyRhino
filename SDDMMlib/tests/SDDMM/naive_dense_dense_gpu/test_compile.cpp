@@ -83,7 +83,7 @@ int main()
     // }
     // std::cout << std::endl;
 
-    // // Print other.getRowPtr()
+    // // Print other.getRowArray()
     // std::cout << "colIndices calculated: " << std::endl;
     // for (int i = 0; i < calculatedSolution_HOST.getColIndices().size(); ++i)
     // {

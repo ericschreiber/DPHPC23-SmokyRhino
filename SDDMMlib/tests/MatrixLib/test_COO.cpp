@@ -76,6 +76,6 @@ void mainTest()
 int main()
 {
     mainTest();
-    std::cout << "All tests passed!" << std::endl;
+    std::cout << "COO: all tests passed!" << std::endl;
     return 0;
 }

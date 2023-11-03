@@ -1,6 +1,7 @@
 #include "COOMatrix.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 //////////////// CONSTRUCTORS ////////////////
 

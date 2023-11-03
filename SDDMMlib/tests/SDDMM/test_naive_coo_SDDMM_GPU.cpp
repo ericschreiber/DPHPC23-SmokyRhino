@@ -6,13 +6,13 @@
 #include "DenseMatrix.hpp"
 #include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
 
-void test_simple_zeros()
+void test_simple_near_zeros()
 {
-    COOMatrix<float> matrixA(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}));
-    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1}, {2}, {3}});
-    DenseMatrix<float> matrixC(std::vector<std::vector<float>>{{1}, {2}, {3}});
-    COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}, {1, 2, 3}}));
-    COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+    COOMatrix<float> matrixA(DenseMatrix(std::vector<std::vector<float>>{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 1}, {2, 2}, {3, 3}});
+    DenseMatrix<float> matrixC(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}});
+    COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
+    COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
 
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
@@ -55,6 +55,6 @@ void test_simple_zeros()
 
 int main()
 {
-    test_simple_zeros();
+    test_simple_near_zeros();
     return 0;
 }

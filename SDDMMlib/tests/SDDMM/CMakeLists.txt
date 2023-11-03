@@ -8,3 +8,7 @@ project(testcasessddmm)
 if(USE_CUDA EQUAL 1)
 add_subdirectory(naive_dense_dense_gpu)
 endif()
+# Link the executable
+add_executable(test_naive_CPU_SDDMM test_naive_CPU_SDDMM.cpp)
+target_link_libraries(test_naive_CPU_SDDMM
+                        MatrixLib)

@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // set fresh seed for random number generator
+    // set fresh seed for random number generator (time(0) is too coarse since we invoke this script multiple times in quick succession)
     uint64_t time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     srand(time);
 

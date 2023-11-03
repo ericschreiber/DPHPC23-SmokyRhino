@@ -11,7 +11,7 @@ void test_simple_zeros()
     COOMatrix<float> matrixA(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}));
     DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1}, {2}, {3}});
     DenseMatrix<float> matrixC(std::vector<std::vector<float>>{{1}, {2}, {3}});
-    COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+    COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}, {1, 2, 3}}));
     COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
 
     // Set a timer
@@ -47,6 +47,7 @@ void test_simple_zeros()
         {
             std::cout << calculatedValues.at(i) << " ";
         }
+        std::cout << std::endl;
     }
 
     return;

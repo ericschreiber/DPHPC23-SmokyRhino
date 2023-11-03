@@ -13,8 +13,17 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
     const COOMatrix<float>& matrixC_HOST,
     COOMatrix<float>& matrixResult_HOST) const
 {
-    std::cout << "SDDMM_COO will run but must be implemented" << std::endl;
-    return;
+    // Get all the sizes (A=mxk; B=kxn; C=mxn; Result=mxn)
+    int m = matrixA_HOST.getNumRows();
+    int k = matrixA_HOST.getNumCols();
+    int n = matrixB_HOST.getNumCols();
+
+    // check the dimensions of the matrices s.t. we can multiply them
+    assert(matrixB_HOST.getNumRows() == k && "Error: matrixB has incompatible dimensions");
+    assert(matrixC_HOST.getNumRows() == m && "Error: matrixC has incompatible dimensions m");
+    assert(matrixC_HOST.getNumCols() == n && "Error: matrixC has incompatible dimensions n");
+    assert(matrixResult_HOST.getNumRows() == m && "Error: matrixResult has incompatible dimensions m");
+    assert(matrixResult_HOST.getNumCols() == n && "Error: matrixResult has incompatible dimensions n");
 }
 
 void naive_coo_SDDMM_GPU<float>::SDDMM(

@@ -5,6 +5,7 @@ project(MatrixLib)
 add_library(MatrixLib 
             CSRMatrix.cpp
             DenseMatrix.cpp
+            COOMatrix.cpp
 )      
 
 # Add our own code

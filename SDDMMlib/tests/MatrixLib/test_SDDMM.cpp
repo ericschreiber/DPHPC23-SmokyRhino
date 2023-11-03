@@ -39,11 +39,11 @@ int main()
     // Check if the calculated solution is equal to the expected solution
     if (calculatedSolution == expectedSolution)
     {
-        std::cout << "Test passed!" << std::endl;
+        std::cout << "SDDMM: all tests passed!" << std::endl;
     }
     else
     {
-        std::cout << "Test failed! Calculated solution is: " << std::endl;
+        std::cout << "SDDMM: Test failed! Calculated solution is: " << std::endl;
         auto calculatedValues = calculatedSolution.getValues();
         for (int i = 0; i < calculatedValues.size(); ++i)
         {

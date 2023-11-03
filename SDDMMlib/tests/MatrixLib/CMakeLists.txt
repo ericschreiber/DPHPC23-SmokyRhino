@@ -17,7 +17,7 @@ set(SDDMMLIB_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 add_executable(test_io_dense test_IO_Dense.cpp)
 add_executable(test_io_CSR test_IO_CSR.cpp)
 add_executable(test_SDDMM test_SDDMM.cpp)
-
+add_executable(test_COO test_COO.cpp)
 
 # Link the library
 target_link_libraries(test_io_dense MatrixLib)
@@ -25,4 +25,7 @@ target_link_libraries(test_io_CSR MatrixLib)
 target_link_libraries(test_SDDMM 
                        MatrixLib
                        SDDMMlib
+)
+target_link_libraries(test_COO 
+                       MatrixLib
 )

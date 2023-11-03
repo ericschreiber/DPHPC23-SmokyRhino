@@ -19,23 +19,29 @@ function_name, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/
 Comments can be added by starting a line with `#`. A sample config file is provided in `/tests`.
 
 ## Generating matrices
+### generateMatrix.sh
 The script `generateMatrix.sh` can be used to generate matrices. It takes the following arguments:
 ```
 ./generateMatrix.sh <path/to/output/dir> <matrix_type> <matrix_shape> (optional: <matrix_density>)
 ```
-```
 Please put all the matrices into /data/datasets/ and create a dataset folder for each kind of matrix (dense, sparse, ultra sparse, etc.).
+
+### generateMatrices.sh
 
 The script `generateMatrices.sh` will generate a number of matrices with values in a given range.
 
-Execute generateMatrices.sh to generate test matrices. Might need to execute "chmod +x generateMatrices.sh" first. 
+```
+Usage: 
+    ./generateMatrices.sh <MIN_N> <MAX_N> <MIN_M> <MAX_M> <min_sparsity> <max_sparsity> <stride>
+    - both sparsities integers that represent percentages
+    - if <stride> is not provided, it defaults to 1"
+```
 
-The parameters that will be iterated over when generating the different matrices can be modified in generateMatrices.sh.
+Note that stride has to divide (max_sparsity - min_sparsity)
 
 Each matrix is being saved to it's own file since I think we will probably generate very large matrices and then I think we do not want to have multiple of those in the same file (but maybe that is not a good idea and needs to be changed). 
 
-Resulting matrices will be saved intp generated_matrices. If this folder already contains files these files will not be deleted.
-
+Resulting matrices will be saved into the generated_matrices folder. If this folder already contains files these files will not be deleted.
 
 ## Adding new tests
 New functions must be added in the `/include/implemented_classes.hpp` file. The function must be templated and must have the following signature:

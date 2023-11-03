@@ -31,9 +31,11 @@ int main()
     delete class_to_run;
     class_to_run = nullptr;
 
+    assert(calculatedSolution == expectedSolution && "Error: The calculated solution does not match the expected in test_naive_CPU_SDDMM");
+
     if (calculatedSolution == expectedSolution)
     {
-        std::cout << "CPU SDDMM test passed" << std::endl;
+        std::cout << "naive CPU SDDMM test passed" << std::endl;
     }
     else
     {

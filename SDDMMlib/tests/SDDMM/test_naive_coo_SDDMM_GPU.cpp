@@ -53,6 +53,53 @@ void test_simple_near_zeros()
     return;
 }
 
+void test_small()
+{
+    COOMatrix<float> matrixA(DenseMatrix(std::vector<std::vector<float>>{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}));
+    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 0}, {2, 0}, {3, 0}});
+    DenseMatrix<float> matrixC(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}});
+    COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
+    COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {2, 4, 6}, {3, 6, 9}}));
+
+    // Set a timer
+    ExecutionTimer timer = ExecutionTimer();
+    naive_coo_SDDMM_GPU<float>* class_to_run = new naive_coo_SDDMM_GPU<float>(&timer);
+
+    // Call multiply and pass the multiplication function from the library
+    matrixA.SDDMM(
+        matrixB,
+        matrixC,
+        calculatedSolution,
+        std::bind(
+            &naive_coo_SDDMM_GPU<float>::SDDMM,
+            class_to_run,
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3,
+            std::placeholders::_4));
+
+    delete class_to_run;
+    class_to_run = nullptr;
+
+    // Check if the calculated solution is equal to the expected solution
+    if (calculatedSolution == expectedSolution)
+    {
+        std::cout << "Test passed!" << std::endl;
+    }
+    else
+    {
+        std::cout << "Test failed! Calculated solution is: " << std::endl;
+        auto calculatedValues = calculatedSolution.getValues();
+        for (int i = 0; i < calculatedValues.size(); ++i)
+        {
+            std::cout << calculatedValues.at(i) << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    return;
+}
+
 void test_small_complex()
 {
     COOMatrix<float> matrixA(DenseMatrix(std::vector<std::vector<float>>{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}));
@@ -102,6 +149,7 @@ void test_small_complex()
 
 int main()
 {
+    test_small();
     test_simple_near_zeros();
     test_small_complex();
     return 0;

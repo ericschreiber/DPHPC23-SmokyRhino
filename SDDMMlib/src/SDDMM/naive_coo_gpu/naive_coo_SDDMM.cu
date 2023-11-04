@@ -8,13 +8,13 @@
 __device__ float dot_product(
     const int k,
     const float* const matrixA_GPU_values_row,
-    const float* const matrixB_GPU_values_col)
+    const float* const matrixB_transposed_GPU_values_col)
 {
     // calculate SUM_i row[i] * col[i]
     float result = 0;
     for (int i = 0; i < k; i++)
     {
-        result += matrixA_GPU_values_row[i] * matrixB_GPU_values_col[i];
+        result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
     }
     return result;
 }
@@ -23,18 +23,18 @@ __device__ float naive_coo_one_val(
     const int k,
     const float multiplier,
     const float* const matrixA_GPU_values_row,
-    const float* const matrixB_GPU_values_col)
+    const float* const matrixB_transposed_GPU_values_col)
 {
     // calculate mutiplier * SUM_i row[i] * col[i]
-    return multiplier * dot_product(k, matrixA_GPU_values_row, matrixB_GPU_values_col);
+    return multiplier * dot_product(k, matrixA_GPU_values_row, matrixB_transposed_GPU_values_col);
 }
 
-// Assumes matrixB_GPU_values is transposed
+// Assumes matrixB_transposed_GPU_values is transposed
 __global__ void naive_coo(
     const int k,
     const int numElementsC,
     const float* const matrixA_GPU_values,
-    const float* const matrixB_GPU_values,
+    const float* const matrixB_transposed_GPU_values,
     const float* const matrixC_GPU_values,
     const int* const matrixC_GPU_row_indices,
     const int* const matrixC_GPU_col_indices,
@@ -49,7 +49,7 @@ __global__ void naive_coo(
         float multiplier = matrixC_GPU_values[index];
 
         // calculate matrixResult_GPU_values[index][col] = naive_coo_one_val(multiplier, matrixA_GPU_values[row][:], matrixB_GPU_values[:][col])
-        matrixResult_GPU_values[index] = naive_coo_one_val(k, multiplier, matrixA_GPU_values + row, matrixB_GPU_values + col);
+        matrixResult_GPU_values[index] = naive_coo_one_val(k, multiplier, matrixA_GPU_values + row, matrixB_transposed_GPU_values + col);
     }
 }
 
@@ -59,7 +59,7 @@ void compute(
     int k,
     int numElementsC,
     const float* const matrixA_GPU_values,
-    const float* const matrixB_GPU_values,
+    const float* const matrixB_transposed_GPU_values,
     const float* const matrixC_GPU_values,
     const int* const matrixC_GPU_row_indices,
     const int* const matrixC_GPU_col_indices,
@@ -75,7 +75,7 @@ void compute(
         k,
         numElementsC,
         matrixA_GPU_values,
-        matrixB_GPU_values,
+        matrixB_transposed_GPU_values,
         matrixC_GPU_values,
         matrixC_GPU_row_indices,
         matrixC_GPU_col_indices,

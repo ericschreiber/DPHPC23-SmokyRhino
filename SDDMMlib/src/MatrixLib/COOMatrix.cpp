@@ -4,6 +4,15 @@
 #include <iostream>
 
 //////////////// CONSTRUCTORS ////////////////
+template <typename T>
+COOMatrix<T>::COOMatrix()
+{
+    this->values = std::vector<T>();
+    this->rowIndices = std::vector<int>();
+    this->colIndices = std::vector<int>();
+    this->numRows = 0;
+    this->numCols = 0;
+}
 
 // this constructor is used to create an empty COO matrix
 template <typename T>

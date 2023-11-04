@@ -16,6 +16,7 @@ class COOMatrix : virtual public SparseMatrix<T>
 {
     public:
         // constructors
+        COOMatrix();                              // Default constructor
         COOMatrix(int rows, int cols);            // Constructor for an empty COO matrix
         COOMatrix(const DenseMatrix<T>& values);  // Constructor from dense matrix
         // SDDMM

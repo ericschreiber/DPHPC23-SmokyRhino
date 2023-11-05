@@ -3,6 +3,7 @@
 #include <iostream>
 #include <random>
 
+#include "naive_coo_gpu/naive_coo_SDMM.cuh"
 #include "utils.h"
 
 __device__ float dot_product(
@@ -49,7 +50,7 @@ __global__ void naive_coo(
         float multiplier = matrixC_GPU_values[index];
 
         // calculate matrixResult_GPU_values[index][col] = naive_coo_one_val(multiplier, matrixA_GPU_values[row][:], matrixB_GPU_values[:][col])
-        matrixResult_GPU_values[index] = naive_coo_one_val(k, multiplier, matrixA_GPU_values + row, matrixB_transposed_GPU_values + col);
+        matrixResult_GPU_values[index] = naive_coo_one_val(k, multiplier, matrixA_GPU_values + (row * k), matrixB_transposed_GPU_values + (col * k));
     }
 }
 
@@ -70,6 +71,13 @@ void compute(
 
     dim3 threadsPerBlock(1024);
     int blocks = std::min(1024, (numElementsC + 1023) / 1024);
+
+    // std::cout << "n: " << n << std::endl;
+    // std::cout << "m: " << m << std::endl;
+    // std::cout << "k: " << k << std::endl;
+    // std::cout << "numElementsC: " << numElementsC << std::endl;
+    // std::cout << "blocks: " << blocks << std::endl;
+    // std::cout << "threadsPerBlock: " << threadsPerBlock.x << std::endl;
 
     naive_coo<<<blocks, threadsPerBlock>>>(
         k,

@@ -81,18 +81,6 @@ void runner<T>::run()
         _results.push_back(std::make_tuple(function_class, sparse_matrix_class, dataset, durations));
         write_result();
 
-        // print the result
-        std::cout << "Result: " << std::endl;
-        for (int i = 0; i < calculatedSolution->getNumRows(); i++)
-        {
-            for (int j = 0; j < calculatedSolution->getNumCols(); j++)
-            {
-                std::cout << calculatedSolution->at(i, j) << " ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-
         delete sddmm_to_run;
         sddmm_to_run = nullptr;
         delete matrixA;

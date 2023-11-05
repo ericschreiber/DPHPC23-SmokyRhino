@@ -30,6 +30,43 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
     DenseMatrix<float> matrixBTranspose_HOST = DenseMatrix<float>(matrixB_HOST);
     matrixBTranspose_HOST.transpose();
 
+    // // Print all the matrices
+    // std::cout << "matrixA_HOST: " << std::endl;
+    // for (int i = 0; i < m; ++i)
+    // {
+    //     std::cout << "[";
+    //     for (int j = 0; j < k; ++j)
+    //     {
+    //         std::cout << matrixA_HOST.getValues()[i * k + j] << " ";
+    //     }
+    //     std::cout << "]" << std::endl;
+    // }
+    // std::cout << std::endl;
+
+    // std::cout << "matrixB_HOST: " << std::endl;
+    // for (int i = 0; i < k; ++i)
+    // {
+    //     std::cout << "[";
+    //     for (int j = 0; j < n; ++j)
+    //     {
+    //         std::cout << matrixB_HOST.getValues()[i * n + j] << " ";
+    //     }
+    //     std::cout << "]" << std::endl;
+    // }
+    // std::cout << std::endl;
+
+    // std::cout << "matrixBTranspose_HOST: " << std::endl;
+    // for (int i = 0; i < n; ++i)
+    // {
+    //     std::cout << "[";
+    //     for (int j = 0; j < k; ++j)
+    //     {
+    //         std::cout << matrixBTranspose_HOST.getValues()[i * k + j] << " ";
+    //     }
+    //     std::cout << "]" << std::endl;
+    // }
+    // std::cout << std::endl;
+
     // allocate memory for the matrices on the GPU
     float* matrixA_GPU_values;
     float* matrixB_transpose_GPU_values;

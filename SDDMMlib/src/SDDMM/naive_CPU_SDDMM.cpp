@@ -7,6 +7,30 @@
 
 #include "CSRMatrix.hpp"
 
+void naive_CPU_SDDMM<float>::SDDMM(
+    const DenseMatrix<float>& x,
+    const DenseMatrix<float>& y,
+    const SparseMatrix<float>& z,
+    SparseMatrix<float>& result) const
+{
+    // Check if CSRMatrix
+    const CSRMatrix<float>* csrMatrix = dynamic_cast<const CSRMatrix<float>*>(&z);
+    CSRMatrix<float>* csrResult = dynamic_cast<CSRMatrix<float>*>(&result);
+    if (csrMatrix == nullptr || csrResult == nullptr)
+    {
+        throw std::invalid_argument("Error: naive_SDDMM::SDDMM() only accepts CSRMatrix<float> as input. Other formats are not supported yet");
+    }
+    else
+    {
+        naive_CPU_SDDMM_CSR(x, y, *csrMatrix, *csrResult);
+    }
+
+    csrMatrix = nullptr;
+    csrResult = nullptr;
+
+    return;
+}
+
 template <typename T>
 void naive_CPU_SDDMM<T>::SDDMM(
     const DenseMatrix<T>& x,
@@ -14,16 +38,25 @@ void naive_CPU_SDDMM<T>::SDDMM(
     const SparseMatrix<T>& z,
     SparseMatrix<T>& result) const
 {
+    assert(false && "Error: naive_SDDMM::SDDMM() only accepts float as input. Other types are not supported yet");
+}
+
+void naive_CPU_SDDMM<float>::naive_CPU_SDDMM_CSR(
+    const DenseMatrix<float>& x,
+    const DenseMatrix<float>& y,
+    const CSRMatrix<float>& z,
+    CSRMatrix<float>& result) const
+{
     this->start_run();
     //  SDDMM Sampled implementation for CSR matrix:
 
     std::vector<int> RowPtr = z.getRowArray();
     std::vector<int> ColIndices = z.getColIndices();
-    std::vector<T> values = z.getValues();
+    std::vector<float> values = z.getValues();
     std::vector<int> calcRowPtr = {0};
     std::vector<int> calcColIndices;
-    std::vector<T> calcValues;
-    T XY_element, h;
+    std::vector<float> calcValues;
+    float XY_element, h;
     int start_el, end_el, col, row = 0;
 
     // Iterating over RowPointer
@@ -54,6 +87,11 @@ void naive_CPU_SDDMM<T>::SDDMM(
         row += 1;
     }
 
+    if (calcRowPtr.size() == 1)
+    {
+        calcRowPtr = {};
+    }
+
     result.setValues(calcValues);
     result.setColIndices(calcColIndices);
     result.setRowArray(calcRowPtr);
@@ -62,20 +100,17 @@ void naive_CPU_SDDMM<T>::SDDMM(
     return;
 }
 
-template <typename T>
-void naive_CPU_SDDMM<T>::start_run() const
+void naive_CPU_SDDMM<float>::start_run() const
 {
     assert(this->_timer != nullptr && "Error: naive_sequential_full_SDDMM_HOST::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
     this->_timer->start_cpu_run();  // OR _timer.start_gpu_run();
 }
 
-template <typename T>
-void naive_CPU_SDDMM<T>::stop_run() const
+void naive_CPU_SDDMM<float>::stop_run() const
 {
     this->_timer->stop_cpu_run();  // OR _timer.stop_gpu_run();
 }
 
 // Explicit template instantiation
-template class naive_CPU_SDDMM<float>;
 template class naive_CPU_SDDMM<double>;
 template class naive_CPU_SDDMM<int>;

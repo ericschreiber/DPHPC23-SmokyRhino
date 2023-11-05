@@ -256,8 +256,13 @@ T CSRMatrix<T>::at(int row, int col) const
         }
     }
 
-    // Return the value if it was found, otherwise return -1
-    assert(index != -1 && "Error: Value not found");
+    //  Return the value if it was found, otherwise return -1
+    // Isnt it better to return a 0 than crash?
+    if (index == -1)
+    {
+        return 0;
+    }
+
     return values[index];
 }
 

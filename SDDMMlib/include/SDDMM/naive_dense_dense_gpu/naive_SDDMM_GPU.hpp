@@ -15,6 +15,7 @@ class naive_SDDMM_GPU : public SDDMMlib<T>
 {
     public:
         naive_SDDMM_GPU() { assert(false && "Error: naive_SDDMM_GPU<T>::naive_SDDMM_GPU() is only implemented for float."); }
+        naive_SDDMM_GPU(ExecutionTimer* timer) { assert(false && "Error: naive_SDDMM_GPU<T>::naive_SDDMM_GPU() is only implemented for float."); }
         virtual void SDDMM(
             const DenseMatrix<T>& matrixA_HOST,
             const DenseMatrix<T>& matrixB_HOST,
@@ -28,6 +29,8 @@ template <>
 class naive_SDDMM_GPU<float> : public SDDMMlib<float>
 {
     public:
+        naive_SDDMM_GPU() : SDDMMlib<float>() {}
+        naive_SDDMM_GPU(ExecutionTimer* timer) { this->_timer = timer; }
         virtual void SDDMM(
             const DenseMatrix<float>& matrixA_HOST,
             const DenseMatrix<float>& matrixB_HOST,

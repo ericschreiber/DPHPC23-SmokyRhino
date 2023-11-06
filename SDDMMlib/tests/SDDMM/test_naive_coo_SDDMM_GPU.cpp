@@ -8,9 +8,9 @@
 
 void test_simple_near_zeros()
 {
-    COOMatrix<float> matrixA(DenseMatrix(std::vector<std::vector<float>>{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
-    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 1}, {2, 2}, {3, 3}});
-    DenseMatrix<float> matrixC(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}});
+    COOMatrix<float> sample_Matrix(DenseMatrix(std::vector<std::vector<float>>{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+    DenseMatrix<float> matrixA(std::vector<std::vector<float>>{{1, 1}, {2, 2}, {3, 3}});
+    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}});
     COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
     COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
 
@@ -19,9 +19,9 @@ void test_simple_near_zeros()
     naive_coo_SDDMM_GPU<float>* class_to_run = new naive_coo_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
-    matrixA.SDDMM(
+    sample_Matrix.SDDMM(
+        matrixA,
         matrixB,
-        matrixC,
         calculatedSolution,
         std::bind(
             &naive_coo_SDDMM_GPU<float>::SDDMM,
@@ -55,9 +55,9 @@ void test_simple_near_zeros()
 
 void test_small()
 {
-    COOMatrix<float> matrixA(DenseMatrix(std::vector<std::vector<float>>{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}));
-    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 0}, {2, 0}, {3, 0}});
-    DenseMatrix<float> matrixC(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}});
+    COOMatrix<float> sample_Matrix(DenseMatrix(std::vector<std::vector<float>>{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}));
+    DenseMatrix<float> matrixA(std::vector<std::vector<float>>{{1, 0}, {2, 0}, {3, 0}});
+    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}});
     COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
     COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {2, 4, 6}, {3, 6, 9}}));
 
@@ -66,9 +66,9 @@ void test_small()
     naive_coo_SDDMM_GPU<float>* class_to_run = new naive_coo_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
-    matrixA.SDDMM(
+    sample_Matrix.SDDMM(
+        matrixA,
         matrixB,
-        matrixC,
         calculatedSolution,
         std::bind(
             &naive_coo_SDDMM_GPU<float>::SDDMM,
@@ -102,9 +102,9 @@ void test_small()
 
 void test_small_complex()
 {
-    COOMatrix<float> matrixA(DenseMatrix(std::vector<std::vector<float>>{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}));
-    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 1}, {2, 2}, {3, 3}});
-    DenseMatrix<float> matrixC(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}});
+    COOMatrix<float> sample_Matrix(DenseMatrix(std::vector<std::vector<float>>{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}}));
+    DenseMatrix<float> matrixA(std::vector<std::vector<float>>{{1, 1}, {2, 2}, {3, 3}});
+    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}});
     COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
     COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 4, 6}, {4, 8, 12}, {6, 12, 18}}));
 
@@ -113,9 +113,9 @@ void test_small_complex()
     naive_coo_SDDMM_GPU<float>* class_to_run = new naive_coo_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
-    matrixA.SDDMM(
+    sample_Matrix.SDDMM(
+        matrixA,
         matrixB,
-        matrixC,
         calculatedSolution,
         std::bind(
             &naive_coo_SDDMM_GPU<float>::SDDMM,

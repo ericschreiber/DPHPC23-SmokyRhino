@@ -1,8 +1,18 @@
 #include "COOMatrix.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 //////////////// CONSTRUCTORS ////////////////
+template <typename T>
+COOMatrix<T>::COOMatrix()
+{
+    this->values = std::vector<T>();
+    this->rowIndices = std::vector<int>();
+    this->colIndices = std::vector<int>();
+    this->numRows = 0;
+    this->numCols = 0;
+}
 
 // this constructor is used to create an empty COO matrix
 template <typename T>
@@ -188,12 +198,11 @@ bool COOMatrix<T>::isEqual(const SparseMatrix<T>& other) const
     // compare values arrays
     //
     // if I sort the original vectors c++ will complain, hence I have to make copies
-    std::vector<T> vals1 = this->getValues();
-    std::vector<T> vals2 = other.getValues();
+
     std::vector<T> valsCopy1 = std::vector<T>();  // create two empty vectors
     std::vector<T> valsCopy2 = std::vector<T>();
-    std::copy(vals1.begin(), vals1.end(), std::back_inserter(valsCopy1));  // copy the original vectors into the empty vectors
-    std::copy(vals2.begin(), vals2.end(), std::back_inserter(valsCopy2));
+    std::copy(this->getValues().begin(), this->getValues().end(), std::back_inserter(valsCopy1));  // copy the original vectors into the empty vectors
+    std::copy(other.getValues().begin(), other.getValues().end(), std::back_inserter(valsCopy2));
     std::vector<T>& valsReference1 = valsCopy1;  // get references to the copies
     std::vector<T>& valsReference2 = valsCopy2;
     std::sort(valsReference1.begin(), valsReference1.end());
@@ -212,12 +221,10 @@ bool COOMatrix<T>::isEqual(const SparseMatrix<T>& other) const
     }
 
     // compare row indices arrays
-    std::vector<int> rowIndices1 = this->getRowArray();
-    std::vector<int> rowIndices2 = other.getRowArray();
     std::vector<int> rowIndicesCopy1 = std::vector<int>();
     std::vector<int> rowIndicesCopy2 = std::vector<int>();
-    std::copy(rowIndices1.begin(), rowIndices1.end(), std::back_inserter(rowIndicesCopy1));
-    std::copy(rowIndices2.begin(), rowIndices2.end(), std::back_inserter(rowIndicesCopy2));
+    std::copy(this->getRowArray().begin(), this->getRowArray().end(), std::back_inserter(rowIndicesCopy1));
+    std::copy(other.getRowArray().begin(), other.getRowArray().end(), std::back_inserter(rowIndicesCopy2));
     std::vector<int>& rowIndicesReference1 = rowIndicesCopy1;
     std::vector<int>& rowIndicesReference2 = rowIndicesCopy2;
     std::sort(rowIndicesReference1.begin(), rowIndicesReference1.end());
@@ -235,12 +242,10 @@ bool COOMatrix<T>::isEqual(const SparseMatrix<T>& other) const
     }
 
     // compare col indices arrays
-    std::vector<int> colIndices1 = this->getColIndices();
-    std::vector<int> colIndices2 = other.getColIndices();
     std::vector<int> colIndicesCopy1 = std::vector<int>();
     std::vector<int> colIndicesCopy2 = std::vector<int>();
-    std::copy(colIndices1.begin(), colIndices1.end(), std::back_inserter(colIndicesCopy1));
-    std::copy(colIndices2.begin(), colIndices2.end(), std::back_inserter(colIndicesCopy2));
+    std::copy(this->getColIndices().begin(), this->getColIndices().end(), std::back_inserter(colIndicesCopy1));
+    std::copy(other.getColIndices().begin(), other.getColIndices().end(), std::back_inserter(colIndicesCopy2));
     std::vector<int>& colIndicesReference1 = colIndicesCopy1;
     std::vector<int>& colIndicesReference2 = colIndicesCopy2;
     std::sort(colIndicesReference1.begin(), colIndicesReference1.end());

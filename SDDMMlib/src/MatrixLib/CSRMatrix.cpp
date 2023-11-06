@@ -256,9 +256,15 @@ T CSRMatrix<T>::at(int row, int col) const
         }
     }
 
-    // Return the value if it was found, otherwise return -1
-    assert(index != -1 && "Error: Value not found");
-    return values[index];
+    // Return the value if it was found, otherwise return 0
+    if (index != -1)
+    {
+        return values[index];
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 template <typename T>

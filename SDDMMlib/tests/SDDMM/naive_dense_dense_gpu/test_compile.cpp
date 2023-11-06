@@ -43,6 +43,9 @@ int main()
     DenseMatrix<float> expectedSolution_Dense(solution);
     CSRMatrix<float> expectedSolution_HOST(expectedSolution_Dense);
 
+    // Set a timer
+    ExecutionTimer timer = ExecutionTimer();
+
     // Call multiply and pass the multiplication function from the library
     matrixC_HOST.SDDMM(
         matrixA_HOST,
@@ -50,7 +53,7 @@ int main()
         calculatedSolution_HOST,
         std::bind(
             &naive_SDDMM_GPU<float>::SDDMM,
-            naive_SDDMM_GPU<float>(),
+            naive_SDDMM_GPU<float>(&timer),
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,

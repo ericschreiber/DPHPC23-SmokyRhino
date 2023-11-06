@@ -38,21 +38,20 @@ class CSRMatrix : virtual public SparseMatrix<T>
         virtual void writeToFile(const std::string& filePath) const override;
         virtual ~CSRMatrix() {}
 
-        virtual bool operator==(const SparseMatrix<T>& other) const override;
-
         virtual int getNumRows() const override;
         virtual int getNumCols() const override;
         virtual T at(int row, int col) const override;
         virtual int getNumValues() const override;
         virtual const std::vector<T>& getValues() const override;
         virtual const std::vector<int>& getColIndices() const override;
-        virtual const std::vector<int>& getRowPtr() const override;
+        virtual const std::vector<int>& getRowArray() const override;
 
         virtual void setValues(const std::vector<T>& values) override;
         virtual void setColIndices(const std::vector<int>& colIndices) override;
-        virtual void setRowPtr(const std::vector<int>& rowPtr) override;
+        virtual void setRowArray(const std::vector<int>& rowPtr) override;
 
     private:
+        virtual bool isEqual(const SparseMatrix<T>& other) const override;
         std::vector<T> values;
         std::vector<int> colIndices;
         std::vector<int> rowPtr;

@@ -9,7 +9,7 @@
 
 int main()
 {
-    CSRMatrix<double> matrixDouble(DenseMatrix(std::vector<std::vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}));
+    CSRMatrix<double> matrixDouble(DenseMatrix(std::vector<std::vector<double>>{{1.1, 2.2, 3.3}, {4.4, 5.5, 6.6}, {7.7, 8.8, 9.9}}));
     CSRMatrix<int> matrixInt(DenseMatrix(std::vector<std::vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}));
 
     // Write matrixDouble to file
@@ -32,7 +32,7 @@ int main()
     // Check if matrixIntFromFile is equal to matrixInt
     assert(matrixInt == matrixIntFromFile && "matrixIntFromFile is not equal to matrixInt");
 
-    std::cout << "Test passed!" << std::endl;
+    std::cout << "IO CSR: all tests passed!" << std::endl;
 
     // remove the temporary files
     remove("testDouble.txt");

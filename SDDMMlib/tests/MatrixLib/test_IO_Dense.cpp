@@ -55,7 +55,7 @@ void mainTest()
     }
     assert(same && "matrixIntFromFile is not equal to matrixInt");
 
-    std::cout << "Test passed!" << std::endl;
+    std::cout << "IO Dense: all tests passed!" << std::endl;
 
     // remove the temp files
     remove("testDouble.txt");
@@ -68,7 +68,14 @@ void testCsrToDense()
     std::vector<std::vector<int>> in = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
     CSRMatrix<int> matrixCSR = CSRMatrix<int>(DenseMatrix<int>(in));
     DenseMatrix<int> matrixDense(matrixCSR);
-    const std::vector<std::vector<int>>& vals = matrixDense.getValues();
+    std::vector<std::vector<int>> vals = std::vector<std::vector<int>>(matrixDense.getNumRows(), std::vector<int>(matrixDense.getNumCols()));
+    for (int i = 0; i < matrixDense.getNumRows(); ++i)
+    {
+        for (int j = 0; j < matrixDense.getNumCols(); ++j)
+        {
+            vals[i][j] = matrixDense.at(i, j);
+        }
+    }
     // compare both value vectors
     assert(vals == in && "Incorrect CSR to Dense conversion");
 }

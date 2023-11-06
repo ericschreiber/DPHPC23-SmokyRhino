@@ -1,10 +1,20 @@
 # Set the minimum required version of CMake
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.21)
 
 # Define your project and set its name
 project(testcasessddmm)
 
 # Add subdirectories for the library and executable
+if(USE_CUDA EQUAL 1)
+add_subdirectory(naive_dense_dense_gpu)
+endif()
+
+if(USE_CUDA EQUAL 0)
 add_subdirectory(naive_sequential_full_SDDMM_HOST)
 add_subdirectory(naive_sequential_sampled_SDDMM_HOST)
+endif()
 
+# Link the executable
+add_executable(test_naive_CPU_SDDMM test_naive_CPU_SDDMM.cpp)
+target_link_libraries(test_naive_CPU_SDDMM
+                        MatrixLib)

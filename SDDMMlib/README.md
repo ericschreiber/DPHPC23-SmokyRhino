@@ -1,7 +1,7 @@
 # SDDMM Libarary
 This library contains implementations for matrices and the sddmm algorithms. For that we create two libraries called `SDDMMlib` and `Matrixlib`. The `SDDMMlib` contains the implementations of the algorithms and the `Matrixlib` contains the implementations of the matrices. Both libraries depend on each other (not so nice. TODO: If you want to detangle them give it a go :D). To build it go to `/SDDMMlib/build` and run 
 ```bash
-cmake ..
+cmake -DUSE_CUDA=<0/1> ..
 cmake --build .
 ```
 

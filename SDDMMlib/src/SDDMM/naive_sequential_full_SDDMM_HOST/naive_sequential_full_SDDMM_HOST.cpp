@@ -24,8 +24,8 @@ void naive_sequential_full_SDDMM_HOST<float>::SDDMM(
         naive_sequential_full_SDDMM_HOST_CSR(x, y, *csrMatrix, *csrResult);
     }
 
-    csrMatrix = NULL;
-    csrResult = NULL;
+    csrMatrix = nullptr;
+    csrResult = nullptr;
 
     return;
 }
@@ -82,7 +82,7 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
 
     for (int i = 0; i < m; i++)
     {
-        for (int j = z.getRowPtr()[i]; j < z.getRowPtr()[i + 1]; j++)
+        for (int j = z.getRowArray()[i]; j < z.getRowArray()[i + 1]; j++)
         {
             temp_vals[j] = xy.at(i, z.getColIndices()[j]) * z.getValues()[j];
         }
@@ -92,7 +92,7 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
 
     result.setValues(temp_vals);
     result.setColIndices(z.getColIndices());
-    result.setRowPtr(z.getRowPtr());
+    result.setRowArray(z.getRowArray());
 
     std::cout << "naive_sequential_full_SDDMM was executed :)" << std::endl;
     return;

@@ -31,16 +31,6 @@ void naive_CPU_SDDMM<float>::SDDMM(
     return;
 }
 
-template <typename T>
-void naive_CPU_SDDMM<T>::SDDMM(
-    const DenseMatrix<T>& x,
-    const DenseMatrix<T>& y,
-    const SparseMatrix<T>& z,
-    SparseMatrix<T>& result) const
-{
-    assert(false && "Error: naive_SDDMM::SDDMM() only accepts float as input. Other types are not supported yet");
-}
-
 void naive_CPU_SDDMM<float>::naive_CPU_SDDMM_CSR(
     const DenseMatrix<float>& x,
     const DenseMatrix<float>& y,

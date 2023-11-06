@@ -19,7 +19,9 @@ class naive_CPU_SDDMM : public SDDMMlib<T>
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,
             const SparseMatrix<T>& z,
-            SparseMatrix<T>& result) const override;
+            SparseMatrix<T>& result) const override {}
+        virtual void start_run() const override {}  // Would need to be implemented but we don't need it because the class can never be constructed except for float
+        virtual void stop_run() const override {}
 };
 
 template <>

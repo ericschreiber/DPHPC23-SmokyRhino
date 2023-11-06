@@ -8,8 +8,8 @@
 
 __device__ float dot_product(
     const int k,
-    const float* const matrixA_GPU_values_row,
-    const float* const matrixB_transposed_GPU_values_col)
+    const float* __restrict__ const matrixA_GPU_values_row,
+    const float* __restrict__ const matrixB_transposed_GPU_values_col)
 {
     // calculate SUM_i row[i] * col[i]
     float result = 0;
@@ -23,8 +23,8 @@ __device__ float dot_product(
 __device__ float naive_coo_one_val(
     const int k,
     const float multiplier,
-    const float* const matrixA_GPU_values_row,
-    const float* const matrixB_transposed_GPU_values_col)
+    const float* __restrict__ const matrixA_GPU_values_row,
+    const float* __restrict__ const matrixB_transposed_GPU_values_col)
 {
     // calculate mutiplier * SUM_i row[i] * col[i]
     return multiplier * dot_product(k, matrixA_GPU_values_row, matrixB_transposed_GPU_values_col);
@@ -34,12 +34,12 @@ __device__ float naive_coo_one_val(
 __global__ void naive_coo(
     const int k,
     const int numElementsC,
-    const float* const matrixA_GPU_values,
-    const float* const matrixB_transposed_GPU_values,
-    const float* const matrixC_GPU_values,
-    const int* const matrixC_GPU_row_indices,
-    const int* const matrixC_GPU_col_indices,
-    float* matrixResult_GPU_values)
+    const float* __restrict__ const matrixA_GPU_values,
+    const float* __restrict__ const matrixB_transposed_GPU_values,
+    const float* __restrict__ const matrixC_GPU_values,
+    const int* __restrict__ const matrixC_GPU_row_indices,
+    const int* __restrict__ const matrixC_GPU_col_indices,
+    float* __restrict__ const matrixResult_GPU_values)
 {
     int index = (blockIdx.x * blockDim.x) + threadIdx.x;
 
@@ -55,16 +55,16 @@ __global__ void naive_coo(
 }
 
 void compute(
-    int m,
-    int n,
-    int k,
-    int numElementsC,
-    const float* const matrixA_GPU_values,
-    const float* const matrixB_transposed_GPU_values,
-    const float* const matrixC_GPU_values,
-    const int* const matrixC_GPU_row_indices,
-    const int* const matrixC_GPU_col_indices,
-    float* matrixResult_GPU_values)
+    const int m,
+    const int n,
+    const int k,
+    const int numElementsC,
+    const float* __restrict__ const matrixA_GPU_values,
+    const float* __restrict__ const matrixB_transposed_GPU_values,
+    const float* __restrict__ const matrixC_GPU_values,
+    const int* __restrict__ const matrixC_GPU_row_indices,
+    const int* __restrict__ const matrixC_GPU_col_indices,
+    float* __restrict__ const matrixResult_GPU_values)
 {
     // Iterate of matrixC_GPU_row_indices, matrixC_GPU_col_indices, matrixC_GPU_values (as they share indices)
     // Each thread will calculate one value of the result matrix

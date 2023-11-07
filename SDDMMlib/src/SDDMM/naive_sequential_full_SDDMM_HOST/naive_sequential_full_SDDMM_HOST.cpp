@@ -49,14 +49,17 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
     // This is a very dumb implementation, because it samples only AFTER the
     // matrix x matrix multiplication
 
+    DenseMatrix<float> y_transpose = DenseMatrix<float>(y);
+    y_transpose.transpose();
+
     int m = x.getNumRows();
-    int n = x.getNumCols();
-    int k = y.getNumCols();
+    int n = y_transpose.getNumRows();
+    int k = y_transpose.getNumCols();
 
     // size check
     assert(m == z.getNumRows());
     assert(n == z.getNumCols());
-    assert(k == n);
+    assert(k == x.getNumCols());
 
     auto xy = DenseMatrix<float>(m, n);
     std::vector<float> temp_vals(z.getNumValues());
@@ -73,7 +76,7 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
         {
             for (int l = 0; l < k; l++)
             {
-                auto mul = x.at(i, l) * y.at(j, l);
+                auto mul = x.at(i, l) * y_transpose.at(j, l);
                 auto curr_xy_ij = xy.at(i, j);
                 xy.setValue(i, j, mul + curr_xy_ij);
             }
@@ -94,7 +97,6 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
     result.setColIndices(z.getColIndices());
     result.setRowArray(z.getRowArray());
 
-    std::cout << "naive_sequential_full_SDDMM was executed :)" << std::endl;
     return;
 }
 

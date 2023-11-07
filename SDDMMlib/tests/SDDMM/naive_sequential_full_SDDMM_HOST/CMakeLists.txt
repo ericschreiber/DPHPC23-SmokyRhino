@@ -2,7 +2,7 @@
 # cmake ..
 # cmake --build . -j20 # -j20 is optional and limiting the number of threads, Compile time ~20 min 
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.21)
 
 project(naive_sequential_full_SDDMM_HOST)
 

@@ -43,20 +43,20 @@ void naive_sequential_sampled_SDDMM_HOST<float>::naive_sequential_sampled_SDDMM_
     CSRMatrix<float>& result) const
 {
     // This is literally just a straightforward implementation of Algorithm 2 in the SDMM HPC Paper
+    DenseMatrix<float> y_transpose = DenseMatrix<float>(y);
+    y_transpose.transpose();
 
     int m = x.getNumRows();
-    int n = x.getNumCols();
-    int k = y.getNumCols();
+    int n = y_transpose.getNumRows();
+    int k = y_transpose.getNumCols();
 
     // size check
     assert(m == z.getNumRows());
     assert(n == z.getNumCols());
-    assert(k == n);
+    assert(k == x.getNumCols());
 
     std::vector<float> temp_vals(z.getNumValues());
 
-    // Please note that the paper uses A[M][K] and B[N][K]. I.e. B already seems to be transposed!
-    // I am making the same assumption
     // I also assume we are taking a CRS matrix
 
     this->start_run();
@@ -67,7 +67,7 @@ void naive_sequential_sampled_SDDMM_HOST<float>::naive_sequential_sampled_SDDMM_
         {
             for (int l = 0; l < k; l++)
             {
-                temp_vals[j] += x.at(i, l) * y.at(z.getColIndices()[j], l);
+                temp_vals[j] += x.at(i, l) * y_transpose.at(z.getColIndices()[j], l);
             }
         }
     }
@@ -86,7 +86,6 @@ void naive_sequential_sampled_SDDMM_HOST<float>::naive_sequential_sampled_SDDMM_
     result.setColIndices(z.getColIndices());
     result.setRowArray(z.getRowArray());
 
-    std::cout << "naive_sequential_sampled_SDDMM was executed :)" << std::endl;
     return;
 }
 

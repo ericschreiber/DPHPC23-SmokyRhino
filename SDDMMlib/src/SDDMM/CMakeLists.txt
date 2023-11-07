@@ -1,12 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 set(THIRD_PARTY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 
-# Define here the library with all cpu functions
-add_library(SDDMMlib
-            naive_SDDMM.cpp
-            naive_CPU_SDDMM.cpp)   
-
 if (USE_CUDA EQUAL 0)
+
+    add_library(SDDMMlib
+                naive_SDDMM.cpp
+                naive_CPU_SDDMM.cpp)   
                 
     target_include_directories(SDDMMlib PUBLIC 
                                 ../../include/SDDMM
@@ -25,12 +24,18 @@ else()
 
     # cuda
     set_source_files_properties(*.cu PROPERTIES LANGUAGE CUDA)
-  
-    # Add GPU functions to the code
-    target_sources(SDDMMlib PRIVATE
-                    naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
-                    naive_dense_dense_gpu/naive_dense_dense.cu
-                    naive_dense_dense_gpu/my_naive_sampling.cu)
+
+    add_library(SDDMMlib 
+                naive_SDDMM.cpp
+
+                naive_CPU_SDDMM.cpp
+
+                naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
+                naive_dense_dense_gpu/naive_dense_dense.cu
+                naive_dense_dense_gpu/my_naive_sampling.cu
+
+                naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
+                naive_coo_gpu/naive_coo_SDDMM.cu)      
 
     # Add our own code
     target_include_directories(SDDMMlib PUBLIC 

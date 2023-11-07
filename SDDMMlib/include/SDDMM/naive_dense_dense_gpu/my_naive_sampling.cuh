@@ -4,7 +4,7 @@
 
 void my_naive_sampling(
     const int size,
-    const float *const A,
-    float *const B);
+    const float* __restrict__ const A,
+    float* __restrict__ const B);
 
 #endif  // MY_NAIVE_SAMPLING_CUH

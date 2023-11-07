@@ -1,2 +1,0 @@
-function,path/to/first/dense/matrix,path/to/second/dense/matrix,path/to/first/sparse/matrix,result
-naive_CPU_SDDMM,/Users/marcusmoller/Projects/c++/GIT/DPHPC23-SmokyRhino/benchmark_pipeline/tests/densematrix_test.txt,/Users/marcusmoller/Projects/c++/GIT/DPHPC23-SmokyRhino/benchmark_pipeline/tests/densematrix_test.txt,/Users/marcusmoller/Projects/c++/GIT/DPHPC23-SmokyRhino/benchmark_pipeline/tests/csrmatrix_test.txt,18264.000000,

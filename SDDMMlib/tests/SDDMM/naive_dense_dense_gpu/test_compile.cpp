@@ -4,7 +4,7 @@
 
 #include "CSRMatrix.hpp"
 #include "DenseMatrix.hpp"
-#include "naive_dense_dense_gpu/naive_SDDMM_GPU.hpp"
+#include "naive_dense_dense_gpu/naive_SDDMM_GPU.cuh"
 
 int main()
 {
@@ -43,6 +43,10 @@ int main()
     DenseMatrix<float> expectedSolution_Dense(solution);
     CSRMatrix<float> expectedSolution_HOST(expectedSolution_Dense);
 
+    // setup timer
+    ExecutionTimer timer = ExecutionTimer();
+    naive_SDDMM_GPU<float>* class_to_run = new naive_SDDMM_GPU<float>(&timer);
+
     // Call multiply and pass the multiplication function from the library
     matrixC_HOST.SDDMM(
         matrixA_HOST,
@@ -50,7 +54,7 @@ int main()
         calculatedSolution_HOST,
         std::bind(
             &naive_SDDMM_GPU<float>::SDDMM,
-            naive_SDDMM_GPU<float>(),
+            class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
@@ -58,39 +62,16 @@ int main()
 
     std::cout << "Function returned" << std::endl;
 
-    // Check if the calculated solution is equal to the expected solution
-    // // Print calculatedSolution_HOST.getValues()
-    // std::cout << "calculatedSolution_HOST: " << std::endl;
-    // for (int i = 0; i < calculatedSolution_HOST.getNumRows() * calculatedSolution_HOST.getNumCols(); ++i)
-    // {
-    //     std::cout << calculatedSolution_HOST.getValues()[i] << " ";
-    // }
-    // std::cout << std::endl;
+    // print timer results
+    std::cout << "Timer results: " << std::endl;
+    std::vector<double> result = timer.get_runtimes();
+    for (int i = 0; i < result.size(); ++i)
+    {
+        std::cout << result.at(i) << " ";
+    }
+    std::cout << std::endl;
 
-    // // Print expectedSolution_HOST.getValues()
-    // std::cout << "expectedSolution_HOST: " << std::endl;
-    // for (int i = 0; i < expectedSolution_HOST.getNumRows() * expectedSolution_HOST.getNumCols(); ++i)
-    // {
-    //     std::cout << expectedSolution_HOST.getValues()[i] << " ";
-    // }
-    // std::cout << std::endl;
-
-    // // Print other.getColIndices()
-    // std::cout << "colIndices expected: " << std::endl;
-    // for (int i = 0; i < expectedSolution_HOST.getColIndices().size(); ++i)
-    // {
-    //     std::cout << expectedSolution_HOST.getColIndices()[i] << " ";
-    // }
-    // std::cout << std::endl;
-
-    // // Print other.getRowPtr()
-    // std::cout << "colIndices calculated: " << std::endl;
-    // for (int i = 0; i < calculatedSolution_HOST.getColIndices().size(); ++i)
-    // {
-    //     std::cout << calculatedSolution_HOST.getColIndices()[i] << " ";
-    // }
-    // std::cout << std::endl;
-
+    // verify result
     if (calculatedSolution_HOST == expectedSolution_HOST)
     {
         std::cout << "Test passed!" << std::endl;

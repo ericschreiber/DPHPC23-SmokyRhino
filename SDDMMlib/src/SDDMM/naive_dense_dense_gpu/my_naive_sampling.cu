@@ -32,38 +32,11 @@ __global__ void naivesampling(
 
 void my_naive_sampling(
     const int size,
-    const float *const A,
-    float *const B)
+    const float* const A,
+    float* const B)
 {
     // every block can have up to 1024 threads
     int blocks = std::min(1024, (size + 1023) / 1024);
-    // std::cout << "blocks: " << blocks << std::endl;
-    // std::cout << "size: " << size << std::endl;
-    // std::cout << "Pointer A: " << A << std::endl;
-    // std::cout << "Pointer B: " << B << std::endl;
-    // std::cout << "Pointer to size: " << &size << std::endl;
-
-    // // Copy A to Host
-    // float *A_host = new float[size];
-    // CUDA_CHECK(cudaMemcpy(A_host, A, size * sizeof(float), cudaMemcpyDeviceToHost));
-    // // Print A
-    // std::cout << "A: ";
-    // for (int i = 0; i < size; i++)
-    // {
-    //     std::cout << A_host[i] << " ";
-    // }
-    // std::cout << std::endl;
-
-    // // Copy B to Host
-    // float *B_host = new float[size];
-    // CUDA_CHECK(cudaMemcpy(B_host, B, size * sizeof(float), cudaMemcpyDeviceToHost));
-    // // Print B
-    // std::cout << "B: ";
-    // for (int i = 0; i < size; i++)
-    // {
-    //     std::cout << B_host[i] << " ";
-    // }
-    // std::cout << std::endl;
 
     naivesampling<<<blocks, 1024>>>(
         size,

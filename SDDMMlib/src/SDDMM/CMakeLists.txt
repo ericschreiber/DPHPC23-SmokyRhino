@@ -26,8 +26,8 @@ else()
 
     add_library(SDDMMlib 
                 naive_SDDMM.cpp
-                naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
-                naive_dense_dense_gpu/naive_dense_dense.cu
+                
+                naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
                 #initial_implementation_gpu_jiela/initial_SDDMM_GPU_jiela.cpp
                 #initial_implementation_gpu_jiela/initial_SDDMM_GPU_kernel_jiela.cu
@@ -44,8 +44,8 @@ else()
                                 )
 
     target_link_libraries(SDDMMlib
-                        MatrixLib
-                        TimingLib
+                            MatrixLib
+                            TimingLib
                             CUDA::cublas
                             CUDA::cudart
                             CUDA::cuda_driver)

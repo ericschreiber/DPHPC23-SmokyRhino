@@ -5,9 +5,10 @@
 #include <chrono>
 #include <optional>
 #include <vector>
-#if USE_CUDA
+// #if USE_CUDA
 #include "CUDATimer.cuh"
-#endif
+#include "utils.h"
+// #endif
 
 class ExecutionTimer
 {
@@ -29,9 +30,10 @@ class ExecutionTimer
         std::chrono::time_point<std::chrono::high_resolution_clock> stop_time;
         bool running;
         std::vector<double> elapsed_times;
-#if USE_CUDA
-        std::optional<EventTimer> cuda_timer;
-#endif
+        // #if USE_CUDA
+        EventTimer cuda_timer;
+        cudaStream_t s;
+        // #endif
 };
 
 #endif  // ExecutionTimer__HPP

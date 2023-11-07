@@ -68,7 +68,7 @@ void naive_CPU_SDDMM<float>::naive_CPU_SDDMM_CSR(
             // Iterating over K
             for (int k = 0; k < x.getNumCols(); k++)
             {
-                XY_element += x.at(row, k) * y.at(col, k);
+                XY_element += x.at(row, k) * y.at(k, col);
             }
             // Hadamard product
             h = values[i] * XY_element;

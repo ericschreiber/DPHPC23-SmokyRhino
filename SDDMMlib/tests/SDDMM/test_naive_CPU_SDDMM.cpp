@@ -13,6 +13,8 @@ void test_1()
     CSRMatrix<float> expectedSolution(std::vector<std::vector<float>>{{28, 22, 0, 0, 0}, {0, 52, 0, 0, 0}, {0, 0, 60, 0, 0}, {0, 0, 0, 52, 0}, {0, 0, 0, 0, 28}});
     // This testes the Sparsematrix.SDDMM() (for CSR matrix)
 
+    matrixB.transpose();
+
     ExecutionTimer timer = ExecutionTimer();
     naive_CPU_SDDMM<float>* class_to_run = new naive_CPU_SDDMM<float>(&timer);
 

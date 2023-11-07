@@ -29,9 +29,15 @@ else()
 
     add_library(SDDMMlib 
                 naive_SDDMM.cpp
+
+                naive_CPU_SDDMM.cpp
+
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
                 naive_dense_dense_gpu/naive_dense_dense.cu
-                naive_dense_dense_gpu/my_naive_sampling.cu)      
+                naive_dense_dense_gpu/my_naive_sampling.cu
+
+                naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
+                naive_coo_gpu/naive_coo_SDDMM.cu)      
 
     # Add our own code
     target_include_directories(SDDMMlib PUBLIC 

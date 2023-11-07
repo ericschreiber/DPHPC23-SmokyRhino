@@ -13,7 +13,7 @@
 //
 // *************************************************************************************************
 
-void read_config_file(std::string config_file_path, std::vector<std::tuple<std::string, dataset_paths>>& functions_to_run)
+void read_config_file(std::string config_file_path, std::vector<std::tuple<std::string, std::string, dataset_paths>>& functions_to_run)
 {
     assert(check_config_file(config_file_path) && "Config file has problems");
     // Open the file for reading
@@ -43,8 +43,8 @@ void read_config_file(std::string config_file_path, std::vector<std::tuple<std::
             line_split.push_back(cell);
         }
         // Add the line to the list of functions to run
-        dataset_paths dataset = dataset_paths(line_split[1], line_split[2], line_split[3]);
-        functions_to_run.push_back(std::make_tuple(line_split[0], dataset));
+        dataset_paths dataset = dataset_paths(line_split[2], line_split[3], line_split[4]);
+        functions_to_run.push_back(std::make_tuple(line_split[0], line_split[1], dataset));
     }
     // Close the file
     config_file.close();
@@ -100,13 +100,13 @@ bool check_config_file(std::string config_file_path)
         {
             line_split.push_back(cell);
         }
-        if (line_split.size() != 4)
+        if (line_split.size() != 5)
         {
             std::cerr << "Invalid line in config file: " << line << std::endl;
             return false;
         }
-        // check that all the paths exist (cell 1, 2, 3)
-        for (int i = 1; i < 4; i++)
+        // check that all the paths exist (cell 2, 3, 4)
+        for (int i = 2; i < 5; i++)
         {
             // Remove all whitespace from the cell
             line_split[i].erase(std::remove_if(line_split[i].begin(), line_split[i].end(), ::isspace), line_split[i].end());

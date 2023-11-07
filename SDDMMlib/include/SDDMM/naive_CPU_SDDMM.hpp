@@ -3,6 +3,7 @@
 #define NAIVE_CPU_SDDMM_HPP
 
 #include <cassert>
+#include <type_traits>
 
 #include "CSRMatrix.hpp"
 #include "DenseMatrix.hpp"
@@ -29,14 +30,12 @@ class naive_CPU_SDDMM<float> : public SDDMMlib<float>
 {
     public:
         naive_CPU_SDDMM() {}
-        naive_CPU_SDDMM(ExecutionTimer* timer) { this->_timer = timer; }
+        naive_CPU_SDDMM(ExecutionTimer* timer);
         virtual void SDDMM(
             const DenseMatrix<float>& x,
             const DenseMatrix<float>& y,
             const SparseMatrix<float>& z,
             SparseMatrix<float>& result) const override;
-        virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE
-        virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 
     private:
         void naive_CPU_SDDMM_CSR(
@@ -44,6 +43,9 @@ class naive_CPU_SDDMM<float> : public SDDMMlib<float>
             const DenseMatrix<float>& y,
             const CSRMatrix<float>& z,
             CSRMatrix<float>& result) const;
+
+        virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE
+        virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 };
 
 #endif  // NAIVE_CPU_SDDMM_HPP

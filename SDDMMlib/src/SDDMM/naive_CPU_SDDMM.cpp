@@ -7,6 +7,11 @@
 
 #include "CSRMatrix.hpp"
 
+naive_CPU_SDDMM<float>::naive_CPU_SDDMM(ExecutionTimer* timer)
+{
+    this->_timer = timer;
+}
+
 void naive_CPU_SDDMM<float>::SDDMM(
     const DenseMatrix<float>& x,
     const DenseMatrix<float>& y,

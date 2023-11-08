@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 set(THIRD_PARTY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 
-if (USE_CUDA EQUAL 0)
-
-    add_library(SDDMMlib
+add_library(SDDMMlib
                 naive_SDDMM.cpp
-                naive_CPU_SDDMM.cpp)   
+                naive_CPU_SDDMM.cpp) 
+
+if (USE_CUDA EQUAL 0) 
                 
     target_include_directories(SDDMMlib PUBLIC 
                                 ../../include/SDDMM
@@ -25,10 +25,9 @@ else()
     # cuda
     set_source_files_properties(*.cu PROPERTIES LANGUAGE CUDA)
 
-    add_library(SDDMMlib 
-                naive_SDDMM.cpp
-
-                naive_CPU_SDDMM.cpp
+    target_sources(SDDMMlib PRIVATE
+                naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.cpp
+                naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu
 
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
                 naive_dense_dense_gpu/naive_dense_dense.cu

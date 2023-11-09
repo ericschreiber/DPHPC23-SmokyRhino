@@ -54,7 +54,7 @@ __global__ void naive_coo(
     }
 }
 
-void compute(
+void compute_naive_coo(
     const int m,
     const int n,
     const int k,

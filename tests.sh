@@ -9,6 +9,8 @@ ${SCRIPT_DIR}/build/SDDMMlib/tests/MatrixLib/test_SDDMM
 ${SCRIPT_DIR}/build/SDDMMlib/tests/MatrixLib/test_io_dense
 ${SCRIPT_DIR}/build/SDDMMlib/tests/MatrixLib/test_io_CSR
 ${SCRIPT_DIR}/build/SDDMMlib/tests/MatrixLib/test_COO
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/naive_sequential_sampled_SDDMM_HOST/test_naive_sequential_sampled_SDDMM_HOST
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/naive_sequential_full_SDDMM_HOST/test_naive_sequential_full_SDDMM_HOST
 "
 GPU_TESTFILES="
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_CPU_SDDMM 

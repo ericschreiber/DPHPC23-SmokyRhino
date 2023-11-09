@@ -5,6 +5,8 @@ if (USE_CUDA EQUAL 0)
 
     add_library(SDDMMlib
                 naive_SDDMM.cpp
+                naive_sequential_full_SDDMM_HOST/naive_sequential_full_SDDMM_HOST.cpp
+                naive_sequential_sampled_SDDMM_HOST/naive_sequential_sampled_SDDMM_HOST.cpp
                 naive_CPU_SDDMM.cpp)   
                 
     target_include_directories(SDDMMlib PUBLIC 
@@ -28,6 +30,9 @@ else()
     add_library(SDDMMlib 
                 naive_SDDMM.cpp
 
+                naive_sequential_full_SDDMM_HOST/naive_sequential_full_SDDMM_HOST.cpp
+                naive_sequential_sampled_SDDMM_HOST/naive_sequential_sampled_SDDMM_HOST.cpp
+                
                 naive_CPU_SDDMM.cpp
 
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cpp

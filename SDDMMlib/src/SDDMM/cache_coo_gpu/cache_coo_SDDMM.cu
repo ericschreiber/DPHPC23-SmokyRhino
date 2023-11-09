@@ -17,6 +17,8 @@
 #include "cache_coo_gpu/cache_coo_SDMM.cuh"
 #include "utils.h"
 
+// TODO: use #defines for as much as possible (e.g. shared mem size, block size, etc.)
+
 // std::count can't be used on the GPU
 __device__ int count(const int* arr, int len, const int row_index)
 {
@@ -104,7 +106,7 @@ __global__ void cache_coo(
     float* __restrict__ const matrixResult_GPU_values)
 {
     ////////////////    SETUP NECESSARY VARS    ////////////////
-    int shared_mem_size_bytes = 49152;                                      // in bytes (this is the size of shared mem on both the A100 and V100 GPUs)
+    const int shared_mem_size_bytes = 49152;                                // in bytes (this is the size of shared mem on both the A100 and V100 GPUs)
     int shared_mem_size = shared_mem_size_bytes / sizeof(float);            // shared mem size in number of floats
     int numThreadsPerBlock = blockDim.x;                                    // this holds since our thread blocks are 1D
     int row_index = blockIdx.x;                                             // holds bc we have set up one block per row so n-th block will take on n-th row of A
@@ -112,15 +114,14 @@ __global__ void cache_coo(
     int row_offset = row_index * row_mem_size;                              // offset that (if added to base_ptr of A) points to curr_row of A
     int A_vals_row_start = matrixA_GPU_values + row_offset;                 // pointer to beginning of row of A that this thread block is working on
     int nnzs = count(matrixC_GPU_row_indices, numElementsC, row_index);     // number of nnzs in this row of C (= amount of work for thread block)
-    int tiling_steps = ceil((float)row_mem_size / (float)shared_mem_size);  // # pieces that we need to chop the row of A into bc it might not fit into shared mem
+    int tiling_steps = ceil((float)row_mem_size / (float)shared_mem_size);  // # pieces that we need to chop the row of A into (bc it might not fit into shared mem)
 
     ////////////////    MAIN LOOP    ////////////////
     for (int tiling_step = 0; tiling_step < tiling_steps; tiling_step++)
     {
         ////////////////    COMPUTE SIZE OF CURR TILE    ////////////////
-        int curr_tile_size = 0;
+        int curr_tile_size = shared_mem_size;
         // if row mem size is not divisible by shared mem size then the last tile will be smaller than shared mem size
-        curr_tile_size = shared_mem_size;
         if (tiling_step == tiling_steps - 1 && row_mem_size % shared_mem_size != 0)
         {
             curr_tile_size = row_mem_size % shared_mem_size;
@@ -128,9 +129,11 @@ __global__ void cache_coo(
 
         ////////////////    THREAD 0: COPY TILE INTO SHARED MEM    ////////////////
         // TODO: this can very likely also be parallelized over the threads in the block
-        __shared__ float tile[shared_mem_size];
+        // decalare a ptr to a shared mem region (this needs to be done so that threads other than thread 0 can access the tile later on)
+        extern __shared__ float tile[];
         if (threadIdx.x == 0)
         {
+            tile = new float[curr_tile_size];  // allocate space for the tile in shared mem
             // copy the tile into shared mem (I think this copying happens float by float (bc of pointer arithmetic) but maybe also byte by byte (?))
             for (int i = 0; i < curr_tile_size; i++)
             {

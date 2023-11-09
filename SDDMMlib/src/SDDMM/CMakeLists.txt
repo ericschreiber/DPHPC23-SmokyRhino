@@ -35,7 +35,11 @@ else()
                 naive_dense_dense_gpu/my_naive_sampling.cu
 
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
-                naive_coo_gpu/naive_coo_SDDMM.cu)      
+                naive_coo_gpu/naive_coo_SDDMM.cu
+                
+                cache_coo_gpu/cache_coo_SDDMM_GPU.cpp
+                cache_coo_gpu/cache_coo_SDDMM.cu
+                )      
 
     # Add our own code
     target_include_directories(SDDMMlib PUBLIC 

@@ -3,9 +3,6 @@
 #include <cassert>
 #include <iostream>
 
-#include "CUDATimer.cuh"
-#include "utils.h"
-
 #if USE_CUDA
 ExecutionTimer::ExecutionTimer()
 {
@@ -18,8 +15,6 @@ ExecutionTimer::ExecutionTimer()
 
 ExecutionTimer::~ExecutionTimer()
 {
-    std::cout << "destroy s" << std::endl;
-    CUDA_CHECK(cudaStreamDestroy(s));
 }
 
 void ExecutionTimer::start_cpu_run()

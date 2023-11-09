@@ -8,6 +8,7 @@ project(testcasessddmm)
 if(USE_CUDA EQUAL 1)
 add_subdirectory(naive_dense_dense_gpu)
 
+
 add_executable(test_naive_coo_SDDMM_GPU
                test_naive_coo_SDDMM_GPU.cpp
 )
@@ -26,8 +27,14 @@ target_link_libraries(test_naive_csr_via_coo_SDDMM_GPU
 )
 
 endif()
+
+add_subdirectory(naive_sequential_full_SDDMM_HOST)
+add_subdirectory(naive_sequential_sampled_SDDMM_HOST)
+
+
 # Link the executable
 add_executable(test_naive_CPU_SDDMM test_naive_CPU_SDDMM.cpp)
+
 target_link_libraries(test_naive_CPU_SDDMM
                         MatrixLib
                         SDDMMlib)

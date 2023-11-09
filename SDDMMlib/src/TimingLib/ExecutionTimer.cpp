@@ -32,6 +32,21 @@ void ExecutionTimer::stop_cpu_run()
     elapsed_times.push_back(elapsed_time);
     running = false;
 }
+
+void ExecutionTimer::start_gpu_run()
+{
+    assert(!running && "Timer already running");
+    running = true;
+    cuda_timer.start(0);
+}
+
+void ExecutionTimer::stop_gpu_run()
+{
+    assert(running && "Timer not running (gpu)");
+    cuda_timer.stop(0);
+    elapsed_times.push_back(cuda_timer.elapsed());
+    running = false;
+}
 #else
 ExecutionTimer::ExecutionTimer()
 {
@@ -57,24 +72,7 @@ void ExecutionTimer::stop_cpu_run()
     elapsed_times.push_back(elapsed_time);
     running = false;
 }
-#endif
 
-#if USE_CUDA
-void ExecutionTimer::start_gpu_run()
-{
-    assert(!running && "Timer already running");
-    running = true;
-    cuda_timer.start(0);
-}
-
-void ExecutionTimer::stop_gpu_run()
-{
-    assert(running && "Timer not running (gpu)");
-    cuda_timer.stop(0);
-    elapsed_times.push_back(cuda_timer.elapsed());
-    running = false;
-}
-#else
 void ExecutionTimer::start_gpu_run()
 {
     assert(false && "Not implemented yet");
@@ -82,7 +80,6 @@ void ExecutionTimer::start_gpu_run()
     {
         std::cout << "ExecutionTimer: Warning: Timer already running. Starting a new run." << std::endl;
     }
-    //
 }
 
 void ExecutionTimer::stop_gpu_run()
@@ -92,7 +89,6 @@ void ExecutionTimer::stop_gpu_run()
     {
         std::cout << "ExecutionTimer: Warning: Timer not running. Stopping the timer has no effect." << std::endl;
     }
-    //
 }
 #endif
 

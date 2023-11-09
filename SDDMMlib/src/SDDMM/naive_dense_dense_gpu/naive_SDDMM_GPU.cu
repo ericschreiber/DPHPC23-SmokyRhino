@@ -1,5 +1,6 @@
 // naive_SDDMM_GPU.cpp
 #include <cublas_v2.h>
+#include <cuda_profiler_api.h>
 #include <cuda_runtime.h>
 
 #include <iostream>
@@ -21,6 +22,8 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     const DenseMatrix<float>& matrixC_HOST,
     DenseMatrix<float>& matrixResult_dense_HOST) const
 {
+    CUDA_CHECK(cudaProfilerStart());
+
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
     int m = matrixA_HOST.getNumRows();
     int k = matrixA_HOST.getNumCols();
@@ -147,6 +150,8 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     CUDA_CHECK(
         cublasDestroy(
             handle));
+
+    CUDA_CHECK(cudaProfilerStop());
 
     return;
 }

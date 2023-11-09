@@ -48,17 +48,17 @@ int main()
     naive_SDDMM_GPU<float>* class_to_run = new naive_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
-    // matrixC_HOST.SDDMM(
-    //     matrixA_HOST,
-    //     matrixB_HOST,
-    //     calculatedSolution_HOST,
-    //     std::bind(
-    //         &naive_SDDMM_GPU<float>::SDDMM,
-    //         class_to_run,
-    //         std::placeholders::_1,
-    //         std::placeholders::_2,
-    //         std::placeholders::_3,
-    //         std::placeholders::_4));
+    matrixC_HOST.SDDMM(
+        matrixA_HOST,
+        matrixB_HOST,
+        calculatedSolution_HOST,
+        std::bind(
+            &naive_SDDMM_GPU<float>::SDDMM,
+            class_to_run,
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3,
+            std::placeholders::_4));
 
     std::cout << "Function returned" << std::endl;
 

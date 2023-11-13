@@ -22,6 +22,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     const DenseMatrix<float>& matrixC_HOST,
     DenseMatrix<float>& matrixResult_dense_HOST) const
 {
+    // start the profiler
     CUDA_CHECK(cudaProfilerStart());
 
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
@@ -151,6 +152,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
         cublasDestroy(
             handle));
 
+    // stop the profiler
     CUDA_CHECK(cudaProfilerStop());
 
     return;

@@ -8,6 +8,8 @@
 #   run this script with (replacing the node{ault09/ault10} and the (test)executable with your own): 
 #                       sbatch --nodelist=ault09 profiling_launch.sh \
 #                       ./build/SDDMMlib/tests/SDDMM/naive_dense_dense_gpu/test_compile 
+#
+#   this script runs for max 10 minutes, so if your executable takes longer, you need to adjust the time
 ###
 
 command="$1"
@@ -22,5 +24,5 @@ nvprof --analysis-metrics \
         --track-memory-allocations on \
         --events all \
         --csv \
-        --export-profile output%p.nvprof \
-        $command > profiling.out 2>&1
+        --export-profile /users/eschreib/niklas/DPHPC23-SmokyRhino/profiling/results/output%p.nvprof \
+        $command > /users/eschreib/niklas/DPHPC23-SmokyRhino/profiling/results/profiling.out 2>&1

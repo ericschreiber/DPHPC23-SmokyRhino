@@ -6,10 +6,12 @@
 
 ###
 #   run this script with (replacing the node{ault09/ault10} and using the inputs for the benchmark_run.sh script): 
-#                       sbatch --nodelist=ault09 profiling_launch.sh \
+#                       sbatch --nodelist=ault09 p \rofiling_launch.sh
 #                       /users/eschreib/niklas/DPHPC23-SmokyRhino/benchmark_pipeline/Pipeline/benchmark_run.sh 
 #                       /users/eschreib/niklas/DPHPC23-SmokyRhino/benchmark_pipeline/tests/config.example.txt 
-#                       /users/eschreib/niklas/DPHPC23-SmokyRhino/ 
+#                       /users/eschreib/niklas/DPHPC23-SmokyRhino/profiling/results
+#
+#   this script runs for max 10 minutes, so if your executable takes longer, you need to adjust the time
 ###
 
 script="$1"
@@ -26,5 +28,5 @@ nvprof --analysis-metrics \
         --track-memory-allocations on \
         --events all \
         --csv \
-        --export-profile output%p.nvprof \
-        $script $config $output_path > profiling.out 2>&1
+        --export-profile /users/eschreib/niklas/DPHPC23-SmokyRhino/profiling/results/output%p.nvprof \
+        $script $config $output_path > /users/eschreib/niklas/DPHPC23-SmokyRhino/profiling/results/profiling.out 2>&1

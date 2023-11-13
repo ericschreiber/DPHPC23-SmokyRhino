@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=profiling
-#SBATCH --output=profiling.out
-#SBATCH --error=profiling.err
+#SBATCH --output=/dev/null
+#SBATCH --error=/dev/null
 #SBATCH --time=00:10:00
 
 ###
@@ -23,4 +23,4 @@ nvprof --analysis-metrics \
         --events all \
         --csv \
         --export-profile output%p.nvprof \
-        $command > output.log 2>&1
+        $command > profiling.out 2>&1

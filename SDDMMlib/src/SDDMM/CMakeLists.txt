@@ -29,8 +29,8 @@ else()
                 
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
-                #initial_implementation_gpu_jiela/initial_SDDMM_GPU_jiela.cpp
-                #initial_implementation_gpu_jiela/initial_SDDMM_GPU_kernel_jiela.cu
+                initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU.cu
+                initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU_kernel.cu
                 #initial_implementation_gpu_niklas/initial_SDDMM_GPU_niklas.cpp
                 #initial_implementation_gpu_niklas/initial_SDDMM_solver.cu
     )      

@@ -1,6 +1,6 @@
 // initial_SDDMM_GPU_kernel_jiela.cuh
-#ifndef INITIAL_SDDMM_GPU_KERNEL_JIELA_CUH
-#define INITIAL_SDDMM_GPU_KERNEL_JIELA_CUH
+#ifndef SEMI_NAIVE_CSR_SDDMM_GPU_KERNEL_CUH
+#define SEMI_NAIVE_CSR_SDDMM_GPU_KERNEL_CUH
 
 void compute_blockwise(
     int m,

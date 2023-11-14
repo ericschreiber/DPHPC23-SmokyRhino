@@ -83,6 +83,4 @@ void compute_blockwise(
         d_colIdx,
         d_result);
 
-    cublasHandle_t handle;
-    CUDA_CHECK(cublasCreate(&handle));
 }

@@ -17,9 +17,8 @@
 #include "cache_coo_gpu/cache_coo_SDDMM.cuh"
 #include "utils.h"
 
-#define THREADS_PER_BLOCK 1024
-// for testing: can force tiling by setting this to somethimg small (how small depends on the test input) or by running the func on large matrices
-#define SHARED_MEM_SIZE_BYTES 49152  // this is the size of shared mem on both the A100 and V100 GPUs. 
+#define THREADS_PER_BLOCK 1
+#define SHARED_MEM_SIZE_BYTES 8  // this is the size of shared mem on both the A100 and V100 GPUs. 
 #define SHARED_MEM_SIZE SHARED_MEM_SIZE_BYTES / sizeof(float)  // shared mem size in number of floats
 
 // std::count can't be used on the GPU
@@ -199,7 +198,7 @@ void compute(
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values)
 {
-    dim3 threadsPerBlock(1024);
+    dim3 threadsPerBlock(THREADS_PER_BLOCK);
     int blocks = m;  // one block per row of A
 
     // call the kernel

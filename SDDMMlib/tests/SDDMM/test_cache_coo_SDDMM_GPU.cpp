@@ -91,10 +91,29 @@ void t3()
     run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
 }
 
+// checks if the code works when last tile of a row is smaller than shared memory.
+// requires SHARED_MEM_SIZE_BYTES to be set to 8. 
+void t4() 
+{
+    COOMatrix<float> sample_Matrix(DenseMatrix(std::vector<std::vector<float>>{{1, 1,}}));
+    DenseMatrix<float> matrixA(std::vector<std::vector<float>>{{1, 2, 3}});
+    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 1}, {1, 1}, {1, 1}});
+    COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{6, 6}}));
+    COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{6, 6}}));
+
+    run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
+}
+
+
 int main()
 {
-    // t1();
+    t1();
     t2();
-    // t3();
+    t3();
+    t4();  
+    // also ran all the test functions with SHARED_MEM_SIZE_BYTES = 4 which forces tiling to happen (and it worked)
+    // also ran with THREADS_PER_BLOCK = 1 in which case the spawned threads have more than one float to work on (and it worked)
+
+    // TODO: more tests!
     return 0;
 }

@@ -14,8 +14,12 @@
 #include <iostream>
 #include <random>
 
-#include "cache_coo_gpu/cache_coo_SDMM.cuh"
+#include "cache_coo_gpu/cache_coo_SDDMM.cuh"
 #include "utils.h"
+
+#define THREADS_PER_BLOCK 1024
+#define SHARED_MEM_SIZE_BYTES 49152  // this is the size of shared mem on both the A100 and V100 GPUs
+#define SHARED_MEM_SIZE SHARED_MEM_SIZE_BYTES / sizeof(float)  // shared mem size in number of floats
 
 // TODO: use #defines for as much as possible (e.g. shared mem size, block size, etc.)
 
@@ -67,7 +71,6 @@ __device__ float tiled_dot_product(
 __device__ void elem_compute(
     float* tile,                 // ptr to tile in shared mem
     const int tiling_step,       // index of the current tile (in the set of all tiles)
-    const int elem_index,        // index of the current elem that thread is working on (in the set of all elems that thread has been assigned)
     const int normal_tile_size,  // normal_tile_size is the size of a tile that is not the last tile of a row
     const int curr_tile_size,    // curr_tile_size can be smaller than normal_tile_size if we are working on the last tile of a row
     const float* matrixB_transposed_GPU_values,
@@ -75,9 +78,8 @@ __device__ void elem_compute(
     float* matrixResult_GPU_values,
     const int* matrixC_GPU_col_indices,
     const int k,  // number of rows of B
-    const int elems_base_offset)
-{
-    offset += elems_base_offset + elem_index;           // offset into matrixC_GPU_values and matrixResult_GPU_values
+    const int offset)  // offset into matrixC_GPU_values and matrixResult_GPU_values
+{           
     int B_col_index = matrixC_GPU_col_indices[offset];  // we will need to use the col of B (for dot product) which is the same col in which the nonzero of C sits
 
     float dot_prod = tiled_dot_product(
@@ -90,7 +92,7 @@ __device__ void elem_compute(
         k);
 
     float sparse_matrix_factor = matrixC_GPU_values[offset];
-    matrixResult_GPU_values[offset] += sparse_matrix_factor * dot_prod  // += because we are doing tiling
+    matrixResult_GPU_values[offset] += sparse_matrix_factor * dot_prod;  // += because we are doing tiling
 }
 
 // this is the kernel function.
@@ -106,25 +108,22 @@ __global__ void cache_coo(
     float* __restrict__ const matrixResult_GPU_values)
 {
     ////////////////    SETUP NECESSARY VARS    ////////////////
-    const int shared_mem_size_bytes = 49152;                                // in bytes (this is the size of shared mem on both the A100 and V100 GPUs)
-    int shared_mem_size = shared_mem_size_bytes / sizeof(float);            // shared mem size in number of floats
-    int numThreadsPerBlock = blockDim.x;                                    // this holds since our thread blocks are 1D
     int row_index = blockIdx.x;                                             // holds bc we have set up one block per row so n-th block will take on n-th row of A
     int row_mem_size = k * sizeof(float);                                   // size of a row of A (= non-sparse) in mem
     int row_offset = row_index * row_mem_size;                              // offset that (if added to base_ptr of A) points to curr_row of A
-    int A_vals_row_start = matrixA_GPU_values + row_offset;                 // pointer to beginning of row of A that this thread block is working on
+    const float* A_vals_row_start = matrixA_GPU_values + row_offset;                 // pointer to beginning of row of A that this thread block is working on
     int nnzs = count(matrixC_GPU_row_indices, numElementsC, row_index);     // number of nnzs in this row of C (= amount of work for thread block)
-    int tiling_steps = ceil((float)row_mem_size / (float)shared_mem_size);  // # pieces that we need to chop the row of A into (bc it might not fit into shared mem)
+    int tiling_steps = ceil((float)row_mem_size / (float)SHARED_MEM_SIZE);  // # pieces that we need to chop the row of A into (bc it might not fit into shared mem)
 
     ////////////////    MAIN LOOP    ////////////////
     for (int tiling_step = 0; tiling_step < tiling_steps; tiling_step++)
     {
         ////////////////    COMPUTE SIZE OF CURR TILE    ////////////////
-        int curr_tile_size = shared_mem_size;
+        int curr_tile_size = SHARED_MEM_SIZE;
         // if row mem size is not divisible by shared mem size then the last tile will be smaller than shared mem size
-        if (tiling_step == tiling_steps - 1 && row_mem_size % shared_mem_size != 0)
+        if (tiling_step == tiling_steps - 1 && row_mem_size % SHARED_MEM_SIZE != 0)
         {
-            curr_tile_size = row_mem_size % shared_mem_size;
+            curr_tile_size = row_mem_size % SHARED_MEM_SIZE;
         }
 
         ////////////////    THREAD 0: COPY TILE INTO SHARED MEM    ////////////////
@@ -133,24 +132,23 @@ __global__ void cache_coo(
         extern __shared__ float tile[];
         if (threadIdx.x == 0)
         {
-            tile = new float[curr_tile_size];  // allocate space for the tile in shared mem
             // copy the tile into shared mem (I think this copying happens float by float (bc of pointer arithmetic) but maybe also byte by byte (?))
             for (int i = 0; i < curr_tile_size; i++)
             {
-                int tile_offset = tiling_step * shared_mem_size;  // need to offset indexing by the tile that we're working on in this iteration of outer loop
-                tile[i] = matrixA_GPU_values[A_vals_row_start + tile_offset + i];
+                int tile_offset = tiling_step * SHARED_MEM_SIZE;  // need to offset indexing by the tile that we're working on in this iteration of outer loop
+                tile[i] = *(A_vals_row_start + tile_offset + i);
             }
         }
         __syncthreads();  // this is a barrier
 
         ////////////////    PREPARE THE ACTUAL COMPUTATION    ////////////////
         // compute num_nnzs_per_thread (which will be needed by the elem_compute helper function)
-        int num_nnzs_per_thread[numThreadsPerBlock];
-        for (int i = 0; i < numThreadsPerBlock; i++)
+        int num_nnzs_per_thread[THREADS_PER_BLOCK];
+        for (int i = 0; i < THREADS_PER_BLOCK; i++)
         {
-            num_nnzs_per_thread[i] = nnzs / numThreadsPerBlock;
-            // if numThreadsPerBlock does not divide nnzs some thread will have to do one more elem
-            if (i < nnzs % numThreadsPerBlock)
+            num_nnzs_per_thread[i] = nnzs / THREADS_PER_BLOCK;
+            // if THREADS_PER_BLOCK does not divide nnzs some thread will have to do one more elem
+            if (i < nnzs % THREADS_PER_BLOCK)
             {
                 num_nnzs_per_thread[i]++;
             }
@@ -166,18 +164,18 @@ __global__ void cache_coo(
         ////////////////    ACTUAL COMPUTATION    ////////////////
         for (int elem_index = 0; elem_index < num_nnzs_per_thread[threadIdx.x]; elem_index++)  // iterate over all elems that this thread has been assigned
         {
+            int offset = elems_base_offset + elem_index;
             elem_compute(
-                &tile,
+                tile,
                 tiling_step,
-                elem_index,
-                shared_mem_size,
+                SHARED_MEM_SIZE,
                 curr_tile_size,
                 matrixB_transposed_GPU_values,
                 matrixC_GPU_values,
                 matrixResult_GPU_values,
                 matrixC_GPU_col_indices,
                 k,
-                elems_base_offset);
+                offset);
         }
     }
 }
@@ -199,7 +197,7 @@ void compute(
     int blocks = m;  // one block per row of A
 
     // call the kernel
-    cache_coo<<<blocks, threadsPerBlock>>>(
+    cache_coo<<<blocks, threadsPerBlock, SHARED_MEM_SIZE>>>(
         k,
         numElementsC,
         matrixA_GPU_values,

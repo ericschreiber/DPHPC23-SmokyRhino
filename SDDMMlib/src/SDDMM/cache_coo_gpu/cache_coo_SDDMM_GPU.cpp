@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <typeinfo>
 
-#include "cache_coo_gpu/cache_coo_SDMM.cuh"
+#include "cache_coo_gpu/cache_coo_SDDMM.cuh"
 #include "utils.h"
 
 void cache_coo_SDDMM_GPU<float>::SDDMM_COO(

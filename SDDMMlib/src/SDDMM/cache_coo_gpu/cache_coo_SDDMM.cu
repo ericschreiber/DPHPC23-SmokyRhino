@@ -18,10 +18,9 @@
 #include "utils.h"
 
 #define THREADS_PER_BLOCK 1024
-#define SHARED_MEM_SIZE_BYTES 49152  // this is the size of shared mem on both the A100 and V100 GPUs
+// for testing: can force tiling by setting this to somethimg small (how small depends on the test input) or by running the func on large matrices
+#define SHARED_MEM_SIZE_BYTES 49152  // this is the size of shared mem on both the A100 and V100 GPUs. 
 #define SHARED_MEM_SIZE SHARED_MEM_SIZE_BYTES / sizeof(float)  // shared mem size in number of floats
-
-// TODO: use #defines for as much as possible (e.g. shared mem size, block size, etc.)
 
 // std::count can't be used on the GPU
 __device__ int count(const int* arr, int len, const int row_index)
@@ -110,10 +109,15 @@ __global__ void cache_coo(
     ////////////////    SETUP NECESSARY VARS    ////////////////
     int row_index = blockIdx.x;                                             // holds bc we have set up one block per row so n-th block will take on n-th row of A
     int row_mem_size = k * sizeof(float);                                   // size of a row of A (= non-sparse) in mem
-    int row_offset = row_index * row_mem_size;                              // offset that (if added to base_ptr of A) points to curr_row of A
-    const float* A_vals_row_start = matrixA_GPU_values + row_offset;                 // pointer to beginning of row of A that this thread block is working on
+    int row_offset = row_index * k;                                         // offset that (if added to base_ptr of A) points to curr_row of A
+    const float* A_vals_row_start = matrixA_GPU_values + row_offset;        // pointer to beginning of row of A that this thread block is working on
+    int prev_blocks_work = 0;                                               // need to know how much work each block is doing (for indexing later on). unit: floats
+    for (int i = 0; i < blockIdx.x; i++)
+    {
+        prev_blocks_work += count(matrixC_GPU_row_indices, numElementsC, i);
+    }
     int nnzs = count(matrixC_GPU_row_indices, numElementsC, row_index);     // number of nnzs in this row of C (= amount of work for thread block)
-    int tiling_steps = ceil((float)row_mem_size / (float)SHARED_MEM_SIZE);  // # pieces that we need to chop the row of A into (bc it might not fit into shared mem)
+    int tiling_steps = ceil(row_mem_size / (float)(SHARED_MEM_SIZE_BYTES)); // # pieces that we need to chop the row of A into (bc it might not fit into shared mem)
 
     ////////////////    MAIN LOOP    ////////////////
     for (int tiling_step = 0; tiling_step < tiling_steps; tiling_step++)
@@ -137,6 +141,7 @@ __global__ void cache_coo(
             {
                 int tile_offset = tiling_step * SHARED_MEM_SIZE;  // need to offset indexing by the tile that we're working on in this iteration of outer loop
                 tile[i] = *(A_vals_row_start + tile_offset + i);
+                // printf("block: %i, index: %i, tile[%d] = %f\n", row_index, tile_offset + i, i, tile[i]);
             }
         }
         __syncthreads();  // this is a barrier
@@ -146,7 +151,7 @@ __global__ void cache_coo(
         int num_nnzs_per_thread[THREADS_PER_BLOCK];
         for (int i = 0; i < THREADS_PER_BLOCK; i++)
         {
-            num_nnzs_per_thread[i] = nnzs / THREADS_PER_BLOCK;
+            num_nnzs_per_thread[i] = nnzs / THREADS_PER_BLOCK;  // int division i.e. can be 0 (which it should if nnzs < THREADS_PER_BLOCK)
             // if THREADS_PER_BLOCK does not divide nnzs some thread will have to do one more elem
             if (i < nnzs % THREADS_PER_BLOCK)
             {
@@ -154,17 +159,18 @@ __global__ void cache_coo(
             }
         }
 
-        // compute the base offset into matrixC_GPU_values and matrixResult_GPU_values (i.e. how many vals are being worked on by threads before this one)
-        int elems_base_offset = 0;
+        // compute the base offset into matrixC_GPU_values and matrixResult_GPU_values (i.e. how many vals are being worked on by threads before this one).
+        // this indicates how many floats of the current blocks work_set the previous threads of this block have already done. 
+        int prev_threads_work = 0;
         for (int i = 0; i < threadIdx.x; i++)
         {
-            elems_base_offset += num_nnzs_per_thread[i];
+            prev_threads_work += num_nnzs_per_thread[i];
         }
 
         ////////////////    ACTUAL COMPUTATION    ////////////////
         for (int elem_index = 0; elem_index < num_nnzs_per_thread[threadIdx.x]; elem_index++)  // iterate over all elems that this thread has been assigned
         {
-            int offset = elems_base_offset + elem_index;
+            int offset = prev_blocks_work + prev_threads_work + elem_index; 
             elem_compute(
                 tile,
                 tiling_step,

@@ -11,7 +11,16 @@ add_subdirectory(naive_dense_dense_gpu)
 add_executable(test_naive_coo_SDDMM_GPU
                test_naive_coo_SDDMM_GPU.cpp
 )
+
+add_executable(test_cache_coo_SDDMM_GPU
+               test_cache_coo_SDDMM_GPU.cpp
+)
 target_link_libraries(test_naive_coo_SDDMM_GPU 
+                       MatrixLib
+                       SDDMMlib
+)
+
+target_link_libraries(test_cache_coo_SDDMM_GPU 
                        MatrixLib
                        SDDMMlib
 )

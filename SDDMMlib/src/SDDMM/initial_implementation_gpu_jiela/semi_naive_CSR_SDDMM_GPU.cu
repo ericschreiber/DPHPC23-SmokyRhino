@@ -161,41 +161,6 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     return;
 }
 
-void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
-    const DenseMatrix<float>& matrixA_HOST,
-    const DenseMatrix<float>& matrixB_HOST,
-    const CSRMatrix<float>& matrixC_HOST,
-    CSRMatrix<float>& matrixResult_HOST) const
-{
-    // change matrixB_transpose and matrixResult to a dense matrix
-    const DenseMatrix<float> matrixC_dense_HOST = DenseMatrix<float>(matrixC_HOST);
-    DenseMatrix<float> matrixResult_dense_HOST = DenseMatrix<float>(matrixResult_HOST);
-
-    // transpose matrixB to B^t
-    DenseMatrix<float> matrixB_transpose_HOST = DenseMatrix<float>(matrixB_HOST);
-    matrixB_transpose_HOST.transpose();
-
-    // call naive_SDDMM_GPU to compute the SDDMM
-    SDDMM_DENSE(
-        matrixA_HOST,
-        matrixB_transpose_HOST,
-        matrixC_dense_HOST,
-        matrixResult_dense_HOST);
-
-    // change matrixResult to a sparse matrix
-    CSRMatrix<float> matrixResult_finished_HOST(
-        matrixResult_dense_HOST);
-
-    // set the values of matrixResult_HOST to the values of matrixResult_finished_HOST
-    matrixResult_HOST.setValues(
-        matrixResult_finished_HOST.getValues());
-    matrixResult_HOST.setColIndices(
-        matrixResult_finished_HOST.getColIndices());
-    matrixResult_HOST.setRowPtr(
-        matrixResult_finished_HOST.getRowPtr());
-
-    return;
-}
 
 void semi_naive_CSR_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,

@@ -1,22 +1,32 @@
 // semi_naive_CSR_SDDMM_GPU.cpp
-#include <cublas_v2.h>
+
 #include <cuda_profiler_api.h>
 #include <cuda_runtime.h>
 
+#include <initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU.cuh>
+#include <initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU_kernel.cuh>
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>
 
-#include <initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU.cuh>
-#include <initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU_kernel.cuh>
 #include "utils.h"
 
+// void compute_blockwise(
+//     int,
+//     int,
+//     int,
+//     float*,
+//     float*,
+//     float*,
+//     int*,
+//     int*,
+//     float*);
 
 void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_transpose_HOST,
-    const SparseMatrix<float>& matrixC_HOST,
-    SparseMatrix<float>& matrixResult_sparse_HOST) const
+    const CSRMatrix<float>& matrixC_HOST,
+    CSRMatrix<float>& matrixResult_sparse_HOST) const
 {
     // start the profiler
     CUDA_CHECK(cudaProfilerStart());
@@ -83,28 +93,27 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMemcpy(
             matrixC_GPU,
-            matrixC_HOST.getValues(),
+            matrixC_HOST.getValues().data(),
             nnz * sizeof(float),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
             matrixResult_GPU,
-            matrixResult_sparse_HOST.getValues(),
+            matrixResult_sparse_HOST.getValues().data(),
             nnz * sizeof(float),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
             col_idx_GPU,
-            matrixC_HOST.getColIndices(),
+            matrixC_HOST.getColIndices().data(),
             nnz * sizeof(int),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
             row_ptr_GPU,
-            matrixC_HOST.getRowPtr(),
+            matrixC_HOST.getRowPtr().data(),
             (m + 1) * sizeof(int),
             cudaMemcpyHostToDevice));
-
 
     // start the timer
     this->start_run();
@@ -132,7 +141,12 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
             matrixResult_GPU,
             nnz * sizeof(float),
             cudaMemcpyDeviceToHost));
-    matrixResult_sparse_HOST.setValues(return_values, nnz);
+
+    // Convert pointer to std::vector
+    std::vector<float> result_vector(return_values, return_values + nnz);
+
+    // set the result matrix
+    matrixResult_sparse_HOST.setValues(result_vector);
 
     // free memory on the device and destroy the handle
     CUDA_CHECK(
@@ -154,13 +168,11 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
         cudaFree(
             row_ptr_GPU));
 
-
     // stop the profiler
     CUDA_CHECK(cudaProfilerStop());
 
     return;
 }
-
 
 void semi_naive_CSR_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,

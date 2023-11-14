@@ -40,6 +40,7 @@ else()
                                 ../../include/SDDMM
                                 ${THIRD_PARTY_ROOT}/include_gpu
                                 ../../include/SDDMM/naive_dense_dense_gpu
+                                ../../include/SDDMM/initial_implementation_gpu_jiela
                                 /usr/local/cuda-12.1/targets/x86_64-linux/include
                                 )
 

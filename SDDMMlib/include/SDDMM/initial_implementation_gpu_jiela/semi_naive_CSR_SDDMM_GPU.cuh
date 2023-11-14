@@ -1,4 +1,4 @@
-// naive_SDDMM_GPU.hpp
+// semi_naive_CSR_SDDMM_GPU.hpp
 #ifndef SEMI_NAIVE_CSR_SDDMM_GPU_HPP
 #define SEMI_NAIVE_CSR_SDDMM_GPU_HPP
 
@@ -43,12 +43,6 @@ class semi_naive_CSR_SDDMM_GPU<float> : public SDDMMlib<float>
             const DenseMatrix<float>& matrixB_HOST,
             const CSRMatrix<float>& matrixC_HOST,
             CSRMatrix<float>& matrixResult_HOST) const;
-
-        void SDDMM_DENSE(
-            const DenseMatrix<float>& matrixA_HOST,
-            const DenseMatrix<float>& matrixB_transpose_HOST,
-            const DenseMatrix<float>& matrixC_HOST,
-            DenseMatrix<float>& matrixResult_HOST) const;
         virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE
         virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 };

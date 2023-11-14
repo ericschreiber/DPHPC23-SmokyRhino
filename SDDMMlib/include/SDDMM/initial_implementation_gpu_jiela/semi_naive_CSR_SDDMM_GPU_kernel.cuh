@@ -1,4 +1,4 @@
-// initial_SDDMM_GPU_kernel_jiela.cuh
+// semi_naive_CSR_DDMM_GPU_kernel.cuh
 #ifndef SEMI_NAIVE_CSR_SDDMM_GPU_KERNEL_CUH
 #define SEMI_NAIVE_CSR_SDDMM_GPU_KERNEL_CUH
 
@@ -11,6 +11,6 @@ void compute_blockwise(
     float *d_C,
     int *d_rowPtr,
     int *d_colIdx,
-    float *d_result)
+    float *d_result);
 
-#endif  // INITIAL_SDDMM_GPU_KERNEL_JIELA_CUH
+#endif  // SEMI_NAIVE_CSR_SDDMM_GPU_KERNEL_CUH

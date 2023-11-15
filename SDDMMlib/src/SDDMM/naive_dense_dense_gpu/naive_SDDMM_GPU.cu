@@ -23,7 +23,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     DenseMatrix<float>& matrixResult_dense_HOST) const
 {
     // start the profiler
-    CUDA_CHECK(cudaProfilerStart());
+    // CUDA_CHECK(cudaProfilerStart());
 
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
     int m = matrixA_HOST.getNumRows();
@@ -94,36 +94,39 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     cublasHandle_t handle;
     CUDA_CHECK(cublasCreate(&handle));
 
-    // start the timer
-    this->start_run();
+    for (int i = 0; i < 10; i++)
+    {
+        // start the timer
+        this->start_run();
 
-    // call cublasSgemm to compute the matrix multiplication
-    CUDA_CHECK(
-        cublasSgemm(
-            handle,
-            CUBLAS_OP_N,
-            CUBLAS_OP_T,
-            m,
-            n,
-            k,
-            &alpha,
-            matrixA_GPU,
-            m,
-            matrixB_transpose_GPU,
-            k,
-            &beta,
-            matrixResult_GPU,
-            m));
+        // call cublasSgemm to compute the matrix multiplication
+        CUDA_CHECK(
+            cublasSgemm(
+                handle,
+                CUBLAS_OP_N,
+                CUBLAS_OP_T,
+                m,
+                n,
+                k,
+                &alpha,
+                matrixA_GPU,
+                m,
+                matrixB_transpose_GPU,
+                k,
+                &beta,
+                matrixResult_GPU,
+                m));
 
-    // call my_naive_sampling to compute the SDDMM
-    // my_naive_sampling implements a Hadamard product between matrixC and matrixResult
-    my_naive_sampling(
-        m * n,
-        matrixC_GPU,
-        matrixResult_GPU);
+        // call my_naive_sampling to compute the SDDMM
+        // my_naive_sampling implements a Hadamard product between matrixC and matrixResult
+        my_naive_sampling(
+            m * n,
+            matrixC_GPU,
+            matrixResult_GPU);
 
-    // stop the timer
-    this->stop_run();
+        // stop the timer
+        this->stop_run();
+    }
 
     // copy result from the GPU to the CPU
     float* return_values = new float[m * n];
@@ -153,7 +156,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
             handle));
 
     // stop the profiler
-    CUDA_CHECK(cudaProfilerStop());
+    // CUDA_CHECK(cudaProfilerStop());
 
     return;
 }

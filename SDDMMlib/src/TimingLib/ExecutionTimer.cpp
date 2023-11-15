@@ -10,7 +10,7 @@ ExecutionTimer::ExecutionTimer()
     cudaStream_t s;
     CUDA_CHECK(cudaStreamCreate(&s));
     EventTimer cuda_timer;
-    std::cout << "cuda_timer" << std::endl;
+    std::cout << "cuda_timer_enabled" << std::endl;
 }
 
 ExecutionTimer::~ExecutionTimer()
@@ -20,6 +20,7 @@ ExecutionTimer::~ExecutionTimer()
 void ExecutionTimer::start_cpu_run()
 {
     assert(!running && "Timer already running");
+    std::cout << "using_cpu_timer" << std::endl;
     running = true;
     start_time = std::chrono::high_resolution_clock::now();
 }
@@ -36,6 +37,7 @@ void ExecutionTimer::stop_cpu_run()
 void ExecutionTimer::start_gpu_run()
 {
     assert(!running && "Timer already running");
+    std::cout << "using_gpu_timer" << std::endl;
     running = true;
     cuda_timer.start(0);
 }
@@ -44,7 +46,7 @@ void ExecutionTimer::stop_gpu_run()
 {
     assert(running && "Timer not running (gpu)");
     cuda_timer.stop(0);
-    elapsed_times.push_back(cuda_timer.elapsed());
+    elapsed_times.push_back(cuda_timer.elapsed() * 1e6);
     running = false;
 }
 #else

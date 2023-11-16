@@ -191,8 +191,8 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
         matrixResult_finished_HOST.getValues());
     matrixResult_HOST.setColIndices(
         matrixResult_finished_HOST.getColIndices());
-    matrixResult_HOST.setRowPtr(
-        matrixResult_finished_HOST.getRowPtr());
+    matrixResult_HOST.setRowArray(
+        matrixResult_finished_HOST.getRowArray());
 
     return;
 }

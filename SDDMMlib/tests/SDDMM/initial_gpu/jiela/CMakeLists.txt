@@ -9,11 +9,11 @@ project(testcasesinitialGPUjiela)
 
 
 # Link the executable
-add_executable(test_compile_jiela test_compile_jiela.cpp)
+add_executable(test_semi_naive_CSR_SDDMM_GPU_jiela test_semi_naive_CSR_SDDMM_GPU.cpp)
 
 
 # Link the library
-target_link_libraries(test_compile_jiela 
+target_link_libraries( test_semi_naive_CSR_SDDMM_GPU_jiela
                         MatrixLib
                         SDDMMlib
 )

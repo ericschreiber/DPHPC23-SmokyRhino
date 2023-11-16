@@ -24,12 +24,15 @@
 
 void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     const DenseMatrix<float>& matrixA_HOST,
-    const DenseMatrix<float>& matrixB_transpose_HOST,
+    const DenseMatrix<float>& matrixB_HOST,
     const CSRMatrix<float>& matrixC_HOST,
     CSRMatrix<float>& matrixResult_sparse_HOST) const
 {
     // start the profiler
     CUDA_CHECK(cudaProfilerStart());
+    // transpose matrixB to B^t
+    DenseMatrix<float> matrixB_transpose_HOST = DenseMatrix<float>(matrixB_HOST);
+    matrixB_transpose_HOST.transpose();
 
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
     int m = matrixA_HOST.getNumRows();
@@ -39,7 +42,6 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
 
     // check the dimensions of the matrices
     assert(matrixB_transpose_HOST.getNumCols() == k && "Error: matrixB_transpose has incompatible dimensions");
-    assert(matrixA_HOST.getNumCols() == matrixB_transpose_HOST.getNumRows() && "Error: matrixA and matrixB_transpose have incompatible dimensions");
     assert(matrixC_HOST.getNumRows() == m && "Error: matrixC has incompatible dimensions m");
     assert(matrixC_HOST.getNumCols() == n && "Error: matrixC has incompatible dimensions n");
     assert(matrixResult_sparse_HOST.getNumRows() == m && "Error: matrixResult has incompatible dimensions m");

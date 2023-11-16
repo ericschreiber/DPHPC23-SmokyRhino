@@ -81,5 +81,8 @@
         "__string": "cpp",
         "chrono": "cpp"
     },
-    "cmake.sourceDirectory": "${workspaceFolder}"
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.configureArgs": [
+        "-DUSE_CUDA=1",
+    ],
 }

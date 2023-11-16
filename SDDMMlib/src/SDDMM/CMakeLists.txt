@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.21)
 set(THIRD_PARTY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 
-if (USE_CUDA EQUAL 0)
+add_library(SDDMMlib
+                naive_SDDMM.cpp
+                naive_CPU_SDDMM.cpp
+                
+                naive_sequential_full_SDDMM_HOST/naive_sequential_full_SDDMM_HOST.cpp
+                naive_sequential_sampled_SDDMM_HOST/naive_sequential_sampled_SDDMM_HOST.cpp
+                )
 
-    add_library(SDDMMlib
-                naive_SDDMM.cpp)   
+if (USE_CUDA EQUAL 0) 
                 
     target_include_directories(SDDMMlib PUBLIC 
                                 ../../include/SDDMM
@@ -24,20 +29,23 @@ else()
     # cuda
     set_source_files_properties(*.cu PROPERTIES LANGUAGE CUDA)
 
-    add_library(SDDMMlib 
-                naive_SDDMM.cpp
-                
+    target_sources(SDDMMlib PRIVATE
+                naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.cpp
+                naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu
+
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
-    )      
+                
+                naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
+                naive_coo_gpu/naive_coo_SDDMM.cu
+                )      
 
     # Add our own code
     target_include_directories(SDDMMlib PUBLIC 
                                 ../../include/SDDMM
                                 ${THIRD_PARTY_ROOT}/include_gpu
                                 ../../include/SDDMM/naive_dense_dense_gpu
-                                /usr/local/cuda-12.1/targets/x86_64-linux/include
-                                )
+                                /usr/local/cuda-12.1/targets/x86_64-linux/include)
 
     target_link_libraries(SDDMMlib
                             MatrixLib
@@ -47,5 +55,3 @@ else()
                             CUDA::cuda_driver)
 
 endif()
-
-# Add third party code if needed here

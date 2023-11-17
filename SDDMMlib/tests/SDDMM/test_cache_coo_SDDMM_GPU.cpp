@@ -1,4 +1,4 @@
-// TODO: 
+// TODO:
 // test tiling (by changing the shared mem size to smth like sizeof(float)
 
 #include <cassert>
@@ -9,7 +9,8 @@
 #include "DenseMatrix.hpp"
 #include "cache_coo_gpu/cache_coo_SDDMM_GPU.hpp"
 
-void run_testcase(COOMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, DenseMatrix<float> matrixB, COOMatrix<float> calculatedSolution, COOMatrix<float> expectedSolution) {
+void run_testcase(COOMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, DenseMatrix<float> matrixB, COOMatrix<float> calculatedSolution, COOMatrix<float> expectedSolution)
+{
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
     cache_coo_SDDMM_GPU<float>* class_to_run = new cache_coo_SDDMM_GPU<float>(&timer);
@@ -92,10 +93,13 @@ void t3()
 }
 
 // checks if the code works when last tile of a row is smaller than shared memory.
-// requires SHARED_MEM_SIZE_BYTES to be set to 8. 
-void t4() 
+// requires SHARED_MEM_SIZE_BYTES to be set to 8.
+void t4()
 {
-    COOMatrix<float> sample_Matrix(DenseMatrix(std::vector<std::vector<float>>{{1, 1,}}));
+    COOMatrix<float> sample_Matrix(DenseMatrix(std::vector<std::vector<float>>{{
+        1,
+        1,
+    }}));
     DenseMatrix<float> matrixA(std::vector<std::vector<float>>{{1, 2, 3}});
     DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 1}, {1, 1}, {1, 1}});
     COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{6, 6}}));
@@ -104,13 +108,12 @@ void t4()
     run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
 }
 
-
 int main()
 {
     t1();
     t2();
     t3();
-    t4();  
+    t4();
     // also ran all the test functions with SHARED_MEM_SIZE_BYTES = 4 which forces tiling to happen (and it worked)
     // also ran with THREADS_PER_BLOCK = 1 in which case the spawned threads have more than one float to work on (and it worked)
 

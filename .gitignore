@@ -14,3 +14,5 @@ pipeline_runscripts/results/*
 !benchmark_pipeline/data/datasets/Dataset001_test/
 !benchmark_pipeline/data/runs
 !benchmark_pipeline/data/matrices/.gitkeep
+!pipeline_runscripts/results/README.md
+!profiling/results/README.md

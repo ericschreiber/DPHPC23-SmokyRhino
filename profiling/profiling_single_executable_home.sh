@@ -8,7 +8,7 @@
 #   run this script with (replacing the node{ault09/ault10} and the (test)executable with your own)
 #                                                               and writing everything on one line): 
 #
-#               sbatch --nodelist=ault09 profiling_single_executable.sh \
+#               sbatch --nodelist=ault09 profiling_single_executable_home.sh \
 #               /users/eschreib/niklas/DPHPC23-SmokyRhino//build/SDDMMlib/tests/SDDMM/naive_dense_dense_gpu/test_compile 
 #
 #   this script runs for max 10 minutes, so if your executable takes longer, you need to adjust the time

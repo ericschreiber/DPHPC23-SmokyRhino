@@ -8,7 +8,7 @@
 #   run this script with (replacing the node{ault09/ault10} and using the inputs for the benchmark_run.sh script
 #                                                                           and writing everything on one line):
 #
-#                       sbatch --nodelist=ault09 profiling_pipeline.sh
+#                       sbatch --nodelist=ault09 profiling_pipeline_home.sh
 #                       /users/eschreib/niklas/DPHPC23-SmokyRhino/benchmark_pipeline/Pipeline/benchmark_run.sh 
 #                       /users/eschreib/niklas/DPHPC23-SmokyRhino/benchmark_pipeline/tests/config.example.txt 
 #                       /users/eschreib/niklas/DPHPC23-SmokyRhino/profiling/results

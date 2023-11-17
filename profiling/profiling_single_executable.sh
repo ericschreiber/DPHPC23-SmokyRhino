@@ -5,9 +5,11 @@
 #SBATCH --time=00:10:00
 
 ###
-#   run this script with (replacing the node{ault09/ault10} and the (test)executable with your own): 
-#                       sbatch --nodelist=ault09 profiling_single_executable.sh \
-#                       ./build/SDDMMlib/tests/SDDMM/naive_dense_dense_gpu/test_compile 
+#   run this script with (replacing the node{ault09/ault10} and the (test)executable with your own)
+#                                                               and writing everything on one line): 
+#
+#               sbatch --nodelist=ault09 profiling_single_executable.sh \
+#               /users/eschreib/niklas/DPHPC23-SmokyRhino//build/SDDMMlib/tests/SDDMM/naive_dense_dense_gpu/test_compile 
 #
 #   this script runs for max 10 minutes, so if your executable takes longer, you need to adjust the time
 ###

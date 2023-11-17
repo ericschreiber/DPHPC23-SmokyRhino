@@ -6,6 +6,7 @@ SDDMMlib/tests/MatrixLib/cmake
 .DS_Store
 benchmark_pipeline/data/datasets/*
 benchmark_pipeline/data/matrices/*
+benchmark_pipeline/data/local_results/*
 
 
 # But not these files...

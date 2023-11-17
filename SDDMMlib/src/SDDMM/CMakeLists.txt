@@ -33,12 +33,12 @@ else()
                 naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.cpp
                 naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu
 
-                naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
-                naive_dense_dense_gpu/naive_dense_dense.cu
+                naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
-
+                
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
-                naive_coo_gpu/naive_coo_SDDMM.cu)      
+                naive_coo_gpu/naive_coo_SDDMM.cu
+                )      
 
     # Add our own code
     target_include_directories(SDDMMlib PUBLIC 
@@ -48,8 +48,8 @@ else()
                                 /usr/local/cuda-12.1/targets/x86_64-linux/include)
 
     target_link_libraries(SDDMMlib
-                        MatrixLib
-                        TimingLib
+                            MatrixLib
+                            TimingLib
                             CUDA::cublas
                             CUDA::cudart
                             CUDA::cuda_driver)

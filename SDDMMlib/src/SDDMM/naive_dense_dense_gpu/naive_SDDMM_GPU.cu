@@ -1,20 +1,19 @@
 // naive_SDDMM_GPU.cpp
-#include "naive_dense_dense_gpu/naive_SDDMM_GPU.hpp"
+#include <cublas_v2.h>
+#include <cuda_profiler_api.h>
+#include <cuda_runtime.h>
 
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>
 
-#include "naive_dense_dense_gpu/naive_dense_dense.cuh"
+#include "naive_dense_dense_gpu/my_naive_sampling.cuh"
+#include "naive_dense_dense_gpu/naive_SDDMM_GPU.cuh"
 #include "utils.h"
 
-void compute(
+void my_naive_sampling(
     int,
-    int,
-    int,
-    float*,
-    float*,
-    float*,
+    const float*,
     float*);
 
 void naive_SDDMM_GPU<float>::SDDMM_DENSE(
@@ -23,6 +22,9 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     const DenseMatrix<float>& matrixC_HOST,
     DenseMatrix<float>& matrixResult_dense_HOST) const
 {
+    // start the profiler
+    // CUDA_CHECK(cudaProfilerStart());
+
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
     int m = matrixA_HOST.getNumRows();
     int k = matrixA_HOST.getNumCols();
@@ -84,20 +86,50 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
             m * n * sizeof(float),
             cudaMemcpyHostToDevice));
 
-    this->start_run();
-    // call compute in naive_dense_dense.cu
-    compute(
-        m,
-        n,
-        k,
-        matrixA_GPU,
-        matrixB_transpose_GPU,
-        matrixC_GPU,
-        matrixResult_GPU);
-    this->stop_run();
+    // alpha and beta are needed for Sgemm
+    float alpha = 1;
+    float beta = 0;
 
+    // to run cublas functions we need to first create a handle
+    cublasHandle_t handle;
+    CUDA_CHECK(cublasCreate(&handle));
+
+    for (int i = 0; i < 10; i++)
+    {
+        // start the timer
+        this->start_run();
+
+        // call cublasSgemm to compute the matrix multiplication
+        CUDA_CHECK(
+            cublasSgemm(
+                handle,
+                CUBLAS_OP_N,
+                CUBLAS_OP_T,
+                m,
+                n,
+                k,
+                &alpha,
+                matrixA_GPU,
+                m,
+                matrixB_transpose_GPU,
+                k,
+                &beta,
+                matrixResult_GPU,
+                m));
+
+        // call my_naive_sampling to compute the SDDMM
+        // my_naive_sampling implements a Hadamard product between matrixC and matrixResult
+        my_naive_sampling(
+            m * n,
+            matrixC_GPU,
+            matrixResult_GPU);
+
+        // stop the timer
+        this->stop_run();
+    }
+
+    // copy result from the GPU to the CPU
     float* return_values = new float[m * n];
-    // copy result from the GPU
     CUDA_CHECK(
         cudaMemcpy(
             return_values,
@@ -106,7 +138,7 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
             cudaMemcpyDeviceToHost));
     matrixResult_dense_HOST.setValues(return_values, m * n);
 
-    // free memory on the device
+    // free memory on the device and destroy the handle
     CUDA_CHECK(
         cudaFree(
             matrixA_GPU));
@@ -119,6 +151,12 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     CUDA_CHECK(
         cudaFree(
             matrixResult_GPU));
+    CUDA_CHECK(
+        cublasDestroy(
+            handle));
+
+    // stop the profiler
+    // CUDA_CHECK(cudaProfilerStop());
 
     return;
 }
@@ -145,12 +183,16 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
         matrixResult_dense_HOST);
 
     // change matrixResult to a sparse matrix
-    CSRMatrix<float> matrixResult_finished_HOST(matrixResult_dense_HOST);
+    CSRMatrix<float> matrixResult_finished_HOST(
+        matrixResult_dense_HOST);
 
     // set the values of matrixResult_HOST to the values of matrixResult_finished_HOST
-    matrixResult_HOST.setValues(matrixResult_finished_HOST.getValues());
-    matrixResult_HOST.setColIndices(matrixResult_finished_HOST.getColIndices());
-    matrixResult_HOST.setRowArray(matrixResult_finished_HOST.getRowArray());
+    matrixResult_HOST.setValues(
+        matrixResult_finished_HOST.getValues());
+    matrixResult_HOST.setColIndices(
+        matrixResult_finished_HOST.getColIndices());
+    matrixResult_HOST.setRowArray(
+        matrixResult_finished_HOST.getRowArray());
 
     return;
 }
@@ -190,12 +232,12 @@ void naive_SDDMM_GPU<T>::SDDMM(
 void naive_SDDMM_GPU<float>::start_run() const
 {
     assert(this->_timer != nullptr && "Error: naive_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
-    this->_timer->start_cpu_run();
+    this->_timer->start_gpu_run();
 }
 
 void naive_SDDMM_GPU<float>::stop_run() const
 {
-    this->_timer->stop_cpu_run();
+    this->_timer->stop_gpu_run();
 }
 
 // Explicit template instantiation

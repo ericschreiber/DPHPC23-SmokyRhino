@@ -152,8 +152,8 @@ void test_small_complex()
 
 int main()
 {
-    test_small();
     test_simple_near_zeros();
+    test_small();
     test_small_complex();
     return 0;
 }

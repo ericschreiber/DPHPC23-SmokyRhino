@@ -25,6 +25,10 @@ SDDMMlib<T>* get_implemented_class(std::string class_name)
     {
         return new naive_SDDMM_GPU<T>();
     }
+    else if (class_name == "semi_naive_CSR_SDDMM_GPU")
+    {
+        return new semi_naive_CSR_SDDMM_GPU<T>();
+    }
 #endif
 
     else

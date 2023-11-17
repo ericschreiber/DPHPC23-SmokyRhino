@@ -149,6 +149,8 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
 
     // set the result matrix
     matrixResult_sparse_HOST.setValues(result_vector);
+    matrixResult_sparse_HOST.setColIndices(matrixC_HOST.getColIndices());
+    matrixResult_sparse_HOST.setRowPtr(matrixC_HOST.getRowPtr());
 
     // free memory on the device and destroy the handle
     CUDA_CHECK(

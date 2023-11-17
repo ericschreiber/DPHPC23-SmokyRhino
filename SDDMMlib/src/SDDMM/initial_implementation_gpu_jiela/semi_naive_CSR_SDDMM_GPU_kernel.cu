@@ -6,14 +6,17 @@
 
 #include "utils.h"
 
+#define WARP_SIZE 32
+
 __device__ float warp_wise_reduction(float sum)
 {
-    int warpsize = 32;
-    for (int offset = warpSize / 2; offset > 0; offset /= 2)
-    {
-        // This results in every 0th thread in a warp having the sum of all the warps
-        sum += __shfl_down_sync(0xFFFFFFFF, sum, offset);
-    }
+    // This results in every 0th thread in a warp having the sum of all the warps
+    sum += __shfl_down_sync(0xFFFFFFFF, sum, 1);
+    sum += __shfl_down_sync(0xFFFFFFFF, sum, 2);
+    sum += __shfl_down_sync(0xFFFFFFFF, sum, 4);
+    sum += __shfl_down_sync(0xFFFFFFFF, sum, 8);
+    sum += __shfl_down_sync(0xFFFFFFFF, sum, 16);
+
     return sum;
 }
 
@@ -28,9 +31,10 @@ __global__ void blocked_SDDMM_kernel(
     int* d_colIdx,
     float* d_result)
 {
-    int warpsize = 32;
-    int warp_idx = threadIdx.x / warpsize;
-    // int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    __shared__ double warpSums_buffer[32];
+
+    int thread_id = threadIdx.x;
+    int warp_idx = thread_id / WARP_SIZE;
 
     // iterate over all rows assigned to a certain block
     for (int i = blockIdx.x; i < m; i += gridDim.x)
@@ -40,20 +44,28 @@ __global__ void blocked_SDDMM_kernel(
         {
             float my_sum = 0.0;
             // every thread does some multiplications jumping by the blockDimension and adds that to its local sum
-            for (int l = threadIdx.x; l < n; l += blockDim.x)
+            for (int l = thread_id; l < k; l += blockDim.x)
             {
                 my_sum += d_A[i * k + l] * d_B[d_colIdx[j] * k + l];
             }
             // We reduce that local sum over all threads in a block
-            float block_sum = 0.0;
             float warp_sum = warp_wise_reduction(my_sum);
 
+            // Each first thread in a warp now writes it's warp reduction result into a buffer
+            if (thread_id % WARP_SIZE)
+            {
+                warpSums_buffer[warp_idx] = warp_sum;
+            }
+
+            // The first warp in the block now does another reduction on the elements in the buffer
+            float block_sum = 0.0;
             if (warp_idx == 0)
             {
-                block_sum = warp_wise_reduction(warp_sum);
+                float block_sum = warp_wise_reduction(warpSums_buffer[thread_id]);
             }
-            // after we got the final sum, we now do the multiplication and write the result
-            if (threadIdx.x == 0)
+
+            // after we got the final sum, we now do the multiplication with the sample matrix and write the result
+            if (thread_id == 0)
             {
                 float result = block_sum * d_C[j];
                 d_result[j] = result;
@@ -75,6 +87,7 @@ void compute_blockwise(
 {
     int max_blocks = 2024;
     int num_blocks = min(max_blocks, m);
+    // int num_threads
 
     blocked_SDDMM_kernel<<<num_blocks, 1024>>>(
         m,

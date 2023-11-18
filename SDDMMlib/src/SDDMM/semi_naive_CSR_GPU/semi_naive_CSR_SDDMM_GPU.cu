@@ -3,9 +3,9 @@
 #include <cuda_profiler_api.h>
 #include <cuda_runtime.h>
 
-#include <initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU.cuh>
-#include <initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU_kernel.cuh>
 #include <iostream>
+#include <semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cuh>
+#include <semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU_kernel.cuh>
 #include <type_traits>
 #include <typeinfo>
 

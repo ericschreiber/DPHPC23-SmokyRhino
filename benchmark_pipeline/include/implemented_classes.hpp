@@ -8,6 +8,7 @@
 // Put your cuda classes here. They wont be compiled if the flag USE_CUDA is not set to 1
 #if USE_CUDA
 #include "naive_dense_dense_gpu/naive_SDDMM_GPU.cuh"
+#include "semi_naive_CSR_SDDMM_GPU.cuh"
 #endif
 
 // Get the class with the given name

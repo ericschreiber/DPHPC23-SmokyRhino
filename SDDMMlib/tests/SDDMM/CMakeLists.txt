@@ -7,6 +7,5 @@ project(testcasessddmm)
 # Add subdirectories for the library and executable
 if(USE_CUDA EQUAL 1)
 add_subdirectory(naive_dense_dense_gpu)
-add_subdirectory(initial_gpu/jiela)
-#add_subdirectory(initial_gpu/niklas)
+add_subdirectory(semi_naive_CSR_GPU)
 endif()

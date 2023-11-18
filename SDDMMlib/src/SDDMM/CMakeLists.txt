@@ -29,10 +29,9 @@ else()
                 
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
-                initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU.cu
-                initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU_kernel.cu
-                #initial_implementation_gpu_niklas/initial_SDDMM_GPU_niklas.cpp
-                #initial_implementation_gpu_niklas/initial_SDDMM_solver.cu
+                semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cu
+                semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU_kernel.cu
+
     )      
 
     # Add our own code
@@ -40,7 +39,7 @@ else()
                                 ../../include/SDDMM
                                 ${THIRD_PARTY_ROOT}/include_gpu
                                 ../../include/SDDMM/naive_dense_dense_gpu
-                                ../../include/SDDMM/initial_implementation_gpu_jiela
+                                ../../include/SDDMM/semi_naive_CSR_GPU
                                 /usr/local/cuda-12.1/targets/x86_64-linux/include
                                 )
 

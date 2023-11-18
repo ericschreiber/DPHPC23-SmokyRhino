@@ -4,7 +4,7 @@
 
 #include "CSRMatrix.hpp"
 #include "DenseMatrix.hpp"
-#include "initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU.cuh"
+#include "semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cuh"
 
 void test_simple_near_zeros()
 {

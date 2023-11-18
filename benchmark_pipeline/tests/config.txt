@@ -1,0 +1,1 @@
+naive_SDDMM_GPU, CSRMatrix, /users/eschreib/niklas/DPHPC23-SmokyRhino/benchmark_pipeline/data/matrices/n_10000_m_10000_sparsity_1.txt, /users/eschreib/niklas/DPHPC23-SmokyRhino/benchmark_pipeline/data/matrices/n_10000_m_10000_sparsity_1.txt, /users/eschreib/niklas/DPHPC23-SmokyRhino/benchmark_pipeline/data/matrices/n_10000_m_10000_sparsity_1.txt

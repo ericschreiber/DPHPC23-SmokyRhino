@@ -1,5 +1,14 @@
 # Smokey Rhino
 
+## Building and running everything
+To build create a `build` folder in this directory and build with
+```
+cmake -DUSE_CUDA=<0/1> ..
+cmake --build .
+```
+Afterwards you can profile your application with the scripts in `profiling` or to benchmark the pipeline you can use the scripts in `pipeline_runscripts`. Please only use these scripts to run sth on the server. You can also build a pipeline with only one application to test this without profiling. Details on how to run these scripts can be found in the corresponding folders and files.
+
+
 ## SDDMMlib
 This library contains implementations for matrices and the sddmm algorithms. To build it go to /SDDMMlib/build and run (with true or false depending on if you want to use cuda). To run in debug mode add `-DCMAKE_BUILD_TYPE=DEBUG` to the cmake command.
 ```

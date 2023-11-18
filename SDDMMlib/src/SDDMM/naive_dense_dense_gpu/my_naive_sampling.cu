@@ -32,11 +32,11 @@ __global__ void naivesampling(
 
 void my_naive_sampling(
     const int size,
-    const float *const A,
-    float *const B)
+    const float* const A,
+    float* const B)
 {
     // every block can have up to 1024 threads
-    int blocks = std::min(1024, (size + 1023) / 1024);
+    int blocks = (size + 1023) / 1024;
 
     naivesampling<<<blocks, 1024>>>(
         size,

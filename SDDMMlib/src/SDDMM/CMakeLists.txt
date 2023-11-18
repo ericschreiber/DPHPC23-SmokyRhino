@@ -30,6 +30,9 @@ else()
     set_source_files_properties(*.cu PROPERTIES LANGUAGE CUDA)
 
     target_sources(SDDMMlib PRIVATE
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
+
                 naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.cpp
                 naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu
 

@@ -12,6 +12,7 @@
 
 // Put your cuda classes here. They wont be compiled if the flag USE_CUDA is not set to 1
 #if USE_CUDA
+#include "coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.hpp"
 #include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
 #include "naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.hpp"
 #include "naive_dense_dense_gpu/naive_SDDMM_GPU.cuh"
@@ -51,6 +52,10 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     else if (class_name == "naive_csr_via_coo_SDDMM_GPU")
     {
         return new naive_csr_via_coo_SDDMM_GPU<T>();
+    }
+    else if (class_name == "coo_opt_vectorization_SDDMM_GPU")
+    {
+        return new coo_opt_vectorization_SDDMM_GPU<T>();
     }
 #endif
 

@@ -70,7 +70,7 @@ void compute_naive_coo(
     // Each thread will calculate one value of the result matrix
 
     dim3 threadsPerBlock(1024);
-    int blocks = std::min(1024, (numElementsC + 1023) / 1024);
+    int blocks = (numElementsC + threadsPerBlock.x - 1) / threadsPerBlock.x;
 
     // std::cout << "n: " << n << std::endl;
     // std::cout << "m: " << m << std::endl;

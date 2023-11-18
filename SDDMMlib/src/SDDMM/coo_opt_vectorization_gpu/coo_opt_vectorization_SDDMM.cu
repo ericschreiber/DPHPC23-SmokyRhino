@@ -151,7 +151,7 @@ void compute_coo_opt_vectorization(
     // Each thread will calculate one value of the result matrix
 
     dim3 threadsPerBlock(1024);
-    int blocks = std::min(1024, (numElementsC + 1023) / 1024);
+    int blocks = (numElementsC + threadsPerBlock.x - 1) / threadsPerBlock.x;
 
     naive_coo_vectorized<<<blocks, threadsPerBlock>>>(
         k,

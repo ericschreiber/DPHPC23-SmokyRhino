@@ -7,12 +7,16 @@
 #include "SDDMMlib.hpp"
 #include "naive_CPU_SDDMM.hpp"
 #include "naive_SDDMM.hpp"
+#include "naive_sequential_full_SDDMM_HOST/naive_sequential_full_SDDMM_HOST.hpp"
+#include "naive_sequential_sampled_SDDMM_HOST/naive_sequential_sampled_SDDMM_HOST.hpp"
 
 // Put your cuda classes here. They wont be compiled if the flag USE_CUDA is not set to 1
 #if USE_CUDA
+#include "coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.hpp"
 #include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
-#include "naive_dense_dense_gpu/naive_SDDMM_GPU.hpp"
 #include "cache_coo_gpu/cache_coo_SDDMM_GPU.hpp"
+#include "naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.hpp"
+#include "naive_dense_dense_gpu/naive_SDDMM_GPU.cuh"
 #endif
 
 // Get the class with the given name
@@ -22,6 +26,14 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     if (class_name == "naive_SDDMM")
     {
         return new naive_SDDMM<T>();
+    }
+    else if (class_name == "naive_sequential_sampled_SDDMM_HOST")
+    {
+        return new naive_sequential_sampled_SDDMM_HOST<T>();
+    }
+    else if (class_name == "naive_sequential_full_SDDMM_HOST")
+    {
+        return new naive_sequential_full_SDDMM_HOST<T>();
     }
     else if (class_name == "naive_CPU_SDDMM")
     {
@@ -41,6 +53,14 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     else if (class_name == "cache_coo_SDDMM_GPU")
     {
         return new cache_coo_SDDMM_GPU<T>();
+    }
+    else if (class_name == "naive_csr_via_coo_SDDMM_GPU")
+    {
+        return new naive_csr_via_coo_SDDMM_GPU<T>();
+    }
+    else if (class_name == "coo_opt_vectorization_SDDMM_GPU")
+    {
+        return new coo_opt_vectorization_SDDMM_GPU<T>();
     }
 #endif
 

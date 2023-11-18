@@ -7,6 +7,7 @@
 #include <vector>
 #if USE_CUDA
 #include "CUDATimer.cuh"
+#include "utils.h"
 #endif
 
 class ExecutionTimer
@@ -30,7 +31,8 @@ class ExecutionTimer
         bool running;
         std::vector<double> elapsed_times;
 #if USE_CUDA
-        std::optional<EventTimer> cuda_timer;
+        EventTimer cuda_timer;
+        cudaStream_t s;
 #endif
 };
 

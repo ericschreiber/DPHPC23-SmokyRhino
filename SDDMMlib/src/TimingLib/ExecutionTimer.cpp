@@ -3,6 +3,53 @@
 #include <cassert>
 #include <iostream>
 
+#if USE_CUDA
+ExecutionTimer::ExecutionTimer()
+{
+    running = false;
+    cudaStream_t s;
+    CUDA_CHECK(cudaStreamCreate(&s));
+    EventTimer cuda_timer;
+    std::cout << "cuda_timer_enabled" << std::endl;
+}
+
+ExecutionTimer::~ExecutionTimer()
+{
+}
+
+void ExecutionTimer::start_cpu_run()
+{
+    assert(!running && "Timer already running");
+    std::cout << "using_cpu_timer" << std::endl;
+    running = true;
+    start_time = std::chrono::high_resolution_clock::now();
+}
+
+void ExecutionTimer::stop_cpu_run()
+{
+    assert(running && "Timer not running (cpu)");
+    stop_time = std::chrono::high_resolution_clock::now();
+    double elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(stop_time - start_time).count();
+    elapsed_times.push_back(elapsed_time);
+    running = false;
+}
+
+void ExecutionTimer::start_gpu_run()
+{
+    assert(!running && "Timer already running");
+    std::cout << "using_gpu_timer" << std::endl;
+    running = true;
+    cuda_timer.start(0);
+}
+
+void ExecutionTimer::stop_gpu_run()
+{
+    assert(running && "Timer not running (gpu)");
+    cuda_timer.stop(0);
+    elapsed_times.push_back(cuda_timer.elapsed() * 1e6);
+    running = false;
+}
+#else
 ExecutionTimer::ExecutionTimer()
 {
     running = false;
@@ -15,8 +62,8 @@ ExecutionTimer::~ExecutionTimer()
 void ExecutionTimer::start_cpu_run()
 {
     assert(!running && "Timer already running");
-    start_time = std::chrono::high_resolution_clock::now();
     running = true;
+    start_time = std::chrono::high_resolution_clock::now();
 }
 
 void ExecutionTimer::stop_cpu_run()
@@ -28,27 +75,6 @@ void ExecutionTimer::stop_cpu_run()
     running = false;
 }
 
-#if USE_CUDA
-void ExecutionTimer::start_gpu_run()
-{
-    assert(!running && "Timer already running");
-    // If there is no instance of EventTimer, create one
-    if (!cuda_timer)
-    {
-        cuda_timer = EventTimer();
-    }
-    cuda_timer->start();
-}
-
-void ExecutionTimer::stop_gpu_run()
-{
-    assert(running && "Timer not running");
-    assert(cuda_timer && "cuda_timer is not initialized but you called stop_gpu_run()");
-    cuda_timer->stop();
-    double elapsed_time = static_cast<double>(cuda_timer->elapsed());
-    elapsed_times.push_back(elapsed_time);
-}
-#else
 void ExecutionTimer::start_gpu_run()
 {
     assert(false && "Not implemented yet");
@@ -56,7 +82,6 @@ void ExecutionTimer::start_gpu_run()
     {
         std::cout << "ExecutionTimer: Warning: Timer already running. Starting a new run." << std::endl;
     }
-    // ...
 }
 
 void ExecutionTimer::stop_gpu_run()
@@ -66,7 +91,6 @@ void ExecutionTimer::stop_gpu_run()
     {
         std::cout << "ExecutionTimer: Warning: Timer not running. Stopping the timer has no effect." << std::endl;
     }
-    // ...
 }
 #endif
 

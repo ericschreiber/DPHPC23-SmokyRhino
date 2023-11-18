@@ -1,14 +1,14 @@
-// naive_coo_SDDMM_GPU.cpp
-#include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
+// coo_opt_vectorization_SDDMM_GPU.cpp
+#include "coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.hpp"
 
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>
 
-#include "naive_coo_gpu/naive_coo_SDMM.cuh"
+#include "coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cuh"
 #include "utils.h"
 
-void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
+void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const COOMatrix<float>& matrixC_HOST,
@@ -55,22 +55,23 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_values, (matrixC_HOST.getValues()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
-
-    this->start_run();
-    // call compute in naive_dense_dense.cu
-    compute_naive_coo(
-        m,
-        n,
-        k,
-        numElementsC,
-        matrixA_GPU_values,
-        matrixB_transpose_GPU_values,
-        matrixC_GPU_values,
-        matrixC_GPU_row_indices,
-        matrixC_GPU_col_indices,
-        matrixResult_GPU_values);
-    this->stop_run();
-
+    for (int i = 0; i < 10; i++)
+    {
+        this->start_run();
+        // call compute in naive_dense_dense.cu
+        compute_coo_opt_vectorization(
+            m,
+            n,
+            k,
+            numElementsC,
+            matrixA_GPU_values,
+            matrixB_transpose_GPU_values,
+            matrixC_GPU_values,
+            matrixC_GPU_row_indices,
+            matrixC_GPU_col_indices,
+            matrixResult_GPU_values);
+        this->stop_run();
+    }
     // copy matrixResult_GPU to matrixResult
     float* matrixResult_HOST_values = new float[numElementsC];
     CUDA_CHECK(cudaMemcpy(matrixResult_HOST_values, matrixResult_GPU_values, numElementsC * sizeof(float), cudaMemcpyDeviceToHost));
@@ -104,7 +105,7 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
     return;
 }
 
-void naive_coo_SDDMM_GPU<float>::SDDMM(
+void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
@@ -131,18 +132,17 @@ void naive_coo_SDDMM_GPU<float>::SDDMM(
     return;
 }
 
-void naive_coo_SDDMM_GPU<float>::start_run() const
+void coo_opt_vectorization_SDDMM_GPU<float>::start_run() const
 {
-    assert(this->_timer != nullptr && "Error: naive_coo_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
+    assert(this->_timer != nullptr && "Error: coo_opt_vectorization_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
     this->_timer->start_cpu_run();
 }
 
-void naive_coo_SDDMM_GPU<float>::stop_run() const
+void coo_opt_vectorization_SDDMM_GPU<float>::stop_run() const
 {
     this->_timer->stop_cpu_run();
 }
 
 // Explicit template instantiation
-// template class naive_coo_SDDMM_GPU<float>;
-template class naive_coo_SDDMM_GPU<double>;
-template class naive_coo_SDDMM_GPU<int>;
+template class coo_opt_vectorization_SDDMM_GPU<double>;
+template class coo_opt_vectorization_SDDMM_GPU<int>;

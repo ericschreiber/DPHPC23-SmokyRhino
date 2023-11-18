@@ -4,7 +4,7 @@
 
 #include "COOMatrix.hpp"
 #include "DenseMatrix.hpp"
-#include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
+#include "coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.hpp"
 
 void test_simple_near_zeros()
 {
@@ -16,7 +16,7 @@ void test_simple_near_zeros()
 
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
-    naive_coo_SDDMM_GPU<float>* class_to_run = new naive_coo_SDDMM_GPU<float>(&timer);
+    coo_opt_vectorization_SDDMM_GPU<float>* class_to_run = new coo_opt_vectorization_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
     sample_Matrix.SDDMM(
@@ -24,7 +24,7 @@ void test_simple_near_zeros()
         matrixB,
         calculatedSolution,
         std::bind(
-            &naive_coo_SDDMM_GPU<float>::SDDMM,
+            &coo_opt_vectorization_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
@@ -64,7 +64,7 @@ void test_small()
 
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
-    naive_coo_SDDMM_GPU<float>* class_to_run = new naive_coo_SDDMM_GPU<float>(&timer);
+    coo_opt_vectorization_SDDMM_GPU<float>* class_to_run = new coo_opt_vectorization_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
     sample_Matrix.SDDMM(
@@ -72,7 +72,7 @@ void test_small()
         matrixB,
         calculatedSolution,
         std::bind(
-            &naive_coo_SDDMM_GPU<float>::SDDMM,
+            &coo_opt_vectorization_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
@@ -112,7 +112,7 @@ void test_small_complex()
 
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
-    naive_coo_SDDMM_GPU<float>* class_to_run = new naive_coo_SDDMM_GPU<float>(&timer);
+    coo_opt_vectorization_SDDMM_GPU<float>* class_to_run = new coo_opt_vectorization_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
     sample_Matrix.SDDMM(
@@ -120,7 +120,7 @@ void test_small_complex()
         matrixB,
         calculatedSolution,
         std::bind(
-            &naive_coo_SDDMM_GPU<float>::SDDMM,
+            &coo_opt_vectorization_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,

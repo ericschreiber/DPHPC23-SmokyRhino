@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Inputs: OUTPUT_DIR, MATRIX_TYPE, MATRIX_SHAPE, MATRIX_DENSITY (optional)
+# Inputs: OUTPUT_DIR, MATRIX_TYPE, MATRIX_SHAPE, MATRIX_DENSITY (optional and in 0.1 or 1 notation)
 
 # Example Usage:
 # ./generateMatrix.sh <path/to/output/dir> <matrix_type> <matrix_shape> (optional: <matrix_density>)
@@ -10,11 +10,6 @@
 if [ $# -ne 3 ] && [ $# -ne 4 ]; then
     echo "Illegal number of parameters"
     echo "Usage: generateMatrix.sh OUTPUT_DIR MATRIX_TYPE MATRIX_SHAPE (optional: MATRIX_DENSITY)"
-    exit 1
-fi
-
-if [ $2 == dense ] && [ $# -eq 4 ]; then
-    echo "Dense matrices do not have a density parameter at the moment please implement this feature"
     exit 1
 fi
 
@@ -41,9 +36,10 @@ if ! [[ $n =~ ^[0-9]+$ ]] || ! [[ $m =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-
-NAME="n_"$n"_m_"$m"_sparsity_"$MATRIX_DENSITY
+# Remove the point in the density if it exists
+MATRIX_DENSITY_file_name=$(echo $MATRIX_DENSITY | sed 's/\.//g')
+NAME="n_"$n"_m_"$m"_sparsity_"$MATRIX_DENSITY_file_name
 FILE=$OUTPUT_DIR"/"$NAME".txt"
 touch $FILE
-$EXECUTABLE $n $m $MATRIX_DENSITY $FILE
+$EXECUTABLE "${n}" "${m}" "${MATRIX_DENSITY}" "${FILE}"
 echo "Generated matrix "$FILE

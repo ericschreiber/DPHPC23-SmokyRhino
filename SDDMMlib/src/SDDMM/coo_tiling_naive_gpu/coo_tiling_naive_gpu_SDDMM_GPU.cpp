@@ -1,14 +1,14 @@
-// coo_tiling_cached_gpu_SDDMM_GPU.cpp
-#include "coo_tiling_cached_gpu/coo_tiling_cached_gpu_SDDMM_GPU.hpp"
+// coo_tiling_naive_gpu_SDDMM_GPU.cpp
+#include "coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM_GPU.hpp"
 
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>
 
-#include "coo_tiling_cached_gpu/coo_tiling_cached_gpu_SDDMM.cuh"
+#include "coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM.cuh"
 #include "utils.h"
 
-void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM_COO(
+void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const COOMatrix<float>& matrixC_HOST,
@@ -58,7 +58,7 @@ void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM_COO(
 
     this->start_run();
     // call compute in naive_dense_dense.cu
-    compute_coo_tiling_cached_gpu(
+    compute_coo_tiling_naive_gpu(
         m,
         n,
         k,
@@ -104,7 +104,7 @@ void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM_COO(
     return;
 }
 
-void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM(
+void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
@@ -131,17 +131,17 @@ void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM(
     return;
 }
 
-void coo_tiling_cached_gpu_SDDMM_GPU<float>::start_run() const
+void coo_tiling_naive_gpu_SDDMM_GPU<float>::start_run() const
 {
-    assert(this->_timer != nullptr && "Error: coo_tiling_cached_gpu_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
+    assert(this->_timer != nullptr && "Error: coo_tiling_naive_gpu_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
     this->_timer->start_cpu_run();
 }
 
-void coo_tiling_cached_gpu_SDDMM_GPU<float>::stop_run() const
+void coo_tiling_naive_gpu_SDDMM_GPU<float>::stop_run() const
 {
     this->_timer->stop_cpu_run();
 }
 
 // Explicit template instantiation
-template class coo_tiling_cached_gpu_SDDMM_GPU<double>;
-template class coo_tiling_cached_gpu_SDDMM_GPU<int>;
+template class coo_tiling_naive_gpu_SDDMM_GPU<double>;
+template class coo_tiling_naive_gpu_SDDMM_GPU<int>;

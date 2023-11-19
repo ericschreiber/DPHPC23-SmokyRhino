@@ -41,6 +41,12 @@ else()
                 
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
                 naive_coo_gpu/naive_coo_SDDMM.cu
+
+                cache_coo_gpu/cache_coo_SDDMM_GPU.cpp
+                cache_coo_gpu/cache_coo_SDDMM.cu
+
+                coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM_GPU.cpp
+                coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM.cu
                 )      
 
     # Add our own code

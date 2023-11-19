@@ -19,6 +19,7 @@ ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_cache_coo_SDDMM_GPU
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/naive_dense_dense_gpu/test_compile
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_csr_via_coo_SDDMM_GPU
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_coo_opt_vectorization_SDDMM_GPU
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_coo_tiling_naive_gpu
 "
 
 # Detect if GPU is available

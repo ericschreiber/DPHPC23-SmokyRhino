@@ -1,8 +1,8 @@
-// coo_tiling_cached_gpu_SDDMM.cuh
-#ifndef COO_TILING_CACHED_GPU_SDDMM_H
-#define COO_TILING_CACHED_GPU_SDDMM_H
+// coo_tiling_naive_gpu_SDDMM.cuh
+#ifndef COO_TILING_NAIVE_GPU_SDDMM_H
+#define COO_TILING_NAIVE_GPU_SDDMM_H
 
-void compute_coo_tiling_cached_gpu(
+void compute_coo_tiling_naive_gpu(
     const int m,
     const int n,
     const int k,
@@ -14,4 +14,4 @@ void compute_coo_tiling_cached_gpu(
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values);
 
-#endif  // COO_TILING_CACHED_GPU_SDDMM_H
+#endif  // COO_TILING_NAIVE_GPU_SDDMM_H

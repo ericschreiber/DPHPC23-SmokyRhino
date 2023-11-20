@@ -34,25 +34,18 @@ else()
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
 
                 naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.cpp
-                # naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu
+                naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu
 
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
                 
                 semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cu
                 semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU_kernel.cu
+
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
-                naive_coo_gpu/naive_coo_SDDMM.cu)      
-=========
-                
-                naive_dense_dense_gpu/naive_SDDMM_GPU.cu
-                naive_dense_dense_gpu/my_naive_sampling.cu
-                z/semi_naive_CSR_SDDMM_GPU.cu
-                initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU_kernel.cu
-                #initial_implementation_gpu_niklas/initial_SDDMM_GPU_niklas.cpp
-                #initial_implementation_gpu_niklas/initial_SDDMM_solver.cu
-    )      
->>>>>>>>> Temporary merge branch 2
+                naive_coo_gpu/naive_coo_SDDMM.cu
+                )      
+
 
     # Add our own code
     target_include_directories(SDDMMlib PUBLIC 

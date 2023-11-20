@@ -30,7 +30,7 @@ else()
 
                 naive_CPU_SDDMM.cpp
 
-                naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
+                # naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
                 naive_dense_dense_gpu/naive_dense_dense.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
 
@@ -38,10 +38,7 @@ else()
                 semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU_kernel.cu
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
                 naive_coo_gpu/naive_coo_SDDMM.cu
-                #initial_implementation_gpu_jiela/initial_SDDMM_GPU_jiela.cpp
-                #initial_implementation_gpu_jiela/initial_SDDMM_GPU_kernel_jiela.cu
-                #initial_implementation_gpu_niklas/initial_SDDMM_GPU_niklas.cpp
-                #initial_implementation_gpu_niklas/initial_SDDMM_solver.cu
+
     )      
 
     # Add our own code

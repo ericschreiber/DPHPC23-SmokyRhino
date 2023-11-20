@@ -27,6 +27,7 @@
 // 1. Since we don't tile over the columns if there are a lot more cols then threads or a lot less the efficiency will be bad.
 // 2. matrixC_GPU_row_indices into shared mem
 // 3. matrixA_GPU_values into shared mem
+// 4. We may prefer CSR for this implementation
 //
 // *********** ***** ***********
 
@@ -101,7 +102,7 @@ __global__ void naive_coo_tiled_no_shared_mem(
     const float* __restrict__ const matrixA_GPU_values,
     const float* __restrict__ const matrixB_transposed_GPU_values,
     const float* __restrict__ const matrixC_GPU_values,
-    const int* __restrict__ const matrixC_GPU_row_indices,
+    const int* __restrict__ const matrixC_GPU_row_ptr,  // CSR equivalent We save the index of the first column for each row
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values)
 {
@@ -117,7 +118,8 @@ __global__ void naive_coo_tiled_no_shared_mem(
 
     if (row_index < numElementsC)
     {
-        int row_zero = matrixC_GPU_row_indices[row_index];
+        int row_zero = matrixC_GPU_row_ptr[row_index];
+        // TODO: Finish implementing CSR equivalent
 
         // Loop over all threads to check that we compute all columns.
         // Thread 0 calculates column 0, n, 2n, 3n, ...
@@ -133,14 +135,13 @@ __global__ void naive_coo_tiled_no_shared_mem(
             // TODO: matrixC_GPU_row_indices into shared mem
             if (row_zero != matrixC_GPU_row_indices[index])
             {
-                printf("WE BREAKED!!! row_zero: %d, matrixC_GPU_row_indices[index]: %d\n", row_zero, matrixC_GPU_row_indices[index]);
+                printf("WE BREAKED!!! row_zero: %d, matrixC_GPU_row_indices[index]: %d, index: %d\n", row_zero, matrixC_GPU_row_indices[index], index);
                 // We are in the next row so we don't calculate this in this thread and not even in this block.
                 break;
             }
             float multiplier = matrixC_GPU_values[index];
-            printf("row_index: %d, col_start: %d, col_runnder: %d, tile_index: %d, index: %d, multilier: %f\n", row_index, col_start, col_runner, tile_index, index, multiplier);
             float result = naive_coo_one_val_for_tiled(own_tile_size, multiplier, matrixA_GPU_values + row_zero + tile_index * tile_size, matrixB_transposed_GPU_values + col + tile_index * tile_size);
-
+            printf("row_index: %d, col_start: %d, col_runnder: %d, tile_index: %d, index: %d, multilier: %f, result: %f\n", row_index, col_start, col_runner, tile_index, index, multiplier, result);
             // As we may have multiple threads from different blocks writing to the same location we need to use atomic add.
             atomicAdd(matrixResult_GPU_values + index, result);
         }
@@ -181,6 +182,19 @@ void compute_coo_tiling_naive_gpu(
     std::cout << "last_tile_index: " << last_tile_index << std::endl;
     std::cout << "starting kernel" << std::endl;
 
+    // Compute the row pointer array for the sampling matrix
+    std::vector<int> matrixC_GPU_row_ptr = std::vector<int>();
+    matrixC_GPU_row_ptr.push_back(0);
+    int row = matrixC_GPU_row_indices[0];
+    for (int i = 1; i < numElementsC; i++)
+    {
+        if (row != matrixC_GPU_row_indices[i])
+        {
+            matrixC_GPU_row_ptr.push_back(i);
+            row = matrixC_GPU_row_indices[i];
+        }
+    }
+
     naive_coo_tiled_no_shared_mem<<<blocks, threadsPerBlock>>>(
         m,
         n,
@@ -191,7 +205,7 @@ void compute_coo_tiling_naive_gpu(
         matrixA_GPU_values,
         matrixB_transposed_GPU_values,
         matrixC_GPU_values,
-        matrixC_GPU_row_indices,
+        matrixC_GPU_row_ptr,
         matrixC_GPU_col_indices,
         matrixResult_GPU_values);
     // Aggregate the return value of the kernel

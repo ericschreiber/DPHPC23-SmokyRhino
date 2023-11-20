@@ -6,10 +6,12 @@ void compute_coo_tiling_naive_gpu(
     const int m,
     const int n,
     const int k,
+    const int numElementsCrowPtr,
     const int numElementsC,
     const float* __restrict__ const matrixA_GPU_values,
-    const float* __restrict__ const matrixB_GPU_values,
+    const float* __restrict__ const matrixB_transposed_GPU_values,
     const float* __restrict__ const matrixC_GPU_values,
+    const int* __restrict__ const matrixC_GPU_row_ptr,  // CSR equivalent We save the index of the first column for each row
     const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values);

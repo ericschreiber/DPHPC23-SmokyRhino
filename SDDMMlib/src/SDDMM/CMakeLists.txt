@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.21)
 set(THIRD_PARTY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 
-if (USE_CUDA EQUAL 0)
-
-    add_library(SDDMMlib
+add_library(SDDMMlib
                 naive_SDDMM.cpp
-                naive_CPU_SDDMM.cpp)   
+                naive_CPU_SDDMM.cpp
+                
+                naive_sequential_full_SDDMM_HOST/naive_sequential_full_SDDMM_HOST.cpp
+                naive_sequential_sampled_SDDMM_HOST/naive_sequential_sampled_SDDMM_HOST.cpp
+                )
+
+if (USE_CUDA EQUAL 0) 
                 
     target_include_directories(SDDMMlib PUBLIC 
                                 ../../include/SDDMM
@@ -25,21 +29,30 @@ else()
     # cuda
     set_source_files_properties(*.cu PROPERTIES LANGUAGE CUDA)
 
-    add_library(SDDMMlib 
-                naive_SDDMM.cpp
+    target_sources(SDDMMlib PRIVATE
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
 
-                naive_CPU_SDDMM.cpp
+                naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.cpp
+                # naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu
 
-                # naive_dense_dense_gpu/naive_SDDMM_GPU.cpp
-                naive_dense_dense_gpu/naive_dense_dense.cu
+                naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
-
+                
                 semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cu
                 semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU_kernel.cu
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
-                naive_coo_gpu/naive_coo_SDDMM.cu
-
+                naive_coo_gpu/naive_coo_SDDMM.cu)      
+=========
+                
+                naive_dense_dense_gpu/naive_SDDMM_GPU.cu
+                naive_dense_dense_gpu/my_naive_sampling.cu
+                z/semi_naive_CSR_SDDMM_GPU.cu
+                initial_implementation_gpu_jiela/semi_naive_CSR_SDDMM_GPU_kernel.cu
+                #initial_implementation_gpu_niklas/initial_SDDMM_GPU_niklas.cpp
+                #initial_implementation_gpu_niklas/initial_SDDMM_solver.cu
     )      
+>>>>>>>>> Temporary merge branch 2
 
     # Add our own code
     target_include_directories(SDDMMlib PUBLIC 

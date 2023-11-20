@@ -58,7 +58,7 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
 
     this->start_run();
     // call compute in naive_dense_dense.cu
-    compute(
+    compute_naive_coo(
         m,
         n,
         k,

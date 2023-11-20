@@ -48,6 +48,7 @@ void test_simple_near_zeros()
             std::cout << calculatedValues.at(i) << " ";
         }
         std::cout << std::endl;
+        assert(false && "Test failed! Calculated solution is not equal to the expected solution.");
     }
 
     return;
@@ -95,6 +96,7 @@ void test_small()
             std::cout << calculatedValues.at(i) << " ";
         }
         std::cout << std::endl;
+        assert(false && "Test failed! Calculated solution is not equal to the expected solution.");
     }
 
     return;
@@ -142,6 +144,7 @@ void test_small_complex()
             std::cout << calculatedValues.at(i) << " ";
         }
         std::cout << std::endl;
+        assert(false && "Test failed! Calculated solution is not equal to the expected solution.");
     }
 
     return;

@@ -3,4 +3,4 @@
 # On Slurm we cannot run with input variables. Instead we have this file where we can create runs.
 # An example is given below.
 
-/users/eschreib/eric/DPHPC23-SmokyRhino/benchmark_pipeline/Pipeline/benchmark_run.sh /users/eschreib/eric/DPHPC23-SmokyRhino/benchmark_pipeline/tests/config.example.txt /users/eschreib/eric/DPHPC23-SmokyRhino/benchmark_pipeline/tests/
+/users/eschreib/eric/DPHPC23-SmokyRhino/benchmark_pipeline/Pipeline/benchmark_run.sh /users/eschreib/eric/DPHPC23-SmokyRhino/benchmark_pipeline/data/results_vectorization/config.vectorized.txt /users/eschreib/eric/DPHPC23-SmokyRhino/benchmark_pipeline/data/results_vectorization/

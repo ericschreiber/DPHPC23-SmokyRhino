@@ -43,8 +43,9 @@ int main()
     DenseMatrix<float> expectedSolution_Dense(solution);
     CSRMatrix<float> expectedSolution_HOST(expectedSolution_Dense);
 
-    // Set a timer
+    // setup timer
     ExecutionTimer timer = ExecutionTimer();
+    naive_SDDMM_GPU<float>* class_to_run = new naive_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
     matrixC_HOST.SDDMM(
@@ -53,7 +54,7 @@ int main()
         calculatedSolution_HOST,
         std::bind(
             &naive_SDDMM_GPU<float>::SDDMM,
-            naive_SDDMM_GPU<float>(&timer),
+            class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
@@ -70,14 +71,7 @@ int main()
     }
     std::cout << std::endl;
 
-    // // Print other.getRowArray()
-    // std::cout << "colIndices calculated: " << std::endl;
-    // for (int i = 0; i < calculatedSolution_HOST.getColIndices().size(); ++i)
-    // {
-    //     std::cout << calculatedSolution_HOST.getColIndices()[i] << " ";
-    // }
-    // std::cout << std::endl;
-
+    // verify result
     if (calculatedSolution_HOST == expectedSolution_HOST)
     {
         std::cout << "Test passed!" << std::endl;

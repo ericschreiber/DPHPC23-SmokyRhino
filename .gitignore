@@ -6,10 +6,14 @@ SDDMMlib/tests/MatrixLib/cmake
 .DS_Store
 benchmark_pipeline/data/datasets/*
 benchmark_pipeline/data/matrices/*
-profiling/results/
+benchmark_pipeline/data/local_results/*
+profiling/results/*
+pipeline_runscripts/results/*
 
 
 # But not these files...
 !benchmark_pipeline/data/datasets/Dataset001_test/
 !benchmark_pipeline/data/runs
 !benchmark_pipeline/data/matrices/.gitkeep
+!pipeline_runscripts/results/README.md
+!profiling/results/README.md

@@ -2,7 +2,7 @@
 #ifndef NAIVE_COO_SDDMM_H
 #define NAIVE_COO_SDDMM_H
 
-void compute(
+void compute_naive_coo(
     const int m,
     const int n,
     const int k,

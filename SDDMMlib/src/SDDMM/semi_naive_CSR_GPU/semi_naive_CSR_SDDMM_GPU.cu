@@ -95,25 +95,19 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMemcpy(
             matrixC_GPU,
-            matrixC_HOST.getValues().data(),
-            nnz * sizeof(float),
-            cudaMemcpyHostToDevice));
-    CUDA_CHECK(
-        cudaMemcpy(
-            matrixResult_GPU,
-            matrixResult_sparse_HOST.getValues().data(),
+            (matrixC_HOST.getValues()).data(),
             nnz * sizeof(float),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
             col_idx_GPU,
-            matrixC_HOST.getColIndices().data(),
+            (matrixC_HOST.getColIndices()).data(),
             nnz * sizeof(int),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
             row_ptr_GPU,
-            matrixC_HOST.getRowArray().data(),
+            (matrixC_HOST.getRowArray()).data(),
             (m + 1) * sizeof(int),
             cudaMemcpyHostToDevice));
 

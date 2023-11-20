@@ -1,3 +1,5 @@
+// Assumption: B is transposed in Memory <3
+
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
 
@@ -87,7 +89,6 @@ void compute_blockwise(
 {
     int max_blocks = 2024;
     int num_blocks = min(max_blocks, m);
-    // int num_threads
 
     blocked_SDDMM_kernel<<<num_blocks, 1024>>>(
         m,

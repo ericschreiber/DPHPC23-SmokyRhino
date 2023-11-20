@@ -17,7 +17,7 @@
 #include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
 #include "naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.hpp"
 #include "naive_dense_dense_gpu/naive_SDDMM_GPU.cuh"
-#include "semi_naive_CSR_SDDMM_GPU.cuh"
+#include "semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cuh"
 #endif
 
 // Get the class with the given name

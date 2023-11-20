@@ -44,6 +44,9 @@ else()
 
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
                 naive_coo_gpu/naive_coo_SDDMM.cu
+
+                cache_coo_gpu/cache_coo_SDDMM_GPU.cpp
+                cache_coo_gpu/cache_coo_SDDMM.cu
                 )      
 
 

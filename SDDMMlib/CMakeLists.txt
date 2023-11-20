@@ -2,9 +2,6 @@
 cmake_minimum_required(VERSION 3.21)
 set(CMAKE_CXX_STANDARD 20)
 
-# enable debug mode
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-
 # USE_CUDA takes values 0 or 1
 if (USE_CUDA EQUAL 1)
     message(STATUS "Building with CUDA")

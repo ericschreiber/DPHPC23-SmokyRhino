@@ -55,7 +55,7 @@ void mainTest()
     }
     assert(same && "matrixIntFromFile is not equal to matrixInt");
 
-    std::cout << "Test passed!" << std::endl;
+    std::cout << "IO Dense: all tests passed!" << std::endl;
 
     // remove the temp files
     remove("testDouble.txt");

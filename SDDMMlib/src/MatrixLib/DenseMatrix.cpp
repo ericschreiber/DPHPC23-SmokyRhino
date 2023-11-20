@@ -1,6 +1,7 @@
 // DenseMatrix.cpp
 #include "DenseMatrix.hpp"
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -101,7 +102,7 @@ void DenseMatrix<T>::convert_csr_dense(const CSRMatrix<T>& csrMatrix)
     }
 
     // main loop
-    const std::vector<int>& rowIndices = csrMatrix.getRowPtr();
+    const std::vector<int>& rowIndices = csrMatrix.getRowArray();
     const std::vector<int>& columnIndices = csrMatrix.getColIndices();
     const std::vector<T>& CSR_values = csrMatrix.getValues();
 

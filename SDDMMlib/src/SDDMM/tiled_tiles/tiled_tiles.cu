@@ -56,9 +56,8 @@ __device__ float tiled_dot_product_thread_subset(
     const float* B_col_beginning = matrixB_transposed_GPU_values + B_col_index * k;        // ptr to start of col of B that we are computing the dot prod with
     const float* B_col_tile_beginning = B_col_beginning + tiling_step * normal_tile_size;  // don't want entire column but only a tile of it
     float sum_of_chunks = 0;
-    int numThreads = blockDim.x;
     int numChunksInTile = ceilf((float)curr_tile_size / 4);  // ceil needed in case the current tile is smaller than 4
-    for (int i = threadIdx.x; i < numChunksInTile - 1; i += numThreads)
+    for (int i = threadIdx.x; i < numChunksInTile - 1; i += blockDim.x)
     {
         // compute the chunk of the dot product that this thread is responsible for
         const float* vector1_beginning = tile + i * 4;

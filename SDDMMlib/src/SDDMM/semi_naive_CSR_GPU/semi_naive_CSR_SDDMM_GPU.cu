@@ -11,17 +11,6 @@
 
 #include "utils.h"
 
-// void compute_blockwise(
-//     int,
-//     int,
-//     int,
-//     float*,
-//     float*,
-//     float*,
-//     int*,
-//     int*,
-//     float*);
-
 void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
@@ -29,7 +18,7 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     CSRMatrix<float>& matrixResult_sparse_HOST) const
 {
     // start the profiler
-    CUDA_CHECK(cudaProfilerStart());
+    // CUDA_CHECK(cudaProfilerStart());
     // transpose matrixB to B^t
     DenseMatrix<float> matrixB_transpose_HOST = DenseMatrix<float>(matrixB_HOST);
     matrixB_transpose_HOST.transpose();

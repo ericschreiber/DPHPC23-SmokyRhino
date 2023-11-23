@@ -1,6 +1,5 @@
 // Assumption: B is transposed in Memory <3
 
-#include <cublas_v2.h>
 #include <cuda_runtime.h>
 
 #include <iostream>
@@ -13,6 +12,7 @@
 __device__ float warp_wise_reduction(float sum)
 {
     // This results in every 0th thread in a warp having the sum of all the warps
+    // Try changing this around and measure if you have the time
     sum += __shfl_down_sync(0xFFFFFFFF, sum, 1);
     sum += __shfl_down_sync(0xFFFFFFFF, sum, 2);
     sum += __shfl_down_sync(0xFFFFFFFF, sum, 4);
@@ -36,17 +36,19 @@ __global__ void blocked_SDDMM_kernel(
     __shared__ double warpSums_buffer[32];
 
     int thread_id = threadIdx.x;
+    int block_size = blockDim.x;
+    int grid_size = gridDim.x;
     int warp_idx = thread_id / WARP_SIZE;
 
     // iterate over all rows assigned to a certain block
-    for (int i = blockIdx.x; i < m; i += gridDim.x)
+    for (int i = blockIdx.x; i < m; i += grid_size)
     {
         // iterate over all elements that need to be compputed in that row
         for (int j = d_rowPtr[i]; j < d_rowPtr[i + 1]; j++)
         {
             float my_sum = 0.0;
             // every thread does some multiplications jumping by the blockDimension and adds that to its local sum
-            for (int l = thread_id; l < k; l += blockDim.x)
+            for (int l = thread_id; l < k; l += block_size)
             {
                 my_sum += d_A[i * k + l] * d_B[d_colIdx[j] * k + l];
             }
@@ -54,7 +56,7 @@ __global__ void blocked_SDDMM_kernel(
             float warp_sum = warp_wise_reduction(my_sum);
 
             // Each first thread in a warp now writes it's warp reduction result into a buffer
-            if (thread_id % WARP_SIZE)
+            if (thread_id % WARP_SIZE == 0)
             {
                 warpSums_buffer[warp_idx] = warp_sum;
             }
@@ -69,8 +71,7 @@ __global__ void blocked_SDDMM_kernel(
             // after we got the final sum, we now do the multiplication with the sample matrix and write the result
             if (thread_id == 0)
             {
-                float result = block_sum * d_C[j];
-                d_result[j] = result;
+                d_result[j] = block_sum * d_C[j];
             }
         }
     }

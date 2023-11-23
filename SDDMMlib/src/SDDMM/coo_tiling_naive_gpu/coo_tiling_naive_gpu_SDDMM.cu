@@ -152,6 +152,59 @@ __global__ void naive_coo_tiled_no_shared_mem(
     }
 }
 
+__global__ void computeRowPointerKernel(const int* __restrict__ const rowIndex, int* const rowPointer, const int numRows, const int cooRowIndex_size)
+{
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // Count the columns for each row
+    if (tid < cooRowIndex_size)
+    {
+        atomicAdd(&rowPointer[rowIndex[tid]], 1);
+    }
+
+    // Make sure all threads in the block finish their work
+    __syncthreads();
+
+    // Calculate the sum over all previous indices
+    // We use an inverse hillis steele scan to calculate the prefix sum
+    // https://www.mimuw.edu.pl/~ps209291/kgkp/slides/scan.pdf
+
+    // Calculate the sum of the first half of the array
+    for (int stride = 1; stride < numRows + 1; stride *= 2)
+    {
+        int index = (2 * stride * tid) - 1;
+        if (index >= 0 && index < (numRows + 1))
+        {
+            rowPointer[index] += rowPointer[index - stride];
+        }
+        __syncthreads();
+    }
+
+    // Calculate the sum of the second half of the array
+    for (int stride = (numRows + 1) / 2; stride > 0; stride /= 2)
+    {
+        int index = (2 * stride * tid) - 1;
+        if (index + stride < (numRows + 1))
+        {
+            rowPointer[index + stride] += rowPointer[index];
+        }
+        __syncthreads();
+    }
+
+    // Make sure all threads in the block finish their work
+    __syncthreads();
+
+    // Shift the array to the right by one
+    for (int i = numRows; i > 0; i--)
+    {
+        rowPointer[i] = rowPointer[i - 1];
+    }
+    rowPointer[0] = 0;
+
+    // Make sure all threads in the block finish their work
+    __syncthreads();
+}
+
 // Matrix sizes:
 // A: m x k
 // B: k x n
@@ -160,18 +213,43 @@ void compute_coo_tiling_naive_gpu(
     const int m,
     const int n,
     const int k,
-    const int numElementsCrowPtr,
     const int numElementsC,
     const float* __restrict__ const matrixA_GPU_values,
     const float* __restrict__ const matrixB_transposed_GPU_values,
     const float* __restrict__ const matrixC_GPU_values,
-    const int* __restrict__ const matrixC_GPU_row_ptr,  // CSR equivalent We save the index of the first column for each row
     const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values)
 {
-    // std::cout << "Starting naive_coo_tiled_no_shared_mem" << std::endl;
-    dim3 threadsPerBlock(1024);
+    // **** Compute row pointer ****
+
+    // Allocate memory for row pointer
+    int numElementsCrowPtr = m + 1;
+    printf("numElementsCrowPtr: %d\n", numElementsCrowPtr);
+    int* matrixC_GPU_row_ptr;
+    // We need one more item to make the telescoping sums work
+    CUDA_CHECK(cudaMalloc((void**)&matrixC_GPU_row_ptr, (numElementsCrowPtr + 1) * sizeof(int)));
+    CUDA_CHECK(cudaMemset(matrixC_GPU_row_ptr, 0, (numElementsCrowPtr + 1) * sizeof(int)));
+
+    // Launch CUDA kernel
+    int threadsPerBlock = 256;
+    int gridSize = (numElementsC + threadsPerBlock - 1) / threadsPerBlock;
+    computeRowPointerKernel<<<gridSize, threadsPerBlock>>>(matrixC_GPU_row_indices, matrixC_GPU_row_ptr, m, numElementsC);
+
+    // DEBUG:
+    // Copy the row pointer to the host
+    int* matrixC_CPU_row_ptr = new int[numElementsCrowPtr];
+    CUDA_CHECK(cudaMemcpy(matrixC_CPU_row_ptr, matrixC_GPU_row_ptr, numElementsCrowPtr * sizeof(int), cudaMemcpyDeviceToHost));
+    std::cout << "row ptr: ";
+    for (int i = 0; i < numElementsCrowPtr; i++)
+    {
+        std::cout << matrixC_CPU_row_ptr[i] << " ";
+    }
+    std::cout << std::endl;
+
+    // **** Compute SDDMM  ****
+
+    threadsPerBlock = 1024;
 
     const int tile_size = std::min(MAX_ROW_TILE_SIZE, k);
     const int last_tile_size = k % MAX_ROW_TILE_SIZE;
@@ -210,4 +288,7 @@ void compute_coo_tiling_naive_gpu(
     // Aggregate the return value of the kernel
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
+
+    // Free memory
+    CUDA_CHECK(cudaFree(matrixC_GPU_row_ptr));
 }

@@ -9,26 +9,6 @@
 #include "coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM.cuh"
 #include "utils.h"
 
-std::vector<int> compute_csr_row_ptr_from_coo(
-    int numElementsC,
-    const int* matrixC_CPU_row_indices)
-{
-    // Compute the row pointer array for the sampling matrix
-    std::vector<int> matrixC_CPU_row_ptr;
-    int row = matrixC_CPU_row_indices[0];
-    matrixC_CPU_row_ptr.push_back(row);
-    for (int i = 1; i < numElementsC; i++)
-    {
-        if (row != matrixC_CPU_row_indices[i])
-        {
-            matrixC_CPU_row_ptr.push_back(i);
-            row = matrixC_CPU_row_indices[i];
-        }
-    }
-    matrixC_CPU_row_ptr.push_back(numElementsC);
-    return matrixC_CPU_row_ptr;
-}
-
 void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
@@ -51,16 +31,10 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     DenseMatrix<float> matrixBTranspose_HOST = DenseMatrix<float>(matrixB_HOST);
     matrixBTranspose_HOST.transpose();
 
-    const std::vector<int> matrixC_CPU_row_ptr = compute_csr_row_ptr_from_coo(
-        numElementsC,
-        (matrixC_HOST.getRowArray()).data());
-    const int numElementsCrowPtr = matrixC_CPU_row_ptr.size();
-
     // allocate memory for the matrices on the GPU
     float* matrixA_GPU_values;
     float* matrixB_transpose_GPU_values;
     float* matrixC_GPU_values;
-    int* matrixC_GPU_row_ptr;
     int* matrixC_GPU_row_indices;
     int* matrixC_GPU_col_indices;
     float* matrixResult_GPU_values;
@@ -70,7 +44,6 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     CUDA_CHECK(cudaMalloc(&matrixA_GPU_values, m * k * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixB_transpose_GPU_values, n * k * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_values, numElementsC * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_ptr, numElementsCrowPtr * sizeof(int)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_indices, numElementsC * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_col_indices, numElementsC * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixResult_GPU_values, numElementsC * sizeof(float)));
@@ -81,7 +54,6 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     CUDA_CHECK(cudaMemcpy(matrixA_GPU_values, matrixA_HOST.getValues(), m * k * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixB_transpose_GPU_values, matrixBTranspose_HOST.getValues(), n * k * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_values, (matrixC_HOST.getValues()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_ptr, matrixC_CPU_row_ptr.data(), numElementsCrowPtr * sizeof(int), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
@@ -91,12 +63,10 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
         m,
         n,
         k,
-        numElementsCrowPtr,
         numElementsC,
         matrixA_GPU_values,
         matrixB_transpose_GPU_values,
         matrixC_GPU_values,
-        matrixC_GPU_row_ptr,
         matrixC_GPU_row_indices,
         matrixC_GPU_col_indices,
         matrixResult_GPU_values);

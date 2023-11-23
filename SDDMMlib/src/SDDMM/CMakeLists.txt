@@ -44,6 +44,9 @@ else()
 
                 cache_coo_gpu/cache_coo_SDDMM_GPU.cpp
                 cache_coo_gpu/cache_coo_SDDMM.cu
+
+                tiled_tiles/tiled_tiles.cpp
+                tiled_tiles/tiled_tiles.cu
                 )      
 
     # Add our own code

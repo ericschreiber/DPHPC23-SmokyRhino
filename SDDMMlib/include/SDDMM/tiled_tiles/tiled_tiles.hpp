@@ -1,5 +1,5 @@
-#ifndef CACHE_COO_SDDMM_GPU_HPP
-#define CACHE_COO_SDDMM_GPU_HPP
+#ifndef TILED_TILES_HPP
+#define TILED_TILES_HPP
 
 #include <cassert>
 #include <type_traits>
@@ -10,11 +10,11 @@
 #include "SparseMatrix.hpp"
 
 template <typename T>
-class cache_coo_SDDMM_GPU : public SDDMMlib<T>
+class tiled_tiles : public SDDMMlib<T>
 {
     public:
-        cache_coo_SDDMM_GPU() { assert(false && "Error: cache_coo_SDDMM_GPU<T>::cache_coo_SDDMM_GPU() is only implemented for float."); }
-        cache_coo_SDDMM_GPU(ExecutionTimer* timer) { assert(false && "Error: cache_coo_SDDMM_GPU<T>::cache_coo_SDDMM_GPU() is only implemented for float."); }
+        tiled_tiles() { assert(false && "Error: tiled_tiles<T>::tiled_tiles() is only implemented for float."); }
+        tiled_tiles(ExecutionTimer* timer) { assert(false && "Error: tiled_tiles<T>::tiled_tiles() is only implemented for float."); }
         virtual void SDDMM(
             const DenseMatrix<T>& matrixA_HOST,
             const DenseMatrix<T>& matrixB_HOST,
@@ -25,11 +25,11 @@ class cache_coo_SDDMM_GPU : public SDDMMlib<T>
 };
 
 template <>
-class cache_coo_SDDMM_GPU<float> : public SDDMMlib<float>
+class tiled_tiles<float> : public SDDMMlib<float>
 {
     public:
-        cache_coo_SDDMM_GPU() {}
-        cache_coo_SDDMM_GPU(ExecutionTimer* timer) { this->_timer = timer; }
+        tiled_tiles() {}
+        tiled_tiles(ExecutionTimer* timer) { this->_timer = timer; }
         virtual void SDDMM(
             const DenseMatrix<float>& matrixA_HOST,
             const DenseMatrix<float>& matrixB_HOST,
@@ -47,4 +47,4 @@ class cache_coo_SDDMM_GPU<float> : public SDDMMlib<float>
         virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 };
 
-#endif  // CACHE_COO_SDDMM_GPU_HPP
+#endif

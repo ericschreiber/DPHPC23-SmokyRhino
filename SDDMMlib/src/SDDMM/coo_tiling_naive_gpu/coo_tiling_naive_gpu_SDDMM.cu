@@ -19,8 +19,9 @@
 //
 // ******* ASSUMPTIONS ********
 //
-// For ease of use we assume that the coo matrix is stored in row major format. This means that the row indices are sorted
+// 1. For ease of use we assume that the coo matrix is stored in row major format. This means that the row indices are sorted
 // and all columns of a row are stored next to each other. This assumption is used to load the row into shared mem.
+// 2. We assume that matrixC_GPU_row_ptr is already in memory and is initialized with 0. (Do we need to initialize it with 0?)
 //
 // ********* Problems **********
 //
@@ -214,38 +215,32 @@ void compute_coo_tiling_naive_gpu(
     const int n,
     const int k,
     const int numElementsC,
+    const int numElementsCrowPtr,
     const float* __restrict__ const matrixA_GPU_values,
     const float* __restrict__ const matrixB_transposed_GPU_values,
     const float* __restrict__ const matrixC_GPU_values,
     const int* __restrict__ const matrixC_GPU_row_indices,
+    int* const matrixC_GPU_row_ptr,
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values)
 {
     // **** Compute row pointer ****
-
-    // Allocate memory for row pointer
-    int numElementsCrowPtr = m + 1;
-    printf("numElementsCrowPtr: %d\n", numElementsCrowPtr);
-    int* matrixC_GPU_row_ptr;
-    // We need one more item to make the telescoping sums work
-    CUDA_CHECK(cudaMalloc((void**)&matrixC_GPU_row_ptr, (numElementsCrowPtr + 1) * sizeof(int)));
-    CUDA_CHECK(cudaMemset(matrixC_GPU_row_ptr, 0, (numElementsCrowPtr + 1) * sizeof(int)));
 
     // Launch CUDA kernel
     int threadsPerBlock = 256;
     int gridSize = (numElementsC + threadsPerBlock - 1) / threadsPerBlock;
     computeRowPointerKernel<<<gridSize, threadsPerBlock>>>(matrixC_GPU_row_indices, matrixC_GPU_row_ptr, m, numElementsC);
 
-    // DEBUG:
-    // Copy the row pointer to the host
-    int* matrixC_CPU_row_ptr = new int[numElementsCrowPtr];
-    CUDA_CHECK(cudaMemcpy(matrixC_CPU_row_ptr, matrixC_GPU_row_ptr, numElementsCrowPtr * sizeof(int), cudaMemcpyDeviceToHost));
-    std::cout << "row ptr: ";
-    for (int i = 0; i < numElementsCrowPtr; i++)
-    {
-        std::cout << matrixC_CPU_row_ptr[i] << " ";
-    }
-    std::cout << std::endl;
+    // // DEBUG:
+    // // Copy the row pointer to the host
+    // int* matrixC_CPU_row_ptr = new int[numElementsCrowPtr];
+    // CUDA_CHECK(cudaMemcpy(matrixC_CPU_row_ptr, matrixC_GPU_row_ptr, numElementsCrowPtr * sizeof(int), cudaMemcpyDeviceToHost));
+    // std::cout << "row ptr: ";
+    // for (int i = 0; i < numElementsCrowPtr; i++)
+    // {
+    //     std::cout << matrixC_CPU_row_ptr[i] << " ";
+    // }
+    // std::cout << std::endl;
 
     // **** Compute SDDMM  ****
 
@@ -288,7 +283,4 @@ void compute_coo_tiling_naive_gpu(
     // Aggregate the return value of the kernel
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
-
-    // Free memory
-    CUDA_CHECK(cudaFree(matrixC_GPU_row_ptr));
 }

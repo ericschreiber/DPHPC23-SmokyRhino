@@ -41,6 +41,12 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     int* matrixResult_GPU_row_indices;
     int* matrixResult_GPU_col_indices;
 
+    // allocate memory for the row ptr of matrixC
+    int numElementsCrowPtr = m + 1;
+    int* matrixC_GPU_row_ptr;
+    CUDA_CHECK(cudaMalloc((void**)&matrixC_GPU_row_ptr, (numElementsCrowPtr + 1) * sizeof(int)));
+    CUDA_CHECK(cudaMemset(matrixC_GPU_row_ptr, 0, (numElementsCrowPtr + 1) * sizeof(int)));
+
     CUDA_CHECK(cudaMalloc(&matrixA_GPU_values, m * k * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixB_transpose_GPU_values, n * k * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_values, numElementsC * sizeof(float)));
@@ -64,10 +70,12 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
         n,
         k,
         numElementsC,
+        numElementsCrowPtr,
         matrixA_GPU_values,
         matrixB_transpose_GPU_values,
         matrixC_GPU_values,
         matrixC_GPU_row_indices,
+        matrixC_GPU_row_ptr,
         matrixC_GPU_col_indices,
         matrixResult_GPU_values);
     this->stop_run();
@@ -92,6 +100,8 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     CUDA_CHECK(cudaFree(matrixResult_GPU_values));
     CUDA_CHECK(cudaFree(matrixResult_GPU_row_indices));
     CUDA_CHECK(cudaFree(matrixResult_GPU_col_indices));
+    // free memory for the row ptr of matrixC
+    CUDA_CHECK(cudaFree(matrixC_GPU_row_ptr));
 
     matrixA_GPU_values = nullptr;
     matrixB_transpose_GPU_values = nullptr;
@@ -101,6 +111,7 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     matrixResult_GPU_values = nullptr;
     matrixResult_GPU_row_indices = nullptr;
     matrixResult_GPU_col_indices = nullptr;
+    matrixC_GPU_row_ptr = nullptr;
 
     return;
 }

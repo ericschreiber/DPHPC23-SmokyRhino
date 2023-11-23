@@ -93,7 +93,7 @@ __device__ float tiled_dot_product_thread_subset(
     }
 
     // reduce the result of the warp-wide reduction to a single value
-    extern __shared__ float reduction_space[32 * sizeof(float)];
+    extern __shared__ float reduction_space[32 * sizeof(float)];  // in cuda we allocate shared mem in bytes
     if (threadIdx.x % warpSize == 0)
     {
         reduction_space[threadIdx.x / warpSize] = sum_of_chunks;
@@ -172,7 +172,7 @@ __global__ void tiled_tiles(
         ////////////////    THREAD 0: COPY TILE INTO SHARED MEM    ////////////////
         // TODO: this can very likely also be parallelized over the threads in the block
         // decalare a ptr to a shared mem region (this needs to be done so that threads other than thread 0 can access the tile later on)
-        extern __shared__ float tile[COMPUTATION_SHARED_MEM];
+        extern __shared__ float tile[COMPUTATION_SHARED_MEM_BYTES];
         if (threadIdx.x == 0)
         {
             // copy the tile into shared mem (I think this copying happens float by float (bc of pointer arithmetic) but maybe also byte by byte (?))

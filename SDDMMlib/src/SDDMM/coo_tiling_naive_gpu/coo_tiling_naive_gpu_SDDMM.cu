@@ -112,27 +112,43 @@ __global__ void naive_coo_tiled_no_shared_mem(
     int row_index = blockIdx.x % num_rows;
     int tile_index = blockIdx.x / num_rows;
 
-    int own_tile_size = tile_size;
-    if (tile_index >= last_tile_index)
+    if (tile_index < last_tile_index)
     {
-        own_tile_size = last_tile_size;
+        int coo_start_index = matrixC_GPU_row_ptr[row_index];
+        int coo_end_index = matrixC_GPU_row_ptr[row_index + 1];
+        int row = matrixC_GPU_row_indices[coo_start_index];
+
+        // Loop over all threads to check that we compute all columns.
+        // Thread 0 calculates column 0, n, 2n, 3n, ...
+        for (int col_runner = coo_start_index + threadIdx.x; col_runner < coo_end_index; col_runner += blockDim.x)
+        {
+            int col = matrixC_GPU_col_indices[col_runner];
+
+            float multiplier = matrixC_GPU_values[col_runner];
+
+            float result = naive_coo_one_val_for_tiled(tile_size, multiplier, matrixA_GPU_values + (row * k) + (tile_index * tile_size), matrixB_transposed_GPU_values + (col * k) + (tile_index * tile_size));
+            // As we may have multiple threads from different blocks writing to the same location we need to use atomic add.
+            atomicAdd(matrixResult_GPU_values + col_runner, result);
+        }
     }
-
-    int coo_start_index = matrixC_GPU_row_ptr[row_index];
-    int coo_end_index = matrixC_GPU_row_ptr[row_index + 1];
-    int row = matrixC_GPU_row_indices[coo_start_index];
-
-    // Loop over all threads to check that we compute all columns.
-    // Thread 0 calculates column 0, n, 2n, 3n, ...
-    for (int col_runner = coo_start_index + threadIdx.x; col_runner < coo_end_index; col_runner += blockDim.x)
+    else
     {
-        int col = matrixC_GPU_col_indices[col_runner];
+        int coo_start_index = matrixC_GPU_row_ptr[row_index];
+        int coo_end_index = matrixC_GPU_row_ptr[row_index + 1];
+        int row = matrixC_GPU_row_indices[coo_start_index];
 
-        float multiplier = matrixC_GPU_values[col_runner];
+        // Loop over all threads to check that we compute all columns.
+        // Thread 0 calculates column 0, n, 2n, 3n, ...
+        for (int col_runner = coo_start_index + threadIdx.x; col_runner < coo_end_index; col_runner += blockDim.x)
+        {
+            int col = matrixC_GPU_col_indices[col_runner];
 
-        float result = naive_coo_one_val_for_tiled(own_tile_size, multiplier, matrixA_GPU_values + (row * k) + (tile_index * tile_size), matrixB_transposed_GPU_values + (col * k) + (tile_index * tile_size));
-        // As we may have multiple threads from different blocks writing to the same location we need to use atomic add.
-        atomicAdd(matrixResult_GPU_values + col_runner, result);
+            float multiplier = matrixC_GPU_values[col_runner];
+
+            float result = naive_coo_one_val_for_tiled(last_tile_size, multiplier, matrixA_GPU_values + (row * k) + (tile_index * tile_size), matrixB_transposed_GPU_values + (col * k) + (tile_index * tile_size));
+            // As we may have multiple threads from different blocks writing to the same location we need to use atomic add.
+            atomicAdd(matrixResult_GPU_values + col_runner, result);
+        }
     }
 }
 

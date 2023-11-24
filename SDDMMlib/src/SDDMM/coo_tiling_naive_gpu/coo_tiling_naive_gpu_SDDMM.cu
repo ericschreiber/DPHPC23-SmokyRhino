@@ -21,7 +21,7 @@
 //
 // 1. For ease of use we assume that the coo matrix is stored in row major format. This means that the row indices are sorted
 // and all columns of a row are stored next to each other. This assumption is used to load the row into shared mem.
-// 2. We assume that matrixC_GPU_row_ptr is already in memory and is initialized with 0. (Do we need to initialize it with 0?)
+// 2. We assume that matrixC_GPU_row_ptr is already in memory and computed. For the future we will have a CSR as input.
 //
 // ********* Problems **********
 //
@@ -153,58 +153,65 @@ __global__ void naive_coo_tiled_no_shared_mem(
     }
 }
 
-__global__ void computeRowPointerKernel(const int* __restrict__ const rowIndex, int* const rowPointer, const int numRows, const int cooRowIndex_size)
-{
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+// ******* DOES NOT WORK FOR MULTIPLE BLOCKS ********
+//
+// For multiple blocks reuse the idea and put the result of each block into a row.
+// Then spawn new blocks to add the rows together.
+// Then spawn again new blocks to add the addition of all previous rows to all rows in the range of the block.
+//
+// **************************************************
+// __global__ void computeRowPointerKernel(const int* __restrict__ const rowIndex, int* const rowPointer, const int numRows, const int cooRowIndex_size)
+// {
+//     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    // Count the columns for each row
-    if (tid < cooRowIndex_size)
-    {
-        atomicAdd(&rowPointer[rowIndex[tid]], 1);
-    }
+//     // Count the columns for each row
+//     if (tid < cooRowIndex_size)
+//     {
+//         atomicAdd(&rowPointer[rowIndex[tid]], 1);
+//     }
 
-    // Make sure all threads in the block finish their work
-    __syncthreads();
+//     // Make sure all threads in the block finish their work
+//     __syncthreads();
 
-    // Calculate the sum over all previous indices
-    // We use an inverse hillis steele scan to calculate the prefix sum
-    // https://www.mimuw.edu.pl/~ps209291/kgkp/slides/scan.pdf
+//     // Calculate the sum over all previous indices
+//     // We use an inverse hillis steele scan to calculate the prefix sum
+//     // https://www.mimuw.edu.pl/~ps209291/kgkp/slides/scan.pdf
 
-    // Calculate the sum of the first half of the array
-    for (int stride = 1; stride < numRows + 1; stride *= 2)
-    {
-        int index = (2 * stride * tid) - 1;
-        if (index >= 0 && index < (numRows + 1))
-        {
-            rowPointer[index] += rowPointer[index - stride];
-        }
-        __syncthreads();
-    }
+//     // Calculate the sum of the first half of the array
+//     for (int stride = 1; stride < numRows + 1; stride *= 2)
+//     {
+//         int index = (2 * stride * tid) - 1;
+//         if (index >= 0 && index < (numRows + 1))
+//         {
+//             rowPointer[index] += rowPointer[index - stride];
+//         }
+//         __syncthreads();
+//     }
 
-    // Calculate the sum of the second half of the array
-    for (int stride = (numRows + 1) / 2; stride > 0; stride /= 2)
-    {
-        int index = (2 * stride * tid) - 1;
-        if (index + stride < (numRows + 1))
-        {
-            rowPointer[index + stride] += rowPointer[index];
-        }
-        __syncthreads();
-    }
+//     // Calculate the sum of the second half of the array
+//     for (int stride = (numRows + 1) / 2; stride > 0; stride /= 2)
+//     {
+//         int index = (2 * stride * tid) - 1;
+//         if (index + stride < (numRows + 1))
+//         {
+//             rowPointer[index + stride] += rowPointer[index];
+//         }
+//         __syncthreads();
+//     }
 
-    // Make sure all threads in the block finish their work
-    __syncthreads();
+//     // Make sure all threads in the block finish their work
+//     __syncthreads();
 
-    // Shift the array to the right by one
-    for (int i = numRows; i > 0; i--)
-    {
-        rowPointer[i] = rowPointer[i - 1];
-    }
-    rowPointer[0] = 0;
+//     // Shift the array to the right by one
+//     for (int i = numRows; i > 0; i--)
+//     {
+//         rowPointer[i] = rowPointer[i - 1];
+//     }
+//     rowPointer[0] = 0;
 
-    // Make sure all threads in the block finish their work
-    __syncthreads();
-}
+//     // Make sure all threads in the block finish their work
+//     __syncthreads();
+// }
 
 // Matrix sizes:
 // A: m x k
@@ -220,31 +227,20 @@ void compute_coo_tiling_naive_gpu(
     const float* __restrict__ const matrixB_transposed_GPU_values,
     const float* __restrict__ const matrixC_GPU_values,
     const int* __restrict__ const matrixC_GPU_row_indices,
-    int* const matrixC_GPU_row_ptr,
+    const int* __restrict__ const matrixC_GPU_row_ptr,
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values)
 {
     // **** Compute row pointer ****
-
-    // Launch CUDA kernel
-    int threadsPerBlock = 256;
-    int gridSize = (numElementsC + threadsPerBlock - 1) / threadsPerBlock;
-    computeRowPointerKernel<<<gridSize, threadsPerBlock>>>(matrixC_GPU_row_indices, matrixC_GPU_row_ptr, m, numElementsC);
-
-    // // DEBUG:
-    // // Copy the row pointer to the host
-    // int* matrixC_CPU_row_ptr = new int[numElementsCrowPtr];
-    // CUDA_CHECK(cudaMemcpy(matrixC_CPU_row_ptr, matrixC_GPU_row_ptr, numElementsCrowPtr * sizeof(int), cudaMemcpyDeviceToHost));
-    // std::cout << "row ptr: ";
-    // for (int i = 0; i < numElementsCrowPtr; i++)
-    // {
-    //     std::cout << matrixC_CPU_row_ptr[i] << " ";
-    // }
-    // std::cout << std::endl;
+    // **** DOES NOT WORK FOR MULTIPLE BLOCKS **** SEE ABOVE ****
+    // // Launch CUDA kernel
+    // int threadsPerBlock = 256;
+    // int gridSize = (numElementsC + threadsPerBlock - 1) / threadsPerBlock;
+    // computeRowPointerKernel<<<gridSize, threadsPerBlock>>>(matrixC_GPU_row_indices, matrixC_GPU_row_ptr, m, numElementsC);
 
     // **** Compute SDDMM  ****
 
-    threadsPerBlock = 1024;
+    int threadsPerBlock = 1024;
 
     const int tile_size = std::min(MAX_ROW_TILE_SIZE, k);
     const int last_tile_size = k % MAX_ROW_TILE_SIZE;

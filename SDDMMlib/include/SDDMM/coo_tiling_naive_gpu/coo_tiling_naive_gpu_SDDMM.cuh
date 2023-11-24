@@ -12,7 +12,7 @@ void compute_coo_tiling_naive_gpu(
     const float *__restrict__ const matrixB_transposed_GPU_values,
     const float *__restrict__ const matrixC_GPU_values,
     const int *__restrict__ const matrixC_GPU_row_indices,
-    int *const matrixC_GPU_row_ptr,
+    const int *__restrict__ const matrixC_GPU_row_ptr,
     const int *__restrict__ const matrixC_GPU_col_indices,
     float *__restrict__ const matrixResult_GPU_values);
 

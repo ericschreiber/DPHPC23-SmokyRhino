@@ -44,6 +44,9 @@ else()
 
                 coo_SM_SM_SDDMM_gpu/coo_SM_SM_SDDMM_GPU.cpp
                 coo_SM_SM_SDDMM_gpu/coo_SM_SM_SDDMM.cu
+                
+                cache_coo_gpu/cache_coo_SDDMM_GPU.cpp
+                cache_coo_gpu/cache_coo_SDDMM.cu
                 )      
 
     # Add our own code

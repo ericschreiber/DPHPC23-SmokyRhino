@@ -3,7 +3,7 @@
 #include <iostream>
 #include <random>
 
-#include "naive_coo_gpu/naive_coo_SDMM.cuh"
+#include "coo_SM_SM_SDDMM_gpu/coo_SM_SM_SDDMM.cuh"
 #include "utils.h"
 
 #define THREADS_PER_BLOCK 2
@@ -134,9 +134,11 @@ void compute(
 {
     // MY CODE
     // Tiling with T_i = T_j = T_ij based on size of shared memory
-    int T_ij = (float)(SHARED_MEM_SIZE_BYTES) / (2 * k);
+    // int T_ij = (float)(SHARED_MEM_SIZE_BYTES) / (2 * k); for dev testing:
+    int T_ij = 5;
     // Each block calculates one row panel (and each tile in sequence)
-    int blocks = ceil(m / T_ij);
+    // int blocks = ceil(m / T_ij); for dev testing:
+    int blocks = 5;
     // The last block may get fewer rows if m isnt dividable by T_ij
     int last_T_i = m % T_ij;
     // Each block computes the tiles in a row-panel -> row_len/tile_width

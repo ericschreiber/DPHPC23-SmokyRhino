@@ -1,14 +1,14 @@
 // naive_coo_SDDMM_GPU.cpp
-#include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
+#include "coo_SM_SM_SDDMM_gpu/coo_SM_SM_SDDMM_GPU.hpp"
 
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>
 
-#include "naive_coo_gpu/naive_coo_SDMM.cuh"
+#include "coo_SM_SM_SDDMM_gpu/coo_SM_SM_SDDMM.cuh"
 #include "utils.h"
 
-void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
+void coo_SM_SM_SDDMM_GPU<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const COOMatrix<float>& matrixC_HOST,
@@ -58,7 +58,7 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
 
     this->start_run();
     // call compute in naive_dense_dense.cu
-    compute_naive_coo(
+    compute(
         m,
         n,
         k,
@@ -104,7 +104,7 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
     return;
 }
 
-void naive_coo_SDDMM_GPU<float>::SDDMM(
+void coo_SM_SM_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
@@ -131,18 +131,18 @@ void naive_coo_SDDMM_GPU<float>::SDDMM(
     return;
 }
 
-void naive_coo_SDDMM_GPU<float>::start_run() const
+void coo_SM_SM_SDDMM_GPU<float>::start_run() const
 {
-    assert(this->_timer != nullptr && "Error: naive_coo_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
+    assert(this->_timer != nullptr && "Error: coo_SM_SM_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
     this->_timer->start_cpu_run();
 }
 
-void naive_coo_SDDMM_GPU<float>::stop_run() const
+void coo_SM_SM_SDDMM_GPU<float>::stop_run() const
 {
     this->_timer->stop_cpu_run();
 }
 
 // Explicit template instantiation
 // template class naive_coo_SDDMM_GPU<float>;
-template class naive_coo_SDDMM_GPU<double>;
-template class naive_coo_SDDMM_GPU<int>;
+template class coo_SM_SM_SDDMM_GPU<double>;
+template class coo_SM_SM_SDDMM_GPU<int>;

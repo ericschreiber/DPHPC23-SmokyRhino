@@ -1,6 +1,6 @@
-// naive_coo_SDDMM_GPU.hpp
-#ifndef NAIVE_COO_SDDMM_GPU_HPP
-#define NAIVE_COO_SDDMM_GPU_HPP
+// coo_SM_SM_SDDMM_GPU.hpp
+#ifndef COO_SM_SM_SDDMM_GPU_HPP
+#define COO_SM_SM_SDDMM_GPU_HPP
 
 #include <cassert>
 #include <type_traits>
@@ -11,11 +11,11 @@
 #include "SparseMatrix.hpp"
 
 template <typename T>
-class naive_coo_SDDMM_GPU : public SDDMMlib<T>
+class coo_SM_SM_SDDMM_GPU : public SDDMMlib<T>
 {
     public:
-        naive_coo_SDDMM_GPU() { assert(false && "Error: naive_coo_SDDMM_GPU<T>::naive_coo_SDDMM_GPU() is only implemented for float."); }
-        naive_coo_SDDMM_GPU(ExecutionTimer* timer) { assert(false && "Error: naive_coo_SDDMM_GPU<T>::naive_coo_SDDMM_GPU() is only implemented for float."); }
+        coo_SM_SM_SDDMM_GPU() { assert(false && "Error: coo_SM_SM_SDDMM_GPU<T>::coo_SM_SM_SDDMM_GPU() is only implemented for float."); }
+        coo_SM_SM_SDDMM_GPU(ExecutionTimer* timer) { assert(false && "Error: coo_SM_SM_SDDMM_GPU<T>::coo_SM_SM_SDDMM_GPUU() is only implemented for float."); }
         virtual void SDDMM(
             const DenseMatrix<T>& matrixA_HOST,
             const DenseMatrix<T>& matrixB_HOST,
@@ -26,11 +26,11 @@ class naive_coo_SDDMM_GPU : public SDDMMlib<T>
 };
 
 template <>
-class naive_coo_SDDMM_GPU<float> : public SDDMMlib<float>
+class coo_SM_SM_SDDMM_GPU<float> : public SDDMMlib<float>
 {
     public:
-        naive_coo_SDDMM_GPU() {}
-        naive_coo_SDDMM_GPU(ExecutionTimer* timer) { this->_timer = timer; }
+        coo_SM_SM_SDDMM_GPU() {}
+        coo_SM_SM_SDDMM_GPU(ExecutionTimer* timer) { this->_timer = timer; }
         virtual void SDDMM(
             const DenseMatrix<float>& matrixA_HOST,
             const DenseMatrix<float>& matrixB_HOST,
@@ -48,4 +48,4 @@ class naive_coo_SDDMM_GPU<float> : public SDDMMlib<float>
         virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 };
 
-#endif  // NAIVE_COO_SDDMM_GPU_HPP
+#endif  // COO_SM_SM_SDDMM_GPU_HPP

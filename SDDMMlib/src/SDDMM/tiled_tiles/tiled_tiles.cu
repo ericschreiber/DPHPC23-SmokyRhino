@@ -8,6 +8,10 @@
 // - the columns of B are just kept in GPU RAM and loaded from there when they are needed for the dot product i.e. we are not trying to keep them in some fast
 //   memory. In case a thread has to work on more than one elem he will be assinged "consecutive" elements that correspond to a nonzero in C.
 // - also, currently I am hardcoding this implementation to floats, so if we want to make it work with other datatypes we will need to change it in a few places.
+//
+// TILED TILES UPDATE: dont assing one col of B to a thread in a block but let all threads
+// work on all blocks and then split the work between threads on the tile level. The working
+// sets of the threads are not consecutive anymore but in regular intervals.
 
 #include <cuda_profiler_api.h>
 #include <cuda_runtime.h>
@@ -15,13 +19,14 @@
 #include <iostream>
 #include <random>
 
-#include "cache_coo_gpu/cache_coo_SDDMM.cuh"
+#include "tiled_tiles/tiled_tiles.cuh"
 #include "utils.h"
 
 #define THREADS_PER_BLOCK 2
-#define SHARED_MEM_SIZE_BYTES 8                                // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
-                                                               // can force tiling (e.g. for testing) by setting this to something small.
-#define SHARED_MEM_SIZE SHARED_MEM_SIZE_BYTES / sizeof(float)  // shared mem size in number of floats
+#define GPU_SHARED_MEM_SIZE_BYTES 136                                                  // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
+                                                                                       // can force tiling (e.g. for testing) by setting this to something small.
+#define COMPUTATION_SHARED_MEM_BYTES (GPU_SHARED_MEM_SIZE_BYTES - 32 * sizeof(float))  // reserve 32 floats for last reduction in tiled_dot_product_thread_subset
+#define COMPUTATION_SHARED_MEM (COMPUTATION_SHARED_MEM_BYTES / sizeof(float))          // unit: floats
 
 // std::count can't be used on the GPU
 __device__ int count(const int* arr, int len, const int row_index)
@@ -37,22 +42,9 @@ __device__ int count(const int* arr, int len, const int row_index)
     return count;
 }
 
-// helper function that abstracts away the indexing logic of computing a dot product
-__device__ float dot_product(
-    const float* vector1_beginning,
-    const float* vector2_beginning,
-    const int size)
-{
-    float result = 0;
-    for (int i = 0; i < size; i++)
-    {
-        result += vector1_beginning[i] * vector2_beginning[i];
-    }
-    return result;
-}
-
 // helper function that abstracts away the indexing logic of computing a tiled dot product
-__device__ float tiled_dot_product(
+// in the updated version, a thread does not compute the whole dot product of the tile but only a subset of it
+__device__ float tiled_dot_product_thread_subset(
     const float* tile,
     const int tiling_step,
     const int normal_tile_size,
@@ -61,9 +53,69 @@ __device__ float tiled_dot_product(
     const int B_col_index,  // indexes the col of B that we are computing the dot prod with in this method call
     const int k)            // number of rows of B
 {
-    const float* B_col_beginning = matrixB_transposed_GPU_values + B_col_index * k;        // ptr to start of col of B that we are computing the dot prod with
-    const float* B_col_tile_beginning = B_col_beginning + tiling_step * normal_tile_size;  // don't want entire column but only a tile of it
-    return dot_product(tile, B_col_tile_beginning, curr_tile_size);                        // tile is ptr to start of shared mem (which we have filled in kernel)
+    const float* B_col_tile_beginning =                      // don't want entire column but only a tile of it
+        (matrixB_transposed_GPU_values + B_col_index * k) +  // the thing in parens is ptr to start of col of B that we are computing the dot prod with
+        tiling_step * normal_tile_size;
+    float sum_of_chunks = 0;
+    int numChunksInTile = ceilf((float)curr_tile_size / 4);  // ceil needed in case the current tile is smaller than 4
+    for (int i = threadIdx.x; i < numChunksInTile - 1; i += blockDim.x)
+    {
+        // compute the chunk of the dot product that this thread is responsible for
+        const float* vector1_beginning = tile + i * 4;
+        const float* vector2_beginning = B_col_tile_beginning + i * 4;
+        sum_of_chunks += vector1_beginning[0] * vector2_beginning[0];
+        sum_of_chunks += vector1_beginning[1] * vector2_beginning[1];
+        sum_of_chunks += vector1_beginning[2] * vector2_beginning[2];
+        sum_of_chunks += vector1_beginning[3] * vector2_beginning[3];
+    }
+    // let thread 0 take care of the last chunk (bc it might be smaller than 4)
+    if (threadIdx.x == 0)
+    {
+        for (int i = 0; i < curr_tile_size % 4; i++)
+        {
+            // cant unroll here because we only know last_chunk_size at runtime
+            sum_of_chunks += (tile + (numChunksInTile - 1) * 4)[i] * (B_col_tile_beginning + (numChunksInTile - 1) * 4)[i];
+        }
+    }
+
+    __syncthreads();  // all threads wait togehter here before we reduce their results
+
+    // WARP-WIDE REDUCTION
+    // i.e. reduce the sum_of_chunks varible (that each thread has) into one value per warp
+    // this used to be a loop but we unrolled it bc why not (maybe the compiler can do some optimizations w/ it now)
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 16);
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 8);
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 4);
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 2);
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 1);
+
+    // COMMUNICATE RESULTS VIA SHARED MEMORY
+    extern __shared__ float reduction_space[32 * sizeof(float)];  // in cuda we allocate shared mem in bytes
+    // 1: each "first thread" of a warp writes the sum into shared mem
+    if (threadIdx.x % warpSize == 0)
+    {
+        reduction_space[threadIdx.x / warpSize] = sum_of_chunks;
+    }
+    __syncthreads();
+
+    // FINAL REDUCTION
+    if (threadIdx.x < warpSize)  // only use the threads from the first warp for the final reduction
+    {
+        unsigned mask = __activemask();
+        // 2: load the vals that we just wrote into shared mem into variables of the threads of the first warp
+        float val = reduction_space[threadIdx.x];
+        // 3: now warp reduce those vals
+        val += __shfl_down_sync(0xffffffff, val, 16);  // the final reduction comprises a max of 32 values so hard coding 16 here is fine
+        val += __shfl_down_sync(0xffffffff, val, 8);
+        val += __shfl_down_sync(0xffffffff, val, 4);
+        val += __shfl_down_sync(0xffffffff, val, 2);
+        val += __shfl_down_sync(0xffffffff, val, 1);
+        // 4: now the final sum should sit int the first thread of the first warp (= thread 0) so it can return it
+        if (threadIdx.x == 0)
+        {
+            return val;
+        }
+    }
 }
 
 // helper function that abstracts away the indexing logic of grabbing the factor from C/writing result into result matrix (both are sparse matrices)
@@ -79,7 +131,7 @@ __device__ void elem_compute(
     const int k,       // number of rows of B
     const int offset)  // offset into matrixC_GPU_values and matrixResult_GPU_values
 {
-    float dot_prod = tiled_dot_product(
+    float dot_prod = tiled_dot_product_thread_subset(
         tile,
         tiling_step,
         normal_tile_size,
@@ -87,13 +139,17 @@ __device__ void elem_compute(
         matrixB_transposed_GPU_values,
         matrixC_GPU_col_indices[offset],  // col of B for dot product is the same col in which the nonzero of C sits
         k);
-
-    matrixResult_GPU_values[offset] += matrixC_GPU_values[offset] * dot_prod;  // += because we are doing tiling
+    if (threadIdx.x == 0)  // in tiled_dot_product_thread_subset only thread 0 returns something so only it needs to do the addition
+    {
+        // no need for atomic add since only thread 0 is writing back (all the partial sums from the other thread have already been reduced)
+        matrixResult_GPU_values[offset] += dot_prod * matrixC_GPU_values[offset];
+        // TODO: in merged version use dot_product_float4 from coo_opt_vectorization_SDDMM.cu instead of tiled_dot_product_thread_subset (which is not vectorized)
+    }
 }
 
 // this is the kernel function.
 // assumes matrixB_transposed_GPU_values is transposed.
-__global__ void cache_coo(
+__global__ void tiled_tiles(
     const int k,  // number of rows of B
     const int numElementsC,
     const float* __restrict__ const matrixA_GPU_values,
@@ -117,53 +173,31 @@ __global__ void cache_coo(
     {
         ////////////////    COMPUTE SIZE OF CURR TILE    ////////////////
         int curr_tile_size = tiles_sizes[tiling_step];
-        // printf("block: %i, curr_tile_size: %i, tiling_step:%i\n", row_index, curr_tile_size, tiling_step);
 
         ////////////////    THREAD 0: COPY TILE INTO SHARED MEM    ////////////////
         // TODO: this can very likely also be parallelized over the threads in the block
         // decalare a ptr to a shared mem region (this needs to be done so that threads other than thread 0 can access the tile later on)
-        extern __shared__ float tile[];
+        extern __shared__ float tile[COMPUTATION_SHARED_MEM_BYTES];
         if (threadIdx.x == 0)
         {
             // copy the tile into shared mem (I think this copying happens float by float (bc of pointer arithmetic) but maybe also byte by byte (?))
             for (int i = 0; i < curr_tile_size; i++)
             {
                 // second summand (in parentheses) = offset of the tile that we're working on in this iteration of outer loop
-                tile[i] = *(A_vals_row_start + (tiling_step * SHARED_MEM_SIZE) + i);
-                // printf("block: %i, tile[%d] = %f\n", row_index, i, tile[i]);
+                tile[i] = *(A_vals_row_start + (tiling_step * COMPUTATION_SHARED_MEM) + i);
             }
         }
+
         __syncthreads();  // this is a barrier
 
-        ////////////////    PREPARE THE ACTUAL COMPUTATION    ////////////////
-        // compute num_nnzs_per_thread (which will be needed by the elem_compute helper function)
-        int num_nnzs_per_thread[THREADS_PER_BLOCK];
-        for (int i = 0; i < THREADS_PER_BLOCK; i++)
-        {
-            num_nnzs_per_thread[i] = nnzs / THREADS_PER_BLOCK;  // int division i.e. can be 0 (which it should if nnzs < THREADS_PER_BLOCK)
-            // if THREADS_PER_BLOCK does not divide nnzs some thread will have to do one more elem
-            if (i < nnzs % THREADS_PER_BLOCK)
-            {
-                num_nnzs_per_thread[i]++;
-            }
-        }
-
-        // compute the base offset into matrixC_GPU_values and matrixResult_GPU_values (i.e. how many vals are being worked on by threads before this one).
-        // this indicates how many floats of the current blocks work_set the previous threads of this block have already done.
-        int prev_threads_work = 0;
-        for (int i = 0; i < threadIdx.x; i++)
-        {
-            prev_threads_work += num_nnzs_per_thread[i];
-        }
-
         ////////////////    ACTUAL COMPUTATION    ////////////////
-        for (int elem_index = 0; elem_index < num_nnzs_per_thread[threadIdx.x]; elem_index++)  // iterate over all elems that this thread has been assigned
+        for (int elem_index = 0; elem_index < nnzs; elem_index++)  // iterate over all elems OF THE ENTIRE ROW OF C (that this block is working on)
         {
-            int offset = prevBlocksWork + prev_threads_work + elem_index;
+            int offset = prevBlocksWork + elem_index;
             elem_compute(
                 tile,
                 tiling_step,
-                SHARED_MEM_SIZE,
+                COMPUTATION_SHARED_MEM,
                 curr_tile_size,
                 matrixB_transposed_GPU_values,
                 matrixC_GPU_values,
@@ -198,11 +232,11 @@ __global__ void precomputation(
     // populate tiles_sizes
     for (int i = 0; i < tiling_steps; i++)
     {
-        tiles_sizes[i] = SHARED_MEM_SIZE;
-        // last tile might be smaller than SHARED_MEM_SIZE
-        if (i == tiling_steps - 1 && row_mem_size % SHARED_MEM_SIZE != 0)
+        tiles_sizes[i] = COMPUTATION_SHARED_MEM;
+        // last tile might be smaller than the regular tile size
+        if (i == tiling_steps - 1 && row_mem_size % COMPUTATION_SHARED_MEM != 0)
         {
-            tiles_sizes[i] = row_mem_size % SHARED_MEM_SIZE;
+            tiles_sizes[i] = row_mem_size % COMPUTATION_SHARED_MEM;
         }
     }
 }
@@ -223,8 +257,8 @@ void compute(
     int blocks = m;  // one block per row of A
     // allocate array that will be populated by the precomputation kernel
     int* prevBlocksWork;
-    int row_mem_size = k * sizeof(float);                                    // size of a row of A (= non-sparse) in mem
-    int tiling_steps = ceil(row_mem_size / (float)(SHARED_MEM_SIZE_BYTES));  // #pieces that we need to chop row of A into (bc it might not fit into shared mem)
+    int row_mem_size = k * sizeof(float);                                           // size of a row of A (= non-sparse) in mem
+    int tiling_steps = ceil(row_mem_size / (float)(COMPUTATION_SHARED_MEM_BYTES));  // #pieces that we need to chop row of A into (bc it might not fit into shared mem)
     int* tiles_sizes;
     CUDA_CHECK(cudaMalloc((void**)&prevBlocksWork, (blocks + 1) * sizeof(int)));  // + 1 needed for the computation (for last block) of nnzs in the main kernel
     CUDA_CHECK(cudaMalloc((void**)&tiles_sizes, tiling_steps * sizeof(int)));
@@ -235,7 +269,7 @@ void compute(
 
     // call main kernel
     // TODO: currently I am spawning dynamic shared mem, maybe non dynamic shared mem is better?
-    cache_coo<<<blocks, threadsPerBlock, SHARED_MEM_SIZE>>>(
+    tiled_tiles<<<blocks, threadsPerBlock, GPU_SHARED_MEM_SIZE_BYTES>>>(
         k,
         numElementsC,
         matrixA_GPU_values,

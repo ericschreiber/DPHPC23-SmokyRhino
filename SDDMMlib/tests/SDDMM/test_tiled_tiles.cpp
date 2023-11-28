@@ -4,13 +4,13 @@
 
 #include "COOMatrix.hpp"
 #include "DenseMatrix.hpp"
-#include "cache_coo_gpu/cache_coo_SDDMM_GPU.hpp"
+#include "tiled_tiles/tiled_tiles.hpp"
 
 void run_testcase(COOMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, DenseMatrix<float> matrixB, COOMatrix<float> calculatedSolution, COOMatrix<float> expectedSolution)
 {
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
-    cache_coo_SDDMM_GPU<float>* class_to_run = new cache_coo_SDDMM_GPU<float>(&timer);
+    tiled_tiles<float>* class_to_run = new tiled_tiles<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
     sample_Matrix.SDDMM(
@@ -18,7 +18,7 @@ void run_testcase(COOMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, De
         matrixB,
         calculatedSolution,
         std::bind(
-            &cache_coo_SDDMM_GPU<float>::SDDMM,
+            &tiled_tiles<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
@@ -111,8 +111,6 @@ int main()
     t2();
     t3();
     t4();
-    // also ran all the test functions with SHARED_MEM_SIZE_BYTES = 4 which forces tiling to happen (and it worked)
-    // also ran with THREADS_PER_BLOCK = 1 in which case the spawned threads have more than one float to work on (and it worked)
 
     // TODO: more tests!
     return 0;

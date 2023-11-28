@@ -47,6 +47,9 @@ else()
 
                 tiled_tiles/tiled_tiles.cpp
                 tiled_tiles/tiled_tiles.cu
+
+                coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM_GPU.cpp
+                coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM.cu
                 )      
 
     # Add our own code

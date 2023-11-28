@@ -23,7 +23,7 @@
 #include "utils.h"
 
 #define THREADS_PER_BLOCK 2
-#define GPU_SHARED_MEM_SIZE_BYTES 8 + 32 * sizeof(float)                               // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
+#define GPU_SHARED_MEM_SIZE_BYTES 136                                                  // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
                                                                                        // can force tiling (e.g. for testing) by setting this to something small.
 #define COMPUTATION_SHARED_MEM_BYTES (GPU_SHARED_MEM_SIZE_BYTES - 32 * sizeof(float))  // reserve 32 floats for last reduction in tiled_dot_product_thread_subset
 #define COMPUTATION_SHARED_MEM (COMPUTATION_SHARED_MEM_BYTES / sizeof(float))          // unit: floats
@@ -82,13 +82,12 @@ __device__ float tiled_dot_product_thread_subset(
 
     // WARP-WIDE REDUCTION
     // i.e. reduce the sum_of_chunks varible (that each thread has) into one value per warp
-    unsigned mask = 0xffffffff;  // use all threads of the warp
     // this used to be a loop but we unrolled it bc why not (maybe the compiler can do some optimizations w/ it now)
-    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 16);
-    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 8);
-    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 4);
-    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 2);
-    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 1);
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 16);
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 8);
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 4);
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 2);
+    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 1);
 
     // COMMUNICATE RESULTS VIA SHARED MEMORY
     extern __shared__ float reduction_space[32 * sizeof(float)];  // in cuda we allocate shared mem in bytes
@@ -100,17 +99,17 @@ __device__ float tiled_dot_product_thread_subset(
     __syncthreads();
 
     // FINAL REDUCTION
-    if ((threadIdx.x % warpSize) < warpSize)  // only use the threads from the first warp for the final reduction
+    if (threadIdx.x < warpSize)  // only use the threads from the first warp for the final reduction
     {
         unsigned mask = __activemask();
         // 2: load the vals that we just wrote into shared mem into variables of the threads of the first warp
         float val = reduction_space[threadIdx.x];
         // 3: now warp reduce those vals
-        val += __shfl_down_sync(mask, val, 16);  // the final reduction comprises a max of 32 values so hard coding 16 here is fine
-        val += __shfl_down_sync(mask, val, 8);
-        val += __shfl_down_sync(mask, val, 4);
-        val += __shfl_down_sync(mask, val, 2);
-        val += __shfl_down_sync(mask, val, 1);
+        val += __shfl_down_sync(0xffffffff, val, 16);  // the final reduction comprises a max of 32 values so hard coding 16 here is fine
+        val += __shfl_down_sync(0xffffffff, val, 8);
+        val += __shfl_down_sync(0xffffffff, val, 4);
+        val += __shfl_down_sync(0xffffffff, val, 2);
+        val += __shfl_down_sync(0xffffffff, val, 1);
         // 4: now the final sum should sit int the first thread of the first warp (= thread 0) so it can return it
         if (threadIdx.x == 0)
         {

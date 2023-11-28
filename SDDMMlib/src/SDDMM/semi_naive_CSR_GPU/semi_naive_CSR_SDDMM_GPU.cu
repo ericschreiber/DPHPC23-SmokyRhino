@@ -116,7 +116,7 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
         matrixResult_GPU);
 
     // stop the timer
-    this->stop_run();
+    // this->stop_run();
 
     // copy result from the GPU to the CPU
     float* return_values = new float[nnz];

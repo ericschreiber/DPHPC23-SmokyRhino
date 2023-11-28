@@ -19,7 +19,7 @@
 #include "utils.h"
 
 #define THREADS_PER_BLOCK 2
-#define SHARED_MEM_SIZE_BYTES 8                                // this is the size of shared mem on both the A100 and V100 GPUs.
+#define SHARED_MEM_SIZE_BYTES 8                                // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
                                                                // can force tiling (e.g. for testing) by setting this to something small.
 #define SHARED_MEM_SIZE SHARED_MEM_SIZE_BYTES / sizeof(float)  // shared mem size in number of floats
 

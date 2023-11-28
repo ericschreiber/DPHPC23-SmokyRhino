@@ -23,7 +23,7 @@
 #include "utils.h"
 
 #define THREADS_PER_BLOCK 2
-#define GPU_SHARED_MEM_SIZE_BYTES 8 + 32 * sizeof(float)                               // this is the size of shared mem on both the A100 and V100 GPUs.
+#define GPU_SHARED_MEM_SIZE_BYTES 8 + 32 * sizeof(float)                               // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
                                                                                        // can force tiling (e.g. for testing) by setting this to something small.
 #define COMPUTATION_SHARED_MEM_BYTES (GPU_SHARED_MEM_SIZE_BYTES - 32 * sizeof(float))  // reserve 32 floats for last reduction in tiled_dot_product_thread_subset
 #define COMPUTATION_SHARED_MEM (COMPUTATION_SHARED_MEM_BYTES / sizeof(float))          // unit: floats
@@ -53,8 +53,9 @@ __device__ float tiled_dot_product_thread_subset(
     const int B_col_index,  // indexes the col of B that we are computing the dot prod with in this method call
     const int k)            // number of rows of B
 {
-    const float* B_col_beginning = matrixB_transposed_GPU_values + B_col_index * k;        // ptr to start of col of B that we are computing the dot prod with
-    const float* B_col_tile_beginning = B_col_beginning + tiling_step * normal_tile_size;  // don't want entire column but only a tile of it
+    const float* B_col_tile_beginning =                      // don't want entire column but only a tile of it
+        (matrixB_transposed_GPU_values + B_col_index * k) +  // the thing in parens is ptr to start of col of B that we are computing the dot prod with
+        tiling_step * normal_tile_size;
     float sum_of_chunks = 0;
     int numChunksInTile = ceilf((float)curr_tile_size / 4);  // ceil needed in case the current tile is smaller than 4
     for (int i = threadIdx.x; i < numChunksInTile - 1; i += blockDim.x)
@@ -70,47 +71,48 @@ __device__ float tiled_dot_product_thread_subset(
     // let thread 0 take care of the last chunk (bc it might be smaller than 4)
     if (threadIdx.x == 0)
     {
-        int last_chunk_size = curr_tile_size % 4;
-        if (last_chunk_size != 0)
+        for (int i = 0; i < curr_tile_size % 4; i++)
         {
-            const float* vector1_beginning = tile + (numChunksInTile - 1) * 4;
-            const float* vector2_beginning = B_col_tile_beginning + (numChunksInTile - 1) * 4;
-            for (int i = 0; i < last_chunk_size; i++)
-            {
-                // cant unroll here because we only know last_chunk_size at runtime
-                sum_of_chunks += vector1_beginning[i] * vector2_beginning[i];
-            }
+            // cant unroll here because we only know last_chunk_size at runtime
+            sum_of_chunks += (tile + (numChunksInTile - 1) * 4)[i] * (B_col_tile_beginning + (numChunksInTile - 1) * 4)[i];
         }
     }
 
     __syncthreads();  // all threads wait togehter here before we reduce their results
 
-    // warp-wide reduction
+    // warp-wide reduction i.e. reduce the sum_of_chunks varible (that each thread has) into one value per warp
     unsigned mask = __activemask();
-    for (int offset = warpSize / 2; offset > 0; offset /= 2)
-    {
-        sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, offset);
-    }
+    // this used to be a loop but we unrolled it bc why not (maybe the compiler can do some optimizations w/ it now)
+    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 16);
+    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 8);
+    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 4);
+    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 2);
+    sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 1);
 
     // reduce the result of the warp-wide reduction to a single value
     extern __shared__ float reduction_space[32 * sizeof(float)];  // in cuda we allocate shared mem in bytes
+    // 1: each "first thread" of a warp writes the sum into shared mem
     if (threadIdx.x % warpSize == 0)
     {
         reduction_space[threadIdx.x / warpSize] = sum_of_chunks;
     }
-
     __syncthreads();
-
-    // thread 0 sweeps over the values and returns the sum.
-    // I guess this could also be done in a tree like fashion but log_2(32) is 5 (and 5 vs 32 steps shouldnt make a big difference I think).
-    if (threadIdx.x == 0)
+    if ((threadIdx.x % warpSize) < warpSize)  // only use the threads from the first warp for the final reduction
     {
-        float fresh_sum = 0;
-        for (int i = 0; i < warpSize; i++)
+        unsigned mask = __activemask();  // generate this again since it might be different from the one above
+        // 2: load the vals that we just wrote into shared mem into variables of the threads of the first warp
+        float val = reduction_space[threadIdx.x];
+        // 3: now warp reduce those vals
+        val += __shfl_down_sync(mask, val, 16);  // the final reduction comprises a max of 32 values so hard coding 16 here is fine
+        val += __shfl_down_sync(mask, val, 8);
+        val += __shfl_down_sync(mask, val, 4);
+        val += __shfl_down_sync(mask, val, 2);
+        val += __shfl_down_sync(mask, val, 1);
+        // 4: now the final sum should sit int the first thread of the first warp (= thread 0) so it can return it
+        if (threadIdx.x == 0)
         {
-            fresh_sum += reduction_space[i];
+            return val;
         }
-        return fresh_sum;
     }
 }
 
@@ -135,7 +137,7 @@ __device__ void elem_compute(
         matrixB_transposed_GPU_values,
         matrixC_GPU_col_indices[offset],  // col of B for dot product is the same col in which the nonzero of C sits
         k);
-    if (threadIdx.x == 0)
+    if (threadIdx.x == 0)  // in tiled_dot_product_thread_subset only thread 0 returns something so only it needs to do the addition
     {
         // no need for atomic add since only thread 0 is writing back (all the partial sums from the other thread have already been reduced)
         matrixResult_GPU_values[offset] += dot_prod * matrixC_GPU_values[offset];

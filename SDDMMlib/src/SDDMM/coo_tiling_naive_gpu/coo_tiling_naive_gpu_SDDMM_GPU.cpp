@@ -1,14 +1,35 @@
-// coo_tiling_cached_gpu_SDDMM_GPU.cpp
-#include "coo_tiling_cached_gpu/coo_tiling_cached_gpu_SDDMM_GPU.hpp"
+// coo_tiling_naive_gpu_SDDMM_GPU.cpp
+#include "coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM_GPU.hpp"
 
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>
+#include <vector>
 
-#include "coo_tiling_cached_gpu/coo_tiling_cached_gpu_SDDMM.cuh"
+#include "coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM.cuh"
 #include "utils.h"
 
-void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM_COO(
+std::vector<int> compute_csr_row_ptr_from_coo(
+    int numElementsC,
+    const int* matrixC_CPU_row_indices)
+{
+    // Compute the row pointer array for the sampling matrix
+    std::vector<int> matrixC_CPU_row_ptr;
+    int row = matrixC_CPU_row_indices[0];
+    matrixC_CPU_row_ptr.push_back(row);
+    for (int i = 1; i < numElementsC; i++)
+    {
+        if (row != matrixC_CPU_row_indices[i])
+        {
+            matrixC_CPU_row_ptr.push_back(i);
+            row = matrixC_CPU_row_indices[i];
+        }
+    }
+    matrixC_CPU_row_ptr.push_back(numElementsC);
+    return matrixC_CPU_row_ptr;
+}
+
+void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const COOMatrix<float>& matrixC_HOST,
@@ -30,10 +51,16 @@ void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM_COO(
     DenseMatrix<float> matrixBTranspose_HOST = DenseMatrix<float>(matrixB_HOST);
     matrixBTranspose_HOST.transpose();
 
+    std::vector<int> matrixC_CPU_row_ptr = compute_csr_row_ptr_from_coo(
+        numElementsC,
+        (matrixC_HOST.getRowArray()).data());
+    const int numElementsCrowPtr = matrixC_CPU_row_ptr.size();
+
     // allocate memory for the matrices on the GPU
     float* matrixA_GPU_values;
     float* matrixB_transpose_GPU_values;
     float* matrixC_GPU_values;
+    int* matrixC_GPU_row_ptr;
     int* matrixC_GPU_row_indices;
     int* matrixC_GPU_col_indices;
     float* matrixResult_GPU_values;
@@ -43,6 +70,7 @@ void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM_COO(
     CUDA_CHECK(cudaMalloc(&matrixA_GPU_values, m * k * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixB_transpose_GPU_values, n * k * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_values, numElementsC * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_ptr, numElementsCrowPtr * sizeof(int)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_indices, numElementsC * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_col_indices, numElementsC * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixResult_GPU_values, numElementsC * sizeof(float)));
@@ -53,20 +81,29 @@ void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM_COO(
     CUDA_CHECK(cudaMemcpy(matrixA_GPU_values, matrixA_HOST.getValues(), m * k * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixB_transpose_GPU_values, matrixBTranspose_HOST.getValues(), n * k * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_values, (matrixC_HOST.getValues()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_ptr, matrixC_CPU_row_ptr.data(), numElementsCrowPtr * sizeof(int), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
     this->start_run();
+    // Just for timing reasons, that it is not too good we include this into the timing. because also with CSR we need to
+    // compute the row indices for the COO matrix
+    matrixC_CPU_row_ptr = compute_csr_row_ptr_from_coo(
+        numElementsC,
+        (matrixC_HOST.getRowArray()).data());
+
     // call compute in naive_dense_dense.cu
-    compute_coo_tiling_cached_gpu(
+    compute_coo_tiling_naive_gpu(
         m,
         n,
         k,
         numElementsC,
+        numElementsCrowPtr,
         matrixA_GPU_values,
         matrixB_transpose_GPU_values,
         matrixC_GPU_values,
         matrixC_GPU_row_indices,
+        matrixC_GPU_row_ptr,
         matrixC_GPU_col_indices,
         matrixResult_GPU_values);
     this->stop_run();
@@ -104,7 +141,7 @@ void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM_COO(
     return;
 }
 
-void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM(
+void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
@@ -131,17 +168,17 @@ void coo_tiling_cached_gpu_SDDMM_GPU<float>::SDDMM(
     return;
 }
 
-void coo_tiling_cached_gpu_SDDMM_GPU<float>::start_run() const
+void coo_tiling_naive_gpu_SDDMM_GPU<float>::start_run() const
 {
-    assert(this->_timer != nullptr && "Error: coo_tiling_cached_gpu_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
+    assert(this->_timer != nullptr && "Error: coo_tiling_naive_gpu_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
     this->_timer->start_cpu_run();
 }
 
-void coo_tiling_cached_gpu_SDDMM_GPU<float>::stop_run() const
+void coo_tiling_naive_gpu_SDDMM_GPU<float>::stop_run() const
 {
     this->_timer->stop_cpu_run();
 }
 
 // Explicit template instantiation
-template class coo_tiling_cached_gpu_SDDMM_GPU<double>;
-template class coo_tiling_cached_gpu_SDDMM_GPU<int>;
+template class coo_tiling_naive_gpu_SDDMM_GPU<double>;
+template class coo_tiling_naive_gpu_SDDMM_GPU<int>;

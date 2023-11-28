@@ -14,6 +14,7 @@
 #if USE_CUDA
 #include "cache_coo_gpu/cache_coo_SDDMM_GPU.hpp"
 #include "coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.hpp"
+#include "coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM_GPU.hpp"
 #include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
 #include "naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.hpp"
 #include "naive_dense_dense_gpu/naive_SDDMM_GPU.cuh"
@@ -66,6 +67,10 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     else if (class_name == "coo_opt_vectorization_SDDMM_GPU")
     {
         return new coo_opt_vectorization_SDDMM_GPU<T>();
+    }
+    else if (class_name == "coo_tiling_naive_gpu_SDDMM_GPU")
+    {
+        return new coo_tiling_naive_gpu_SDDMM_GPU<T>();
     }
 #endif
 

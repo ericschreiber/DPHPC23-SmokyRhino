@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug test_coo_tiling_naive_gpu",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/SDDMMlib/tests/SDDMM/test_coo_tiling_naive_gpu",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+        },
+        {
             "name": "Debug test_io_dense",
             "type": "cppdbg",
             "request": "launch",

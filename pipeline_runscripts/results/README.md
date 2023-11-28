@@ -1,1 +1,1 @@
-You can fnd all results here
+You can find all results here

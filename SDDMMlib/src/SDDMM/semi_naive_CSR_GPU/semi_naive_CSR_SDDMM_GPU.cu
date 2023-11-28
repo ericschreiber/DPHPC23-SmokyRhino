@@ -116,7 +116,7 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
         matrixResult_GPU);
 
     // stop the timer
-    // this->stop_run();
+    this->stop_run();
 
     // copy result from the GPU to the CPU
     float* return_values = new float[nnz];
@@ -156,7 +156,7 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
             row_ptr_GPU));
 
     // stop the profiler
-    CUDA_CHECK(cudaProfilerStop());
+    // CUDA_CHECK(cudaProfilerStop());
 
     return;
 }

@@ -80,8 +80,9 @@ __device__ float tiled_dot_product_thread_subset(
 
     __syncthreads();  // all threads wait togehter here before we reduce their results
 
-    // warp-wide reduction i.e. reduce the sum_of_chunks varible (that each thread has) into one value per warp
-    unsigned mask = __activemask();
+    // WARP-WIDE REDUCTION
+    // i.e. reduce the sum_of_chunks varible (that each thread has) into one value per warp
+    unsigned mask = 0xffffffff;  // use all threads of the warp
     // this used to be a loop but we unrolled it bc why not (maybe the compiler can do some optimizations w/ it now)
     sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 16);
     sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 8);
@@ -89,7 +90,7 @@ __device__ float tiled_dot_product_thread_subset(
     sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 2);
     sum_of_chunks += __shfl_down_sync(mask, sum_of_chunks, 1);
 
-    // reduce the result of the warp-wide reduction to a single value
+    // COMMUNICATE RESULTS VIA SHARED MEMORY
     extern __shared__ float reduction_space[32 * sizeof(float)];  // in cuda we allocate shared mem in bytes
     // 1: each "first thread" of a warp writes the sum into shared mem
     if (threadIdx.x % warpSize == 0)
@@ -97,9 +98,11 @@ __device__ float tiled_dot_product_thread_subset(
         reduction_space[threadIdx.x / warpSize] = sum_of_chunks;
     }
     __syncthreads();
+
+    // FINAL REDUCTION
     if ((threadIdx.x % warpSize) < warpSize)  // only use the threads from the first warp for the final reduction
     {
-        unsigned mask = __activemask();  // generate this again since it might be different from the one above
+        unsigned mask = __activemask();
         // 2: load the vals that we just wrote into shared mem into variables of the threads of the first warp
         float val = reduction_space[threadIdx.x];
         // 3: now warp reduce those vals
@@ -141,6 +144,7 @@ __device__ void elem_compute(
     {
         // no need for atomic add since only thread 0 is writing back (all the partial sums from the other thread have already been reduced)
         matrixResult_GPU_values[offset] += dot_prod * matrixC_GPU_values[offset];
+        // TODO: in merged version use dot_product_float4 from coo_opt_vectorization_SDDMM.cu instead of tiled_dot_product_thread_subset (which is not vectorized)
     }
 }
 

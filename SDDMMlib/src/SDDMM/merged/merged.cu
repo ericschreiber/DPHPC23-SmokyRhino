@@ -242,7 +242,7 @@ __global__ void precomputation_m(
 }
 
 // this is the function that is called from the outside and that launches the calls to the kernel function
-void compute(
+void compute_m(
     const int m,
     const int n,
     const int k,  // number of rows of B

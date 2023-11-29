@@ -1,7 +1,7 @@
 #ifndef MERGED_H
 #define MERGED_H
 
-void compute(
+void compute_m(
     const int m,
     const int n,
     const int k,

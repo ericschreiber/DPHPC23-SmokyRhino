@@ -13,6 +13,7 @@ void merged<float>::SDDMM_COO(
     const COOMatrix<float>& matrixC_HOST,
     COOMatrix<float>& matrixResult_HOST) const
 {
+    printf("HELLO");
     // Get all the sizes (A=mxk; B=kxn; C=mxn; Result=mxn)
     int m = matrixA_HOST.getNumRows();
     int k = matrixA_HOST.getNumCols();
@@ -56,7 +57,7 @@ void merged<float>::SDDMM_COO(
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
     this->start_run();
-    compute(
+    compute_m(
         m,
         n,
         k,

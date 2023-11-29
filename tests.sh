@@ -4,18 +4,9 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 TESTFILES="
-
 "
 GPU_TESTFILES="
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_tiled_tiles
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_CPU_SDDMM 
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_coo_SDDMM_GPU 
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_cache_coo_SDDMM_GPU
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/naive_dense_dense_gpu/test_compile
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_csr_via_coo_SDDMM_GPU
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_coo_opt_vectorization_SDDMM_GPU
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_coo_tiling_naive_gpu
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/semi_naive_CSR_GPU/test_semi_naive_CSR_SDDMM_GPU
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_merged
 "
 
 # Detect if GPU is available

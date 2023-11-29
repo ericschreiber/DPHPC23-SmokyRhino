@@ -107,6 +107,7 @@ __global__ void cache_coo(
     const int tiling_steps)
 {
     ////////////////    SETUP NECESSARY VARS    ////////////////
+    printf("CACHE");
     int row_index = blockIdx.x;                                            // holds bc we have set up one block per row so n-th block will take on n-th row of A
     const float* A_vals_row_start = matrixA_GPU_values + (row_index * k);  // pointer to beginning of row of A that this thread block is working on.
     int prevBlocksWork = prevBlocksWorkAll[blockIdx.x];

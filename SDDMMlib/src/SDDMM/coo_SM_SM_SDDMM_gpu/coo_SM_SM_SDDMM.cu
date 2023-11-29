@@ -31,7 +31,7 @@ __global__ void SM_SM_coo(
     // Set T_i for the block
     int T_i = T_ij;
     // This presumes that blocks are indexed at 0
-    if (block_index == blocks - 1)
+    if (block_index == blocks - 1 && last_T_i != 0)
     {
         T_i = last_T_i;
     }
@@ -75,11 +75,34 @@ __global__ void SM_SM_coo(
         __syncthreads();
 
         // Smart way of dividing work between all the threads:
+        // Collecting nnz indices within this block:
+        // This is the start index for the nnz_index array
+        int nnz_index_in_block_start = (block_index * tiling_steps) * T_ij + tile * T_i;
+        // End index
+        int nnz_index_in_block_end = nnz_index_in_block_start + T_i;
+        // This is the indices in the C_matrix with nnz:s
         int c_index;
+        // Index for the nnz vector
+        int nnz_index;
+        // Nbr of nnz in previous partial row
+        int prev;
         for (int i = 0; i < T_i; i++)
         {
-            c_index = nnz_indexing_array[(block_index * tiling_steps + tile) * T_ij + i];
-            printf("block: %d, tile[%d], partial row: %d, nnz's: %d\n", block_index, tile, tile, c_index);
+            nnz_index = (block_index * tiling_steps) * T_ij + tile * T_i + i;
+            if (nnz_index == 0)
+            {
+                prev = 0;
+            }
+            else
+            {
+                prev = nnz_indexing_array[nnz_index - 1];
+            }
+            c_index = nnz_indexing_array[nnz_index];
+
+            if (threadIdx.x == 0)
+            {
+                printf("in block[%d] tile[%d], partial_row[%d] the c index are [%d,%d], nnz_index = %d, T_i: %d \n", block_index, tile, i, prev, c_index, nnz_index, T_i);
+            }
         }
     }
 }
@@ -92,7 +115,8 @@ __global__ void precomputation(
     int numBlocks,
     int T_ij,
     const int numElementsC,
-    const int m)
+    const int m,
+    const int last_T_i)
 {
     // In this function is the sparse matrix indexed for tiling
     // Loop over the blocks
@@ -101,22 +125,40 @@ __global__ void precomputation(
     int block;
     int tile;
     int row_in_block;
+    int index;
+    int T_i;
 
     // This loop counts the nbr of nnz in a given row in a tile
     for (int i = 0; i < numElementsC; i++)
     {
-        row = matrixC_GPU_col_indices[i];
+        row = matrixC_GPU_row_indices[i];
         col = matrixC_GPU_col_indices[i];
-        block = row / numBlocks;
-        tile = col / tiling_steps;
+        block = row / T_ij;
+        // Fix edge case of matrix tiling
+        if (block == numBlocks - 1)
+        {
+            T_i = last_T_i;
+        }
+        else
+        {
+            T_i = T_ij;
+        }
+        tile = col / T_ij;
         row_in_block = row - block * T_ij;
-        nnz_indexing_array[(block * tiling_steps + tile) * T_ij + row_in_block] += 1;
+        // This is index for the partial row within a block and tile. This is ordered by block -> tile -> row in tile. So within a block the partial rows have adjecent index
+        index = (block * tiling_steps) * T_ij + tile * T_i + row_in_block;
+        nnz_indexing_array[index] += 1;
+        if (index == 152)
+        {
+            printf(" i = 152 block: %d, tile: %d, row_in_block: %d, row %d, col %d \n", block, tile, row_in_block, row, col);
+        }
     }
 
-    // m*tiling_steps is the len of nnz_indexing_array, this loop makes the count cummulative
+    // m*tiling_steps is the len of nnz_indexing_array, this loop makes the count cummulative, smaller end tile shouldnt be affected by this
     for (int i = 1; i < m * tiling_steps; i++)
     {
         nnz_indexing_array[i] += nnz_indexing_array[i - 1];
+        printf("nnz_index_arr: %d i: %d \n", nnz_indexing_array[i], i);
     }
 }
 
@@ -138,20 +180,22 @@ void compute(
     int T_ij = 5;
     // Each block calculates one row panel (and each tile in sequence)
     // int blocks = ceil(m / T_ij); for dev testing:
-    int blocks = 5;
+    int blocks = 6;
     // The last block may get fewer rows if m isnt dividable by T_ij
     int last_T_i = m % T_ij;
     // Each block computes the tiles in a row-panel -> row_len/tile_width
-    int tiling_steps = ceil(n / T_ij);
+    int tiling_steps = ceil(float(n) / float(T_ij));
     // Last tile may get fewer columns from B if n isnt divicable by T_ij
     int last_T_j = n % T_ij;
     // This array gets filled up nnz index per row in each tile and block
     int* nnz_indexing_array;
     CUDA_CHECK(cudaMalloc((void**)&nnz_indexing_array, (m * tiling_steps) * sizeof(int)));
 
-    precomputation<<<1, 1>>>(nnz_indexing_array, matrixC_GPU_row_indices, matrixC_GPU_col_indices, tiling_steps, blocks, T_ij, numElementsC, m);
+    precomputation<<<1, 1>>>(nnz_indexing_array, matrixC_GPU_row_indices, matrixC_GPU_col_indices, tiling_steps, blocks, T_ij, numElementsC, m, last_T_i);
 
     dim3 threadsPerBlock(THREADS_PER_BLOCK);
+
+    printf("Tiling information: Blocks: %d, Tiles:%d, T_ij:%d, last tile width:%d, last block height: %d \n", blocks, tiling_steps, T_ij, last_T_j, last_T_i);
 
     // Call main kernel
     SM_SM_coo<<<blocks, threadsPerBlock, SHARED_MEM_SIZE>>>(

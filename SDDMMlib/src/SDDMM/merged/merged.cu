@@ -164,7 +164,6 @@ __global__ void merged_m(
     const int last_tile_size)
 {
     ////////////////    SETUP NECESSARY VARS    ////////////////
-    printf("MERGED");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     // This is the main part that I moved over from Erics implementation
@@ -173,18 +172,17 @@ __global__ void merged_m(
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const float* A_vals_row_start = matrixA_GPU_values + (row_index * k);  // pointer to beginning of row of A that this thread block is working on.
-    int prevBlocksWork = prevBlocksWorkAll[blockIdx.x];
-    int nnzs = prevBlocksWorkAll[row_index + 1] - prevBlocksWorkAll[row_index];  // number of nnzs in this row of C (= amount of work for thread block)
+    int prevBlocksWork = prevBlocksWorkAll[row_index];
+    int nnzs = count_m(matrixC_GPU_row_indices, numElementsC, row_index);
 
-    ////////////////    FIGURE OUT SIZE OF CURR TILE    ////////////////
-    int curr_tile_size = 0;
-    if (tile_index < last_tile_index)
+    ////////////////    COMPUTE CURR TILE SIZE    ////////////////
+    int row_mem_size = k * sizeof(float);                             // length of row of A in bytes
+    int num_tiles = ceilf(row_mem_size / GPU_SHARED_MEM_SIZE_BYTES);  // number of tiles that we need to split the row into
+    int curr_tile_size = COMPUTATION_SHARED_MEM;
+    // TODO: I have a feeling that Niklas will not like this if stmt but I just want to get smth that works for now and go to sleep
+    if (tile_index == num_tiles - 1)  // if we are working on the last tile of the row
     {
-        curr_tile_size = COMPUTATION_SHARED_MEM;
-    }
-    else
-    {
-        curr_tile_size = last_tile_size;
+        curr_tile_size = row_mem_size - ((num_tiles - 1) * GPU_SHARED_MEM_SIZE_BYTES);
     }
 
     ////////////////    THREAD 0: COPY TILE INTO SHARED MEM    ////////////////
@@ -206,9 +204,11 @@ __global__ void merged_m(
     __syncthreads();  // this is a barrier
 
     ////////////////    ACTUAL COMPUTATION    ////////////////
+    printf("HELLO");
     for (int elem_index = 0; elem_index < nnzs; elem_index++)  // iterate over all elems OF THE ENTIRE ROW OF C (that this block is working on)
     {
         int offset = prevBlocksWork + elem_index;
+        printf("threadIdx.x: %d, offset: %d, prevBlocksWork: %d, elem_index: %d\n", threadIdx.x, offset, prevBlocksWork, elem_index);
         elem_compute_m(
             tile,
             tile_index,
@@ -228,16 +228,18 @@ __global__ void precomputation_m(
     const int numElementsC,
     const int* __restrict__ const matrixC_GPU_row_indices,
     int* prevBlocksWork,
-    int numBlocks)
+    int numBlocks,
+    int m)
 {
     // populate prevBlocksWork
-    for (int i = 0; i < numBlocks; i++)
+    int sum = 0;
+    for (int i = 0; i < m; i++)
     {
-        int last = 0;
         if (i != 0)
-            last = prevBlocksWork[i];
-        int counter = count_m(matrixC_GPU_row_indices, numElementsC, i);
-        prevBlocksWork[i + 1] += last + counter;
+        {
+            sum += count_m(matrixC_GPU_row_indices, numElementsC, (i - 1));
+            prevBlocksWork[i] = sum;
+        }
     }
 }
 
@@ -265,9 +267,9 @@ void compute_m(
     ////////////////////////////////////////////////////////////////
     // allocate array that will be populated by the precomputation kernel
     int* prevBlocksWork;
-    CUDA_CHECK(cudaMalloc((void**)&prevBlocksWork, (blocks + 1) * sizeof(int)));  // + 1 needed for the computation (for last block) of nnzs in the main kernel
+    CUDA_CHECK(cudaMalloc((void**)&prevBlocksWork, m * sizeof(int)));  // + 1 needed for the computation (for last block) of nnzs in the main kernel
     // run the precomputation kernel
-    precomputation_m<<<1, 1>>>(numElementsC, matrixC_GPU_row_indices, prevBlocksWork, blocks);
+    precomputation_m<<<1, 1>>>(numElementsC, matrixC_GPU_row_indices, prevBlocksWork, blocks, m);
 
     dim3 threadsPerBlock(THREADS_PER_BLOCK);
 

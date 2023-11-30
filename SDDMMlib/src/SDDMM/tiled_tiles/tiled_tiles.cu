@@ -194,6 +194,7 @@ __global__ void tiled_tiles(
         for (int elem_index = 0; elem_index < nnzs; elem_index++)  // iterate over all elems OF THE ENTIRE ROW OF C (that this block is working on)
         {
             int offset = prevBlocksWork + elem_index;
+            printf("threadIdx.x: %d, offset: %d, prevBlocksWork: %d, elem_index: %d\n", threadIdx.x, offset, prevBlocksWork, elem_index);
             elem_compute(
                 tile,
                 tiling_step,

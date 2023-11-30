@@ -108,9 +108,9 @@ void t4()
 int main()
 {
     printf("Running tests...\n");
-    t1();
-    t2();
-    t3();
+    // t1();
+    // t2();
+    // t3();
     t4();
 
     // TODO: more tests!

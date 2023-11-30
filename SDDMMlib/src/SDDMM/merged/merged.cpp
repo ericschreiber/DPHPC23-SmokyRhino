@@ -1,3 +1,4 @@
+
 #include "merged/merged.cuh"
 
 #include <iostream>
@@ -36,7 +37,7 @@ void merged<float>::SDDMM_COO(
 {
     // Get all the sizes (A=mxk; B=kxn; C=mxn; Result=mxn)
     int m = matrixA_HOST.getNumRows();
-    const int k = matrixA_HOST.getNumCols();
+    int k = matrixA_HOST.getNumCols();
     int n = matrixB_HOST.getNumCols();
     int numElementsC = matrixC_HOST.getValues().size();
 
@@ -102,6 +103,7 @@ void merged<float>::SDDMM_COO(
         matrixB_transpose_GPU_values,
         matrixC_GPU_values,
         matrixC_GPU_row_indices,
+        matrixC_GPU_row_ptr,
         matrixC_GPU_col_indices,
         matrixResult_GPU_values);
     this->stop_run();

@@ -25,11 +25,11 @@
 #include "merged/merged.cuh"
 #include "utils.h"
 
-#define THREADS_PER_BLOCK 2                                                            // this should be 1024 (unless we are running tests, then we may want to set it to something small)
-#define GPU_SHARED_MEM_SIZE_BYTES 136                                                  // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
-                                                                                       // can force tiling (e.g. for testing) by setting this to something small.
-#define COMPUTATION_SHARED_MEM_BYTES (GPU_SHARED_MEM_SIZE_BYTES - 32 * sizeof(float))  // reserve 32 floats for last reduction in tiled_dot_product_thread_subset
-#define COMPUTATION_SHARED_MEM (COMPUTATION_SHARED_MEM_BYTES / sizeof(float))          // unit: floats
+#define THREADS_PER_BLOCK 2                                                              // this should be 1024 (unless we are running tests, then we may want to set it to something small)
+#define GPU_SHARED_MEM_SIZE_BYTES 136                                                    // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
+                                                                                         // can force tiling (e.g. for testing) by setting this to something small.
+#define COMPUTATION_SHARED_MEM_BYTES (GPU_SHARED_MEM_SIZE_BYTES - (sizeof(float) << 5))  // reserve 32 floats for last reduction in tiled_dot_product_thread_subset
+#define COMPUTATION_SHARED_MEM (COMPUTATION_SHARED_MEM_BYTES / sizeof(float))            // unit: floats
 
 // helper function that abstracts away the indexing logic of computing a tiled dot product
 // in the updated version, a thread does not compute the whole dot product of the tile but only a subset of it
@@ -40,7 +40,8 @@ __device__ float tiled_dot_product_thread_subset_m(
     const int curr_tile_size,  // curr_tile_size can be smaller than normal_tile_size if we are working on the last tile of a row
     const float* matrixB_transposed_GPU_values,
     const int B_col_index,  // indexes the col of B that we are computing the dot prod with in this method call
-    const int k)            // number of rows of B
+    const int k,            // number of rows of B
+    float* reduction_space)
 {
     const float* B_col_tile_beginning =                      // don't want entire column but only a tile of it
         (matrixB_transposed_GPU_values + B_col_index * k) +  // the thing in parens is ptr to start of col of B that we are computing the dot prod with
@@ -49,18 +50,20 @@ __device__ float tiled_dot_product_thread_subset_m(
     int numChunksInTile = ceilf((float)curr_tile_size / 4);  // ceil needed in case the current tile is smaller than 4
     for (int i = threadIdx.x; i < numChunksInTile - 1; i += blockDim.x)
     {
+        i = i << 2;  // shared mem is indexed in bytes
         // compute the chunk of the dot product that this thread is responsible for
-        const float* vector1_beginning = tile + i * 4;
-        const float* vector2_beginning = B_col_tile_beginning + i * 4;
+        const float* vector1_beginning = tile + i;
+        const float* vector2_beginning = B_col_tile_beginning + i;
         sum_of_chunks += vector1_beginning[0] * vector2_beginning[0];
         sum_of_chunks += vector1_beginning[1] * vector2_beginning[1];
         sum_of_chunks += vector1_beginning[2] * vector2_beginning[2];
         sum_of_chunks += vector1_beginning[3] * vector2_beginning[3];
     }
     // let thread 0 take care of the last chunk (bc it might be smaller than 4)
-    if (threadIdx.x == 0)
+    if (threadIdx.x == THREADS_PER_BLOCK - 1)
     {
-        for (int i = 0; i < curr_tile_size % 4; i++)
+        int loop_end = curr_tile_size & 3;  // this is less expensive than a modulo op
+        for (int i = 0; i < loop_end; i++)
         {
             // cant unroll here because we only know last_chunk_size at runtime
             sum_of_chunks += (tile + (numChunksInTile - 1) * 4)[i] * (B_col_tile_beginning + (numChunksInTile - 1) * 4)[i];
@@ -79,18 +82,16 @@ __device__ float tiled_dot_product_thread_subset_m(
     sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 1);
 
     // COMMUNICATE RESULTS VIA SHARED MEMORY
-    __shared__ float reduction_space[32 * sizeof(float)];  // in cuda we allocate shared mem in bytes
     // 1: each "first thread" of a warp writes the sum into shared mem
-    if (threadIdx.x % warpSize == 0)
+    if ((threadIdx.x & 0x1f) == 0)  // 0x1f = 31 = 11111 in binary
     {
-        reduction_space[threadIdx.x / warpSize] = sum_of_chunks;
+        reduction_space[threadIdx.x >> 5] = sum_of_chunks;
     }
     __syncthreads();
 
     // FINAL REDUCTION
-    if (threadIdx.x < warpSize)  // only use the threads from the first warp for the final reduction
+    if (threadIdx.x < 32)  // only use the threads from the first warp for the final reduction
     {
-        unsigned mask = __activemask();
         // 2: load the vals that we just wrote into shared mem into variables of the threads of the first warp
         float val = reduction_space[threadIdx.x];
         // 3: now warp reduce those vals
@@ -118,7 +119,8 @@ __device__ void elem_compute_m(
     float* matrixResult_GPU_values,
     const int* matrixC_GPU_col_indices,
     const int k,       // number of rows of B
-    const int offset)  // offset into matrixC_GPU_values and matrixResult_GPU_values
+    const int offset,  // offset into matrixC_GPU_values and matrixResult_GPU_values
+    float* reduction_space)
 {
     float dot_prod = tiled_dot_product_thread_subset_m(
         tile,
@@ -127,7 +129,8 @@ __device__ void elem_compute_m(
         curr_tile_size,
         matrixB_transposed_GPU_values,
         matrixC_GPU_col_indices[offset],  // col of B for dot product is the same col in which the nonzero of C sits
-        k);
+        k,
+        reduction_space);
     if (threadIdx.x == 0)  // in tiled_dot_product_thread_subset only thread 0 returns something so only it needs to do the addition
     {
         atomicAdd(&matrixResult_GPU_values[offset], dot_prod * matrixC_GPU_values[offset]);
@@ -140,7 +143,6 @@ __device__ void elem_compute_m(
 __global__ void merged_m(
     const int num_rows,  // number of rows of A
     const int k,         // number of rows of B
-    const int numElementsC,
     const int numElementsCrowPtr,
     const float* __restrict__ const matrixA_GPU_values,
     const float* __restrict__ const matrixB_transposed_GPU_values,
@@ -148,44 +150,55 @@ __global__ void merged_m(
     const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_row_ptr,
     const int* __restrict__ const matrixC_GPU_col_indices,
-    float* __restrict__ const matrixResult_GPU_values)
+    float* __restrict__ const matrixResult_GPU_values,
+    const int row_mem_size,
+    const int num_tiles)
 {
+    // return if no non zeros in current row of C
+    if (matrixC_GPU_row_ptr[blockIdx.x + 1] - matrixC_GPU_row_ptr[blockIdx.x] == 0)
+    {
+        return;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     // This is the main part that I moved over from Erics implementation
-    int row_index = blockIdx.x % num_rows;
+
     int tile_index = blockIdx.x / num_rows;  // this is called tiling_step in tiled_tiles.cu
+    int row_index = blockIdx.x - (tile_index * num_rows);
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    const float* A_vals_row_start = matrixA_GPU_values + (row_index * k);  // pointer to beginning of row of A that this thread block is working on.
-
     ////////////////    COMPUTE CURR TILE SIZE    ////////////////
-    int row_mem_size = k * sizeof(float);                                                // length of row of A in bytes
-    int num_tiles = ceilf((double)row_mem_size / (double)COMPUTATION_SHARED_MEM_BYTES);  // number of tiles that we need to split the row into
-    int curr_tile_size = COMPUTATION_SHARED_MEM_BYTES;
+    int curr_tile_size;
     if (tile_index == num_tiles - 1)  // if we are working on the last tile of the row
     {
-        curr_tile_size = row_mem_size - ((num_tiles - 1) * COMPUTATION_SHARED_MEM_BYTES);
+        curr_tile_size = row_mem_size - ((num_tiles - 1) * COMPUTATION_SHARED_MEM);
     }
-    curr_tile_size = curr_tile_size / sizeof(float);  // convert from bytes to floats
+    else  // else is usually not good but here all threads of a block will take the same branch so we don't have this thread divergence issue
+    {
+        curr_tile_size = COMPUTATION_SHARED_MEM;
+    }
 
     ////////////////    COPY TILE INTO SHARED MEM (NOW IN PARALLEL)    ////////////////
     __shared__ float tile[COMPUTATION_SHARED_MEM_BYTES];
-    int last_chunk_size = curr_tile_size % 4;
+    int last_chunk_size = curr_tile_size & 3;                // this is less expensive than a modulo op
     int numChunksInTile = ceilf((float)curr_tile_size / 4);  // ceil needed in case the current tile is smaller than 4
-    const float* tile_start = A_vals_row_start + (tile_index * COMPUTATION_SHARED_MEM);
+    const float* tile_start =
+        matrixA_GPU_values + (row_index * k) +  // start of the row of A that we are working on
+        (tile_index * COMPUTATION_SHARED_MEM);  // shift by the number of floats that are part of the previous tiles
     // do all but the last chunk
-    for (int i = threadIdx.x; i < numChunksInTile - 1; i += blockDim.x)
+    for (int i = threadIdx.x; i < numChunksInTile - 1; i += blockDim.x)  // i steps through the chunks
     {
+        i = i << 2;  // shared mem is indexed in bytes
         // unrolling (because compiler likes unrolling I guess)
-        tile[i * 4] = *(tile_start + (i * 4) + 0);
-        tile[i * 4 + 1] = *(tile_start + (i * 4) + 1);
-        tile[i * 4 + 2] = *(tile_start + (i * 4) + 2);
-        tile[i * 4 + 3] = *(tile_start + (i * 4) + 3);
+        tile[i] = *(tile_start + i);
+        tile[i + 1] = *(tile_start + i + 1);
+        tile[i + 2] = *(tile_start + i + 2);
+        tile[i + 3] = *(tile_start + i + 3);
     }
-    // optimization: use thread 1023 here but since I am (for testing purposes) limiting NUM_THREADS_PER_BLOCK to 2 I have to use thread 0 for now
-    if (threadIdx.x == 0)
+    // last chunk
+    if (threadIdx.x == THREADS_PER_BLOCK - 1)
     {
-        for (int i = 0; i < last_chunk_size; i++)
+        for (int i = 0; i < last_chunk_size; i++)  // i now steps through the elems in a chunk (different to the loop above) i.e. no need to multiply by 4
         {
             // cant unroll here because we only know last_chunk_size at runtime
             tile[(numChunksInTile - 1) * 4 + i] = *(tile_start + (numChunksInTile - 1) * 4 + i);
@@ -196,7 +209,8 @@ __global__ void merged_m(
 
     ////////////////    ACTUAL COMPUTATION    ////////////////
     // iterate over all elems OF THE ENTIRE ROW OF C (that this block is working on)
-    for (int elem_index = 0; elem_index < matrixC_GPU_row_ptr[row_index + 1] - matrixC_GPU_row_ptr[row_index]; elem_index++)
+    __shared__ float reduction_space[sizeof(float) << 5];  // this is the shared mem that we use for the final reduction
+    for (int elem_index = matrixC_GPU_row_ptr[row_index]; elem_index < matrixC_GPU_row_ptr[row_index + 1]; elem_index++)
     {
         elem_compute_m(
             tile,
@@ -208,16 +222,15 @@ __global__ void merged_m(
             matrixResult_GPU_values,
             matrixC_GPU_col_indices,
             k,
-            matrixC_GPU_row_ptr[row_index] + elem_index);
+            elem_index,
+            reduction_space);
     }
 }
 
 // this is the function that is called from the outside and that launches the calls to the kernel function
 void compute_m(
     const int m,
-    const int n,
     const int k,  // number of rows of B
-    const int numElementsC,
     const int numElementsCrowPtr,
     const float* __restrict__ const matrixA_GPU_values,
     const float* __restrict__ const matrixB_transposed_GPU_values,
@@ -234,13 +247,10 @@ void compute_m(
     int blocks = (numElementsCrowPtr - 1) * num_tiles;
     ////////////////////////////////////////////////////////////////
 
-    dim3 threadsPerBlock(THREADS_PER_BLOCK);
-
     // call main kernel
-    merged_m<<<blocks, threadsPerBlock>>>(
+    merged_m<<<blocks, THREADS_PER_BLOCK>>>(
         m,
         k,
-        numElementsC,
         numElementsCrowPtr,
         matrixA_GPU_values,
         matrixB_transposed_GPU_values,
@@ -248,7 +258,9 @@ void compute_m(
         matrixC_GPU_row_indices,
         matrixC_GPU_row_ptr,
         matrixC_GPU_col_indices,
-        matrixResult_GPU_values);
+        matrixResult_GPU_values,
+        k,
+        num_tiles);
     // Aggregate the return value of the kernel
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());

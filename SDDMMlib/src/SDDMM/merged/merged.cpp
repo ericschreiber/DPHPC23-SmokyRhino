@@ -95,9 +95,7 @@ void merged<float>::SDDMM_COO(
     // call compute in naive_dense_dense.cu
     compute_m(
         m,
-        n,
         k,
-        numElementsC,
         numElementsCrowPtr,
         matrixA_GPU_values,
         matrixB_transpose_GPU_values,

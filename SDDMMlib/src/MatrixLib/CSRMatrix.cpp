@@ -123,14 +123,16 @@ void CSRMatrix<T>::SDDMM(
     const DenseMatrix<T>& x,
     const DenseMatrix<T>& y,
     SparseMatrix<T>& result,
+    const int num_iterations,
     std::function<void(
         const DenseMatrix<T>& x,
         const DenseMatrix<T>& y,
         const SparseMatrix<T>& z,
-        SparseMatrix<T>& result)> SDDMMFunc) const
+        SparseMatrix<T>& result,
+        const int num_iterations)> SDDMMFunc) const
 {
     // Call the SDDMM function from the library
-    SDDMMFunc(x, y, *this, result);
+    SDDMMFunc(x, y, *this, result, num_iterations);
 }
 
 template <typename T>

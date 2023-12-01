@@ -24,11 +24,13 @@ class COOMatrix : virtual public SparseMatrix<T>
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,
             SparseMatrix<T>& result,
+            const int num_iterations,
             std::function<void(
                 const DenseMatrix<T>& x,
                 const DenseMatrix<T>& y,
                 const SparseMatrix<T>& z,
-                SparseMatrix<T>& result)> SDDMMFunc)
+                SparseMatrix<T>& result,
+                const int num_iterations)> SDDMMFunc)
             const override;
         // getters
         virtual int getNumRows() const override;

@@ -31,6 +31,7 @@ runner<T>::~runner()
 template <typename T>
 void runner<T>::run()
 {
+    const int num_iterations = 10;
     init_result_file();
     // Create the matrices
     DenseMatrix<T> matrixA_dense_loader = DenseMatrix<T>();
@@ -68,13 +69,15 @@ void runner<T>::run()
             matrixB,
             matrixC,
             *calculatedSolution,
+            num_iterations,
             std::bind(
                 &SDDMMlib<T>::SDDMM,
                 sddmm_to_run,
                 std::placeholders::_1,
                 std::placeholders::_2,
                 std::placeholders::_3,
-                std::placeholders::_4));
+                std::placeholders::_4,
+                std::placeholders::_5));
 
         auto durations = timer.get_runtimes();
         // Append the result to the results list

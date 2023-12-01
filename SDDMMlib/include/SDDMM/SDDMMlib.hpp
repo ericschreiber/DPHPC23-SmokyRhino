@@ -14,7 +14,8 @@ class SDDMMlib
             const DenseMatrix<T>& matrixA_HOST,
             const DenseMatrix<T>& matrixB_HOST,
             const SparseMatrix<T>& matrixC_HOST,
-            SparseMatrix<T>& matrixResult_HOST) const = 0;
+            SparseMatrix<T>& matrixResult_HOST,
+            const int num_iterations) const = 0;
         virtual void start_run() const = 0;  // Start either cpu or gpu run
         virtual void stop_run() const = 0;   // Stop either cpu or gpu run
         void set_timer(ExecutionTimer* timer)

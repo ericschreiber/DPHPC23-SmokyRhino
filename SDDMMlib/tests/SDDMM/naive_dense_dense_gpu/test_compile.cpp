@@ -43,6 +43,8 @@ int main()
     DenseMatrix<float> expectedSolution_Dense(solution);
     CSRMatrix<float> expectedSolution_HOST(expectedSolution_Dense);
 
+    const int num_iterations = 1;
+
     // setup timer
     ExecutionTimer timer = ExecutionTimer();
     naive_SDDMM_GPU<float>* class_to_run = new naive_SDDMM_GPU<float>(&timer);
@@ -52,13 +54,15 @@ int main()
         matrixA_HOST,
         matrixB_HOST,
         calculatedSolution_HOST,
+        num_iterations,
         std::bind(
             &naive_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     std::cout << "Function returned" << std::endl;
 

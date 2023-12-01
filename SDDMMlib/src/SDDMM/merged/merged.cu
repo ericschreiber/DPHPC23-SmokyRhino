@@ -47,7 +47,7 @@ __device__ float tiled_dot_product_thread_subset_m(
         (matrixB_transposed_GPU_values + B_col_index * k) +  // the thing in parens is ptr to start of col of B that we are computing the dot prod with
         tiling_step * normal_tile_size;
     float sum_of_chunks = 0;
-    int numChunksInTile = ceilf((float)curr_tile_size / 4);  // ceil needed in case the current tile is smaller than 4
+    int numChunksInTile = numChunksInTile = (curr_tile_size + 3) >> 2;
     for (int i = threadIdx.x; i < numChunksInTile - 1; i += blockDim.x)
     {
         i = i << 2;  // shared mem is indexed in bytes
@@ -180,8 +180,8 @@ __global__ void merged_m(
 
     ////////////////    COPY TILE INTO SHARED MEM (NOW IN PARALLEL)    ////////////////
     __shared__ float tile[COMPUTATION_SHARED_MEM_BYTES];
-    int last_chunk_size = curr_tile_size & 3;                // this is less expensive than a modulo op
-    int numChunksInTile = ceilf((float)curr_tile_size / 4);  // ceil needed in case the current tile is smaller than 4
+    int last_chunk_size = curr_tile_size & 3;  // this is less expensive than a modulo op
+    int numChunksInTile = numChunksInTile = (curr_tile_size + 3) >> 2;
     const float* tile_start =
         matrixA_GPU_values + (row_index * k) +  // start of the row of A that we are working on
         (tile_index * COMPUTATION_SHARED_MEM);  // shift by the number of floats that are part of the previous tiles
@@ -198,10 +198,10 @@ __global__ void merged_m(
     // last chunk
     if (threadIdx.x == THREADS_PER_BLOCK - 1)
     {
-        for (int i = 0; i < last_chunk_size; i++)  // i now steps through the elems in a chunk (different to the loop above) i.e. no need to multiply by 4
+        for (int i = (numChunksInTile - 1) << 2; i < last_chunk_size; i++)  // i now steps through the elems in a chunk (different to the loop above) i.e. no need to multiply by 4
         {
             // cant unroll here because we only know last_chunk_size at runtime
-            tile[(numChunksInTile - 1) * 4 + i] = *(tile_start + (numChunksInTile - 1) * 4 + i);
+            tile[i] = *(tile_start + i);
         }
     }
 

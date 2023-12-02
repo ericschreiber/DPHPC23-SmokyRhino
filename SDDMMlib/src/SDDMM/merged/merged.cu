@@ -48,19 +48,22 @@ __device__ float tiled_dot_product_thread_subset_m(
     const float* B_col_tile_beginning =                      // don't want entire column but only a tile of it
         (matrixB_transposed_GPU_values + B_col_index * k) +  // the thing in parens is ptr to start of col of B that we are computing the dot prod with
         tiling_step * normal_tile_size;
-    float sum_of_chunks = 0;
+
+    // setup float4
+    const float4* tile_float4 = (float4*)tile;
+    const float4* B_col_tile_beginning_float4 = (float4*)B_col_tile_beginning;
+
+    float4 sum_of_chunks = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
     int numChunksInTile = (curr_tile_size + 3) >> 2;
-    int q;
     for (int i = tid; i < numChunksInTile - 1; i += bdim)
     {
-        q = i << 2;  // shared mem is indexed in bytes
         // compute the chunk of the dot product that this thread is responsible for
-        const float* vector1_beginning = tile + q;
-        const float* vector2_beginning = B_col_tile_beginning + q;
-        sum_of_chunks += vector1_beginning[0] * vector2_beginning[0];
-        sum_of_chunks += vector1_beginning[1] * vector2_beginning[1];
-        sum_of_chunks += vector1_beginning[2] * vector2_beginning[2];
-        sum_of_chunks += vector1_beginning[3] * vector2_beginning[3];
+        float4 vector1_beginning = tile_float4[i];
+        float4 vector2_beginning = B_col_tile_beginning_float4[i];
+        sum_of_chunks.x += vector1_beginning.x * vector2_beginning.x;
+        sum_of_chunks.y += vector1_beginning.y * vector2_beginning.y;
+        sum_of_chunks.z += vector1_beginning.z * vector2_beginning.z;
+        sum_of_chunks.w += vector1_beginning.w * vector2_beginning.w;
     }
     // let thread 0 take care of the last chunk (bc it might be smaller than 4)
     if (tid == THREADS_PER_BLOCK - 1)
@@ -69,26 +72,27 @@ __device__ float tiled_dot_product_thread_subset_m(
         for (int i = 0; i < loop_end; i++)
         {
             // cant unroll here because we only know last_chunk_size at runtime
-            sum_of_chunks += (tile + ((numChunksInTile - 1) << 2))[i] * (B_col_tile_beginning + ((numChunksInTile - 1) << 2))[i];
+            sum_of_chunks.x += (tile + ((numChunksInTile - 1) << 2))[i] * (B_col_tile_beginning + ((numChunksInTile - 1) << 2))[i];
         }
     }
 
+    float sum_of_chunks_synced = sum_of_chunks.x + sum_of_chunks.y + sum_of_chunks.z + sum_of_chunks.w;
     __syncthreads();  // all threads wait togehter here before we reduce their results
 
     // WARP-WIDE REDUCTION
     // i.e. reduce the sum_of_chunks varible (that each thread has) into one value per warp
     // this used to be a loop but we unrolled it bc why not (maybe the compiler can do some optimizations w/ it now)
-    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 16);
-    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 8);
-    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 4);
-    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 2);
-    sum_of_chunks += __shfl_down_sync(0xffffffff, sum_of_chunks, 1);
+    sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 16);
+    sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 8);
+    sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 4);
+    sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 2);
+    sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 1);
 
     // COMMUNICATE RESULTS VIA SHARED MEMORY
     // 1: each "first thread" of a warp writes the sum into shared mem
     if ((tid & 0x1f) == 0)  // 0x1f = 31 = 11111 in binary
     {
-        reduction_space[tid >> 5] = sum_of_chunks;
+        reduction_space[tid >> 5] = sum_of_chunks_synced;
     }
     __syncthreads();
 

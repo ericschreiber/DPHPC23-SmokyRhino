@@ -50,8 +50,8 @@ __device__ float tiled_dot_product_thread_subset_m(
         tiling_step * normal_tile_size;
 
     // setup float4
-    const float4* tile_float4 = (float4*)tile;
-    const float4* B_col_tile_beginning_float4 = (float4*)B_col_tile_beginning;
+    const float4* tile_float4 = (const float4*)tile;
+    const float4* B_col_tile_beginning_float4 = (const float4*)B_col_tile_beginning;
 
     float4 sum_of_chunks = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
     int numChunksInTile = (curr_tile_size + 3) >> 2;

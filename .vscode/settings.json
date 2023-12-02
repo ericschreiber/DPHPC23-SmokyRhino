@@ -79,7 +79,8 @@
         "variant": "cpp",
         "__nullptr": "cpp",
         "__string": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "ranges": "cpp"
     },
     "cmake.sourceDirectory": "${workspaceFolder}",
     "cmake.configureArgs": [

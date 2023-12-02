@@ -97,6 +97,9 @@ void merged<float>::SDDMM_COO(
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
+    // zero out the result matrix
+    CUDA_CHECK(cudaMemset(matrixResult_GPU_values, 0, numElementsC * sizeof(float)));
+
     this->start_run();
     // Just for timing reasons, that it is not too good we include this into the timing. because also with CSR we need to
     // compute the row indices for the COO matrix

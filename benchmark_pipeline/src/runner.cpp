@@ -88,8 +88,8 @@ void runner<T>::run()
         {
             // This should never happen with our code and if it does the correctness test will crash. But at least we get some info as to why before we crash
             std::string msg = "Pipeline Runner cannot run your test because you are using neither COO nor CSR format. Please implement the corrsponding basecase in the runner first.";
-            _results.push_back(std::make_tuple(function_class, sparse_matrix_class, dataset, msg));
-            write_result();
+            // _results.push_back(std::make_tuple(function_class, sparse_matrix_class, msg));
+            // write_result();
             std::cout << msg << std::endl;
             test_passed = false;
         }
@@ -136,8 +136,8 @@ void runner<T>::run()
         else
         {
             std::string msg = "This function failed the correctness test, therefore no profiling was done.";
-            _results.push_back(std::make_tuple(function_class, sparse_matrix_class, dataset, msg));
-            write_result();
+            // _results.push_back(std::make_tuple(function_class, sparse_matrix_class, dataset, msg));
+            // write_result();
             std::cout << function_class + msg << std::endl;
             test_passed = false;
         }

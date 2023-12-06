@@ -31,7 +31,7 @@ runner<T>::~runner()
 template <typename T>
 void runner<T>::run()
 {
-    const int num_iterations_profiling = 10;
+    const int num_iterations_profiling = 3;
     init_result_file();
     // Create the matrices
     DenseMatrix<T> matrixA_dense_loader = DenseMatrix<T>();
@@ -72,7 +72,7 @@ void runner<T>::run()
         SparseMatrix<T>* calculation_onCPU = get_implemented_SparseMatrix<T>(sparse_matrix_class, matrixA_dense_loader.getNumRows(), matrixC.getNumCols());
 
         bool test_passed;
-        SDDMMlib<T>* class_onCPU = new naive_CPU_SDDMM<T>(&timer_onCPU);
+        SDDMMlib<T>* class_onCPU = new naive_SDDMM_GPU<T>(&timer_onCPU);
         SparseMatrix<T>* matrixA_onCPU;
 
         // Distinguish between matrix formats, to use the correct layout of A
@@ -82,7 +82,8 @@ void runner<T>::run()
         }
         else if (sparse_matrix_class == "COOMatrix")
         {
-            matrixA_onCPU = get_implemented_SparseMatrix<T>("COOMatrix", matrixA_dense_loader);
+            matrixA_onCPU = get_implemented_SparseMatrix<T>("CSRMatrix", matrixA_dense_loader);
+            std::cout << "We greebed a CSR matrix, too" << std::endl;
         }
         else
         {
@@ -100,7 +101,7 @@ void runner<T>::run()
             matrixB,
             matrixC,
             *calculation_onCPU,
-            num_iterations_profiling,
+            num_iterations_testing,
             std::bind(
                 &SDDMMlib<T>::SDDMM,
                 class_onCPU,
@@ -112,6 +113,7 @@ void runner<T>::run()
 
         delete class_onCPU;
         class_onCPU = nullptr;
+        std::cout << "Finished computation of golden Model" << std::endl;
 
         // Running the GPU version
         matrixA->SDDMM(
@@ -129,24 +131,30 @@ void runner<T>::run()
                 std::placeholders::_5));
 
         // Checking if the two versions actually returned correctly
+        std::cout << "We shall now test for correctness" << std::endl;
         if (*calculatedSolution == *calculation_onCPU)
         {
             test_passed = true;
+            std::cout << "CONGRATULATIONS!! You passed the correctness test. Now moving on to the acutal profiling!" << std::endl;
         }
         else
         {
             std::string msg = "This function failed the correctness test, therefore no profiling was done.";
             // _results.push_back(std::make_tuple(function_class, sparse_matrix_class, dataset, msg));
             // write_result();
+            std::cout << "FUCK we set test passed to false!" << std::endl;
             std::cout << function_class + msg << std::endl;
             test_passed = false;
         }
 
+        delete matrixA_onCPU;
+        matrixA_onCPU = nullptr;
         delete calculation_onCPU;
         calculation_onCPU = nullptr;
 
         if (test_passed)
         {
+            std::cout << "entered if to do profiling" << std::endl;
             // Actually do the profiling
             // Run the function
             matrixA->SDDMM(
@@ -163,10 +171,13 @@ void runner<T>::run()
                     std::placeholders::_4,
                     std::placeholders::_5));
 
+            std::cout << "Finished profiling" << std::endl;
+
             auto durations = timer.get_runtimes();
             // Append the result to the results list
             _results.push_back(std::make_tuple(function_class, sparse_matrix_class, dataset, durations));
             write_result();
+            std::cout << "result is written" << std::endl;
         }
 
         delete sddmm_to_run;

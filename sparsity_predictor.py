@@ -10,10 +10,10 @@ for target in targets:
             print("target: ", target)
             print("counter: ", counter)
             print("modulo 32: ", counter % 32)
-            print("fit remoddel: ", (counter + (32 - (counter % 32))) * (counter - (counter % 32)) <= memory_size)
+            print("fit remoddel: ", (counter + (32 - (counter % 32))) * (counter - (counter % 32)) * 2 <= memory_size)
             print("fit remoddel size: ", (counter + (32 - (counter % 32))) * (counter - (counter % 32)))
             print("fit remoddel dim: ", (counter + (32 - (counter % 32))), "x", (counter - (counter % 32)))
-            print("fit remoddel diff: ", abs(memory_size - ((counter + (32 - (counter % 32))) * (counter - (counter % 32)))))
+            print("fit remoddel diff: ", abs(memory_size - 2 * ((counter + (32 - (counter % 32))) * (counter - (counter % 32)))))
             print("----------------------------")
             break  
         sum += sparity

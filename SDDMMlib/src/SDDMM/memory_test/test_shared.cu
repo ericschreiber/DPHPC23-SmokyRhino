@@ -56,24 +56,6 @@ __global__ void memory_test_shared(
         B[i + 2] = sA[i + 2] + 1;
         B[i + 3] = sA[i + 3] + 1;
     }
-
-    __syncthreads();
-    for (int i = 12284 - (idx << 2); i >= 0; i -= (blockDim.x << 2))
-    {
-        B[i] = sA[i] + 1;
-        B[i + 1] = sA[i + 1] + 1;
-        B[i + 2] = sA[i + 2] + 1;
-        B[i + 3] = sA[i + 3] + 1;
-    }
-
-    __syncthreads();
-    for (int i = (idx << 2); i < 12288; i += (blockDim.x << 2))
-    {
-        B[i] = sA[i] + 1;
-        B[i + 1] = sA[i + 1] + 1;
-        B[i + 2] = sA[i + 2] + 1;
-        B[i + 3] = sA[i + 3] + 1;
-    }
 }
 
 void testing_shared(

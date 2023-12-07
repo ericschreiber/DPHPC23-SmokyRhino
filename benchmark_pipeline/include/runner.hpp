@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 
+#include "DenseMatrix.hpp"
+#include "SDDMMlib.hpp"
+#include "SparseMatrix.hpp"
+
 template <typename T>
 class runner
 {
@@ -18,6 +22,8 @@ class runner
     private:
         void write_result();
         void init_result_file();
+
+        bool test_function(const SparseMatrix<T>* const matrixA, const DenseMatrix<T>& matrixB, const DenseMatrix<T>& matrixC, const SDDMMlib<T>* const sddmm_to_run, const std::string sparse_matrix_class, const std::string function_class, const std::string sparse_matrix_path);
 
         std::string _out_path;
         std::string _results_file_path;

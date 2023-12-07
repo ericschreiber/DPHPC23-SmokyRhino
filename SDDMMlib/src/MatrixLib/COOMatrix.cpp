@@ -1,6 +1,7 @@
 #include "COOMatrix.hpp"
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 
 //////////////// CONSTRUCTORS ////////////////
@@ -171,22 +172,76 @@ void COOMatrix<T>::setColIndices(const std::vector<int>& colIndices)
 template <typename T>
 void COOMatrix<T>::readFromFile(const std::string& filePath)
 {
-    // TODO: do we even need this since the matrix generation script is
-    // generating CSR matrices (and the matrix generation script is
-    // the only place where we want to save matrices to a file
-    // (if I am not mistaken))?
-    //
-    // throw not implemented error for now
-    throw std::runtime_error("error: COOMatrix<T>::readFromFile() not implemented");
+    // Load from matrix market format:
+    // https://math.nist.gov/MatrixMarket/formats.html
+    // All % are comments and should be ignored
+    // The first line  without % is
+    // numRows numCols numNonZeros
+    // The rest of the lines are
+    // rowIndex colIndex value
+    // where rowIndex and colIndex are 1-indexed
+
+    // open file
+    std::ifstream file(filePath);
+    assert(file.is_open() && "Error: Could not open file for reading");
+
+    // ignore comments
+    while (file.peek() == '%')
+    {
+        file.ignore(2048, '\n');
+    }
+
+    // Read numRows, numCols, and the number of non-zero values from the file
+    int numNonZeros;
+    file >> this->numRows >> this->numCols >> numNonZeros;
+
+    printf("numRows: %d\n", this->numRows);
+    printf("numCols: %d\n", this->numCols);
+
+    // resize vectors
+    this->values.resize(numNonZeros);
+    this->rowIndices.resize(numNonZeros);
+    this->colIndices.resize(numNonZeros);
+
+    // Read the rest
+    for (int i = 0; i < numNonZeros; ++i)
+    {
+        file >> this->rowIndices[i] >> this->colIndices[i] >> this->values[i];
+        // convert to 0-indexed
+        this->rowIndices[i]--;
+        this->colIndices[i]--;
+    }
+
+    file.close();
 }
 
 template <typename T>
 void COOMatrix<T>::writeToFile(const std::string& filePath) const
 {
-    // TODO: same comment as in readFromFile
-    //
-    // throw not implemented error for now
-    throw std::runtime_error("error: COOMatrix<T>::writeToFile() not implemented");
+    // Write to matrix market format:
+    // https://math.nist.gov/MatrixMarket/formats.html
+    // All % are comments and should be ignored
+    // The first line  without % is
+    // numRows numCols numNonZeros
+    // The rest of the lines are
+    // rowIndex colIndex value
+    // where rowIndex and colIndex are 1-indexed
+
+    // open file
+    std::ofstream file(filePath);
+    assert(file.is_open() && "Error: Could not open file for writing");
+
+    // Write numRows, numCols, and the number of non-zero values to the file
+    file << this->numRows << " " << this->numCols << " " << this->values.size() << std::endl;
+
+    // Write the rest
+    for (int i = 0; i < this->values.size(); ++i)
+    {
+        // convert to 1-indexed
+        file << this->rowIndices[i] + 1 << " " << this->colIndices[i] + 1 << " " << this->values[i] << std::endl;
+    }
+
+    file.close();
 }
 
 //////////////// OTHER ////////////////

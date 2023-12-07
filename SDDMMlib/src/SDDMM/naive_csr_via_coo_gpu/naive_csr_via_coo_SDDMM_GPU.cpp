@@ -22,6 +22,7 @@ void naive_csr_via_coo_SDDMM_GPU<float>::SDDMM(
     }
     else
     {
+        std::cout << "Starting computation of naive_csr_via_coo_SDDMM_GPU" << std::endl;
         SDDMM_CSR(
             matrixA_HOST,
             matrixB_HOST,
@@ -68,12 +69,14 @@ void naive_csr_via_coo_SDDMM_GPU<float>::SDDMM_CSR(
     CSRMatrix<float>& matrixResult_HOST,
     const int num_iterations) const
 {
+    std::cout << "Entered SDDMM_CSR" << std::endl;
     // Get all the sizes (A=mxk; B=kxn; C=mxn; Result=mxn)
     int m = matrixA_HOST.getNumRows();
     int k = matrixA_HOST.getNumCols();
     int n = matrixB_HOST.getNumCols();
     int numElementsC = matrixC_HOST.getValues().size();
     int rowPtrSizeC = matrixC_HOST.getRowArray().size();
+    std::cout << "m: " << m << std::endl;
 
     // check the dimensions of the matrices s.t. we can multiply them
     assert(matrixB_HOST.getNumRows() == k && "Error: matrixB has incompatible dimensions");

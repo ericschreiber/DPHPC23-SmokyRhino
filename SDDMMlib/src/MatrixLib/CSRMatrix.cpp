@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "COOMatrix.hpp"
+
 template <typename T>
 CSRMatrix<T>::CSRMatrix()
 {
@@ -74,6 +76,135 @@ CSRMatrix<T>::CSRMatrix(const CSRMatrix& other)
     values = other.values;
     colIndices = other.colIndices;
     rowPtr = other.rowPtr;
+}
+
+// template <typename T>
+// CSRMatrix<T>::CSRMatrix(const SparseMatrix<T>& other)
+// {
+//     std::cout << "CSRMatrix copy constructor from SparseMatrix" << std::endl;
+//     // Check if the other matrix is CSR
+//     const CSRMatrix<T>* possibly_csrMatrix = dynamic_cast<const CSRMatrix<T>*>(&other);
+//     if (possibly_csrMatrix == nullptr)
+//     {
+//         const COOMatrix<T>* cooMatrix = dynamic_cast<const COOMatrix<T>*>(&other);
+//         if (cooMatrix == nullptr)
+//         {
+//             std::cout << "Error: Matrix is not CSR or COO" << std::endl;
+//             return;
+//         }
+//         std::cout
+//             << "CSRMatrix copy constructor from COOMatrix" << std::endl;
+
+//         // Is COO
+//         // Convert a COO matrix to CSR format
+//         this->numCols = cooMatrix->getNumCols();
+//         this->numRows = cooMatrix->getNumRows();
+
+//         this->values = cooMatrix->getValues();
+//         this->colIndices = cooMatrix->getColIndices();
+
+//         int numElementsC = getNumValues();
+//         int numrows = numRows;
+//         const std::vector<int> matrixC_CPU_row_indices = cooMatrix->getRowArray();
+
+//         // Compute the row pointer array for the sampling matrix
+//         std::vector<int> matrixC_CPU_row_ptr;
+//         int ptr = 0;
+//         matrixC_CPU_row_ptr.push_back(0);
+//         for (int i = 0; i < numrows; i++)
+//         {
+//             if (ptr < numElementsC && i < matrixC_CPU_row_indices[ptr])
+//             {
+//                 matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+//             }
+//             else if (ptr >= numElementsC)
+//             {
+//                 matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+//             }
+//             else
+//             {
+//                 int counter = 0;
+//                 while (ptr < numElementsC && i == matrixC_CPU_row_indices[ptr])
+//                 {
+//                     counter++;
+//                     ptr++;
+//                 }
+//                 matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i] + counter);
+//             }
+//         }
+//         this->rowPtr = matrixC_CPU_row_ptr;
+//     }
+//     else
+//     {
+//         std::cout << "CSRMatrix copy constructor from CSRMatrix" << std::endl;
+
+//         // printf("Type of possibly_csrMatrix: %s\n", typeid(*possibly_csrMatrix).name());
+//         // printf("Type of other: %s\n", typeid(other).name());
+//         // printf("CSRMatrix copy constructor done, other.getNumRows() = %d\n", other.getNumRows());
+//         // printf("CSRMatrix copy constructor done, possibly_csrMatrix->getNumRows() = %d\n", possibly_csrMatrix->getNumRows());
+//         std::cout << "Type of possibly_csrMatrix: " << typeid(*possibly_csrMatrix).name() << std::endl;
+//         std::cout << "Type of other: " << typeid(other).name() << std::endl;
+//         std::cout << "CSRMatrix copy constructor done, other.getNumRows() = " << other.getNumRows() << std::endl;
+//         std::cout << "CSRMatrix copy constructor done, possibly_csrMatrix->getNumRows() = " << possibly_csrMatrix->getNumRows() << std::endl;
+//         // Is CSR
+//         // Copy constructor
+//         numRows = possibly_csrMatrix->getNumRows();
+//         std::cout << "CSRMatrix copy constructor done, numRows = " << numRows << std::endl;
+//         numCols = possibly_csrMatrix->getNumCols();
+//         std::cout << "CSRMatrix copy constructor done, numCols = " << numCols << std::endl;
+//         values = possibly_csrMatrix->getValues();
+//         std::cout << "CSRMatrix copy constructor done, values.size() = " << values.size() << std::endl;
+//         colIndices = possibly_csrMatrix->getColIndices();
+//         std::cout << "CSRMatrix copy constructor done, colIndices.size() = " << colIndices.size() << std::endl;
+//         rowPtr = possibly_csrMatrix->getRowArray();
+//     }
+//     std::cout << "CSRMatrix copy constructor done, deleting stuff" << std::endl;
+
+//     delete possibly_csrMatrix;
+//     possibly_csrMatrix = nullptr;
+//     std::cout << "CSRMatrix copy constructor done" << std::endl;
+// }
+
+// this constructor is used to convert a COO Sparse Matrix to CSR format
+template <typename T>
+CSRMatrix<T>::CSRMatrix(const COOMatrix<T>& cooMatrix)
+{
+    this->numCols = cooMatrix.getNumCols();
+    this->numRows = cooMatrix.getNumRows();
+
+    this->values = cooMatrix.getValues();
+    this->colIndices = cooMatrix.getColIndices();
+
+    int numElementsC = getNumValues();
+    int numrows = numRows;
+    const std::vector<int> matrixC_CPU_row_indices = cooMatrix.getRowArray();
+
+    // Compute the row pointer array for the sampling matrix
+    std::vector<int> matrixC_CPU_row_ptr;
+    int ptr = 0;
+    matrixC_CPU_row_ptr.push_back(0);
+    for (int i = 0; i < numrows; i++)
+    {
+        if (ptr < numElementsC && i < matrixC_CPU_row_indices[ptr])
+        {
+            matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+        }
+        else if (ptr >= numElementsC)
+        {
+            matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+        }
+        else
+        {
+            int counter = 0;
+            while (ptr < numElementsC && i == matrixC_CPU_row_indices[ptr])
+            {
+                counter++;
+                ptr++;
+            }
+            matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i] + counter);
+        }
+    }
+    this->rowPtr = matrixC_CPU_row_ptr;
 }
 
 template <typename T>

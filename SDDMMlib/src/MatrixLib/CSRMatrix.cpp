@@ -67,6 +67,48 @@ CSRMatrix<T>::CSRMatrix(const DenseMatrix<T>& denseMatrix)
     }
 }
 
+// this constructor is used to convert a COO Sparse Matrix to CSR format
+template <typename T>
+CSRMatrix<T>::CSRMatrix(const COOMatrix<T>& cooMatrix)
+{
+    this->numCols = cooMatrix.getNumCols();
+    this->numRows = cooMatrix.getNumRows();
+
+    this->values = cooMatrix.getValues();
+    this->colIndices = cooMatrix.getColIndices();
+
+    int numElementsC = getNumValues();
+    int numrows = numRows;
+    const std::vector<int> matrixC_CPU_row_indices = cooMatrix.getRowArray();
+
+    // Compute the row pointer array for the sampling matrix
+    std::vector<int> matrixC_CPU_row_ptr;
+    int ptr = 0;
+    matrixC_CPU_row_ptr.push_back(0);
+    for (int i = 0; i < numrows; i++)
+    {
+        if (ptr < numElementsC && i < matrixC_CPU_row_indices[ptr])
+        {
+            matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+        }
+        else if (ptr >= numElementsC)
+        {
+            matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+        }
+        else
+        {
+            int counter = 0;
+            while (ptr < numElementsC && i == matrixC_CPU_row_indices[ptr])
+            {
+                counter++;
+                ptr++;
+            }
+            matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i] + counter);
+        }
+    }
+    this->rowPtr = matrixC_CPU_row_ptr;
+}
+
 template <typename T>
 CSRMatrix<T>::CSRMatrix(const CSRMatrix& other)
 {

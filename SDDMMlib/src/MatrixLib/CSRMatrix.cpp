@@ -1,6 +1,8 @@
 // CSRMatrix.cpp
 #include "CSRMatrix.hpp"
 
+#include <math.h>
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -310,16 +312,16 @@ template <typename T>
 bool CSRMatrix<T>::isEqual(const SparseMatrix<T>& other) const
 {
     // Check if the dimensions are the same
-    if (numRows != other.getNumCols() || numCols != other.getNumCols())
+    if (numRows != other.getNumRows() || numCols != other.getNumCols())
     {
         std::cout << "Error: Dimensions are not the same" << std::endl;
         return false;
     }
 
-    // Check if the values are the same
+    std::vector<T> otherValues = other.getValues();
     for (int i = 0; i < values.size(); ++i)
     {
-        if (values[i] - other.getValues()[i] > 1e-4)
+        if (fabs(values[i] - otherValues[i]) > 0.0001)
         {
             std::cout << "Error: Values are not the same" << std::endl;
             for (int i = 0; i < values.size(); ++i)

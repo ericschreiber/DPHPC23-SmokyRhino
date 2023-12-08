@@ -1,6 +1,7 @@
 #include "COOMatrix.hpp"
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 
 //////////////// CONSTRUCTORS ////////////////
@@ -116,8 +117,7 @@ const std::vector<int>& COOMatrix<T>::getColIndices() const
     return this->colIndices;
 }
 
-//////////////// SETTERS ////////////////
-
+// I think this is a getter and not a setter
 template <typename T>
 T COOMatrix<T>::at(int row, int col) const
 {
@@ -147,6 +147,20 @@ T COOMatrix<T>::at(int row, int col) const
     return 0;
 }
 
+//////////////// SETTERS ////////////////
+
+template <typename T>
+void COOMatrix<T>::setNumRows(int numRows)
+{
+    this->numRows = numRows;
+}
+
+template <typename T>
+void COOMatrix<T>::setNumCols(int numCols)
+{
+    this->numCols = numCols;
+}
+
 template <typename T>
 void COOMatrix<T>::setValues(const std::vector<T>& values)
 {
@@ -170,22 +184,46 @@ void COOMatrix<T>::setColIndices(const std::vector<int>& colIndices)
 template <typename T>
 void COOMatrix<T>::readFromFile(const std::string& filePath)
 {
-    // TODO: do we even need this since the matrix generation script is
-    // generating CSR matrices (and the matrix generation script is
-    // the only place where we want to save matrices to a file
-    // (if I am not mistaken))?
-    //
-    // throw not implemented error for now
-    throw std::runtime_error("error: COOMatrix<T>::readFromFile() not implemented");
+    // format is:
+    // <rowIndex> <colIndex> <value> \n
+    // <rowIndex> <colIndex> <value> \n
+    // ...
+    std::ifstream file(filePath);
+    assert(file.is_open() && "Error: Could not open file for reading");
+
+    int rowIndex, colIndex;
+    T value;
+    while (file >> rowIndex >> colIndex >> value)
+    {
+        this->rowIndices.push_back(rowIndex);
+        this->colIndices.push_back(colIndex);
+        this->values.push_back(value);
+    }
+
+    file.close();
 }
 
 template <typename T>
 void COOMatrix<T>::writeToFile(const std::string& filePath) const
 {
-    // TODO: same comment as in readFromFile
-    //
-    // throw not implemented error for now
-    throw std::runtime_error("error: COOMatrix<T>::writeToFile() not implemented");
+    // format is:
+    // <rowIndex> <colIndex> <value> \n
+    // <rowIndex> <colIndex> <value> \n
+    // ...
+
+    std::ofstream file(filePath);
+    if (!file.is_open())
+    {
+        std::cerr << "Error: Could not open file for writing: " << filePath << std::endl;
+    }
+
+    // Write the actual matrix content
+    for (int runner = 0; runner < values.size(); runner++)
+    {
+        file << rowIndices[runner] << " " << colIndices[runner] << " " << values[runner] << std::endl;
+    }
+
+    file.close();
 }
 
 //////////////// OTHER ////////////////

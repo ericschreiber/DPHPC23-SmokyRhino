@@ -172,7 +172,7 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM(
     SparseMatrix<float>& matrixResult_HOST,
     const int num_iterations) const
 {
-    assert(false && "Error: semi_naive_CSR_SDDMM_GPU::SDDMM() THIS IMPLEMENTATION IS WRONG AND SHOULD BE FIXED FIRST.");
+    // assert(false && "Error: semi_naive_CSR_SDDMM_GPU::SDDMM() THIS IMPLEMENTATION IS WRONG AND SHOULD BE FIXED FIRST.");
     const CSRMatrix<float>* csrMatrixC = dynamic_cast<const CSRMatrix<float>*>(&matrixC_HOST);
     CSRMatrix<float>* csrMatrixResult = dynamic_cast<CSRMatrix<float>*>(&matrixResult_HOST);
     if (csrMatrixC == nullptr || csrMatrixResult == nullptr)
@@ -181,48 +181,6 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM(
     }
     else
     {
-        std::cout << "semi_naive_CSR_SDDMM_GPU<float>::SDDMM() called" << std::endl;
-        std::cout << "matrixA_HOST: \n";
-        for (int i = 0; i < matrixA_HOST.getNumRows(); i++)
-        {
-            for (int j = 0; j < matrixA_HOST.getNumCols(); j++)
-            {
-                std::cout << matrixA_HOST.at(i, j) << " ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-        std::cout << "matrixB_HOST: \n";
-        for (int i = 0; i < matrixB_HOST.getNumRows(); i++)
-        {
-            for (int j = 0; j < matrixB_HOST.getNumCols(); j++)
-            {
-                std::cout << matrixB_HOST.at(i, j) << " ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-        std::cout << "matrixC_HOST: \n";
-        for (int i = 0; i < matrixC_HOST.getNumRows(); i++)
-        {
-            for (int j = 0; j < matrixC_HOST.getNumCols(); j++)
-            {
-                std::cout << matrixC_HOST.at(i, j) << " ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-        std::cout << "csrMatrixC: \n";
-        for (int i = 0; i < csrMatrixC->getNumRows(); i++)
-        {
-            for (int j = 0; j < csrMatrixC->getNumCols(); j++)
-            {
-                std::cout << csrMatrixC->at(i, j) << " ";
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-
         SDDMM_CSR(
             matrixA_HOST,
             matrixB_HOST,

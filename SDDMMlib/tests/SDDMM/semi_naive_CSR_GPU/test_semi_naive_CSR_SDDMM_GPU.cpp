@@ -193,7 +193,7 @@ void test_complex_copy_from_coo()
     class_to_run = nullptr;
 
     // Check if the calculated solution is equal to the expected solution
-    if (!(calculatedSolution == expectedSolution))
+    if (calculatedSolution == expectedSolution)
     {
         std::cout << "Test passed!" << std::endl;
     }
@@ -204,6 +204,13 @@ void test_complex_copy_from_coo()
         for (int i = 0; i < calculatedValues.size(); ++i)
         {
             std::cout << calculatedValues.at(i) << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "Expected solution is: " << std::endl;
+        auto expectedValues = expectedSolution.getValues();
+        for (int i = 0; i < expectedValues.size(); ++i)
+        {
+            std::cout << expectedValues.at(i) << " ";
         }
         std::cout << std::endl;
         assert(false && "Test failed! Calculated solution is not equal to the expected solution.");

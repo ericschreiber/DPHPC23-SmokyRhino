@@ -43,7 +43,8 @@ __device__ float tiled_dot_product_thread_subset_m(
     const float* matrixB_transposed_GPU_values,
     const int B_col_index,  // indexes the col of B that we are computing the dot prod with in this method call
     const int k,            // number of rows of B
-    float* reduction_space)
+    float* reduction_space,
+    int numChunksInTile)
 {
     const float* B_col_tile_beginning =                      // don't want entire column but only a tile of it
         (matrixB_transposed_GPU_values + B_col_index * k) +  // the thing in parens is ptr to start of col of B that we are computing the dot prod with
@@ -54,7 +55,6 @@ __device__ float tiled_dot_product_thread_subset_m(
     const float4* B_col_tile_beginning_float4 = (const float4*)B_col_tile_beginning;
 
     float4 sum_of_chunks = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    int numChunksInTile = (curr_tile_size + 3) >> 2;
     for (int i = tid; i < numChunksInTile - 1; i += bdim)
     {
         // compute the chunk of the dot product that this thread is responsible for
@@ -181,10 +181,10 @@ __global__ void merged_m(
     // last chunk
     if (tid == THREADS_PER_BLOCK - 1)
     {
-        for (int i = (numChunksInTile - 1) << 2; i < last_chunk_size; i++)  // i now steps through the elems in a chunk (different to the loop above) i.e. no need to multiply by 4
+        for (int i = 0; i < last_chunk_size; i++)  // i now steps through the elems in a chunk (different to the loop above) i.e. no need to multiply by 4
         {
             // cant unroll here because we only know last_chunk_size at runtime
-            tile[i] = *(tile_start + i);
+            tile[i] = *(tile_start + ((numChunksInTile - 1) << 2) + i);
         }
     }
 
@@ -205,7 +205,8 @@ __global__ void merged_m(
             matrixB_transposed_GPU_values,
             matrixC_GPU_col_indices[elem_index],  // col of B for dot product is the same col in which the nonzero of C sits
             k,
-            reduction_space);
+            reduction_space,
+            numChunksInTile);
         if (tid == 0)  // in tiled_dot_product_thread_subset only thread 0 returns something so only it needs to do the addition
         {
             atomicAdd(&matrixResult_GPU_values[elem_index], dot_prod * matrixC_GPU_values[elem_index]);

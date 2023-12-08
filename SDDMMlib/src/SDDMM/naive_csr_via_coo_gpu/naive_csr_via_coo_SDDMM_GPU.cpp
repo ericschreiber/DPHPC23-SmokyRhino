@@ -14,6 +14,8 @@ void naive_csr_via_coo_SDDMM_GPU<float>::SDDMM(
     SparseMatrix<float>& matrixResult_HOST,
     const int num_iterations) const
 {
+    assert(false && "Error: naive_csr_via_coo_SDDMM_GPU::SDDMM() is not correct. CSR -> COO conversion in the gpu is implemented incorrectly.");
+
     const CSRMatrix<float>* csrMatrixC = dynamic_cast<const CSRMatrix<float>*>(&matrixC_HOST);
     CSRMatrix<float>* csrMatrixResult = dynamic_cast<CSRMatrix<float>*>(&matrixResult_HOST);
     if (csrMatrixC == nullptr || csrMatrixResult == nullptr)

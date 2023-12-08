@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 
 //////////////// CONSTRUCTORS ////////////////
 template <typename T>
@@ -53,6 +54,17 @@ COOMatrix<T>::COOMatrix(const DenseMatrix<T>& denseMatrix)
         }
         valuesPointer++;
     }
+}
+
+// this constructor is used to copy a COO matrix
+template <typename T>
+COOMatrix<T>::COOMatrix(const COOMatrix& other)
+{
+    this->numRows = other.getNumRows();
+    this->numCols = other.getNumCols();
+    this->values = other.getValues();
+    this->rowIndices = other.getRowArray();
+    this->colIndices = other.getColIndices();
 }
 
 //////////////// SDDMM ////////////////
@@ -167,6 +179,35 @@ void COOMatrix<T>::setColIndices(const std::vector<int>& colIndices)
     this->colIndices = colIndices;
 }
 
+template <typename T>
+void COOMatrix<T>::make_col_major()
+{
+    // Create a vector of indices to be sorted
+    std::vector<int> indices(rowIndices.size());
+    std::iota(indices.begin(), indices.end(), 0);
+
+    // Sort the indices based on rows and then columns
+    std::sort(indices.begin(), indices.end(), [&](int a, int b)
+              { return (rowIndices[a] < rowIndices[b]) || (rowIndices[a] == rowIndices[b] && colIndices[a] < colIndices[b]); });
+
+    // Reorder the vectors based on the sorted indices
+    std::vector<int> sortedRows(rowIndices.size());
+    std::vector<int> sortedCols(colIndices.size());
+    std::vector<T> sortedValues(values.size());
+
+    for (size_t i = 0; i < indices.size(); ++i)
+    {
+        sortedRows[i] = rowIndices[indices[i]];
+        sortedCols[i] = colIndices[indices[i]];
+        sortedValues[i] = values[indices[i]];
+    }
+
+    // Update the original vectors
+    this->rowIndices = sortedRows;
+    this->colIndices = sortedCols;
+    this->values = sortedValues;
+}
+
 //////////////// FILE IO ////////////////
 
 template <typename T>
@@ -195,6 +236,8 @@ void COOMatrix<T>::readFromFile(const std::string& filePath)
     int numNonZeros;
     file >> this->numRows >> this->numCols >> numNonZeros;
 
+    assert(numNonZeros > 0 && "Error: Number of non-zero values must be positive");
+
     // resize vectors
     this->values.resize(numNonZeros);
     this->rowIndices.resize(numNonZeros);
@@ -210,6 +253,8 @@ void COOMatrix<T>::readFromFile(const std::string& filePath)
     }
 
     file.close();
+
+    make_col_major();
 }
 
 template <typename T>

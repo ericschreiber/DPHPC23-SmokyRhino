@@ -19,6 +19,7 @@ class COOMatrix : virtual public SparseMatrix<T>
         COOMatrix();                              // Default constructor
         COOMatrix(int rows, int cols);            // Constructor for an empty COO matrix
         COOMatrix(const DenseMatrix<T>& values);  // Constructor from dense matrix
+        COOMatrix(const COOMatrix& other);        // Copy constructor
         // SDDMM
         virtual void SDDMM(
             const DenseMatrix<T>& x,
@@ -57,6 +58,7 @@ class COOMatrix : virtual public SparseMatrix<T>
         int numRows;
         int numCols;
         virtual bool isEqual(const SparseMatrix<T>& other) const override;
+        void make_col_major();
 };
 
 #endif

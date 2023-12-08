@@ -334,16 +334,6 @@ bool CSRMatrix<T>::isEqual(const SparseMatrix<T>& other) const
         }
     }
 
-    // if (values != other.getValues())
-    // {
-    //     std::cout << "Error: Values are not the same" << std::endl;
-    //     for (int i = 0; i < values.size(); ++i)
-    //     {
-    //         std::cout << values[i] << " " << other.getValues()[i] << std::endl;
-    //     }
-    //     return false;
-    // }
-
     // Check if the column indices are the same
     if (colIndices != other.getColIndices())
     {

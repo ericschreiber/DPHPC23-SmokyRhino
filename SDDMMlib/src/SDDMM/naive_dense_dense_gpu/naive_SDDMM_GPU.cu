@@ -18,13 +18,15 @@ void my_naive_sampling(
 
 void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     const DenseMatrix<float>& matrixA_HOST,
-    const DenseMatrix<float>& matrixB_transpose_HOST,
+    const DenseMatrix<float>& matrixB_HOST,
     const DenseMatrix<float>& matrixC_HOST,
     DenseMatrix<float>& matrixResult_dense_HOST,
     const int num_iterations) const
 {
     // start the profiler
     // CUDA_CHECK(cudaProfilerStart());
+    DenseMatrix<float> matrixB_transpose_HOST = DenseMatrix<float>(matrixB_HOST);
+    matrixB_transpose_HOST.transpose();
 
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
     int m = matrixA_HOST.getNumRows();

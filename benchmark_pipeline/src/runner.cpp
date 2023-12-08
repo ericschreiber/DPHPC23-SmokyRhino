@@ -106,38 +106,6 @@ SparseMatrix<T>* runner<T>::execute_function(
     SparseMatrix<T>* result = get_implemented_SparseMatrix_from_coo<T>(sparse_matrix_class, matrixA_coo_loader.getNumRows(), matrixA_coo_loader.getNumCols());
     SparseMatrix<T>* matrixA = get_implemented_SparseMatrix_from_coo<T>(sparse_matrix_class, matrixA_coo_loader);
 
-    // Print the name of the type of sddmm_to_run using typename
-    std::cout << "Starting computation of " << typeid(*sddmm_to_run).name() << std::endl;
-    std::cout << "matrixA type: " << typeid(*matrixA).name() << std::endl;
-    std::cout << "result type: " << typeid(*result).name() << std::endl;
-    std::cout << "matrixA shape: " << matrixA->getNumRows() << "x" << matrixA->getNumCols() << std::endl;
-    std::cout << "result shape: " << result->getNumRows() << "x" << result->getNumCols() << std::endl;
-    // print the values of matrixA
-    std::cout << "matrixA values: ";
-    for (auto& value : matrixA->getValues())
-    {
-        std::cout << value << " ";
-    }
-    std::cout << std::endl;
-
-    std::vector<int> rowIndices = matrixA->getRowArray();
-    std::cout << "matrixA rowIndices length: " << rowIndices.size() << std::endl;
-    std::cout << "matrixA rowIndices: ";
-    for (auto& value : rowIndices)
-    {
-        std::cout << value << " ";
-    }
-    std::cout << std::endl;
-
-    std::vector<int> colIndices = matrixA->getColIndices();
-    std::cout << "matrixA colIndices length: " << colIndices.size() << std::endl;
-    std::cout << "matrixA colIndices: ";
-    for (auto& value : colIndices)
-    {
-        std::cout << value << " ";
-    }
-    std::cout << std::endl;
-
     // Running the SDDMM
     matrixA->SDDMM(
         matrixB,
@@ -173,7 +141,8 @@ bool runner<T>::test_function(
     // Get the function class
     SDDMMlib<T>* sddmm_to_run = get_implemented_SDDMM<T>(function_class);
     sddmm_to_run->set_timer(&timer_for_testing);
-    SDDMMlib<T>* sddmm_standard = new naive_SDDMM_GPU<T>(&timer_for_testing);
+    // SDDMMlib<T>* sddmm_standard = new naive_SDDMM_GPU<T>(&timer_for_testing);
+    SDDMMlib<T>* sddmm_standard = new naive_coo_SDDMM_GPU<T>(&timer_for_testing);
 
     // Run the function
     SparseMatrix<T>* result_standard = execute_function(
@@ -181,7 +150,7 @@ bool runner<T>::test_function(
         matrixB,
         matrixC,
         sddmm_standard,
-        "CSRMatrix",
+        "COOMatrix",
         num_iterations_testing);
 
     SparseMatrix<T>* result_to_test = execute_function(
@@ -191,24 +160,6 @@ bool runner<T>::test_function(
         sddmm_to_run,
         sparse_matrix_class,
         num_iterations_testing);
-
-    // Print the results
-    std::cout << "Result to test: ";
-    std::vector<T> result_to_test_values = result_to_test->getValues();
-    std::cout << "Result to test length: " << result_to_test_values.size() << std::endl;
-    for (auto& value : result_to_test_values)
-    {
-        std::cout << value << " ";
-    }
-    std::cout << std::endl;
-    std::cout << "Result standard: ";
-    std::vector<T> result_standard_values = result_standard->getValues();
-    std::cout << "Result standard length: " << result_standard_values.size() << std::endl;
-    for (auto& value : result_standard_values)
-    {
-        std::cout << value << " ";
-    }
-    std::cout << std::endl;
 
     // Checking if the two versions actually returned correctly
     bool correct = check_correctness_and_del_matrices(*result_to_test, *result_standard);

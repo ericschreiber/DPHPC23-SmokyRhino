@@ -18,24 +18,28 @@ void my_naive_sampling(
 
 void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     const DenseMatrix<float>& matrixA_HOST,
-    const DenseMatrix<float>& matrixB_HOST,
+    const DenseMatrix<float>& matrixB_transpose_HOST,
     const DenseMatrix<float>& matrixC_HOST,
     DenseMatrix<float>& matrixResult_dense_HOST,
     const int num_iterations) const
 {
     // start the profiler
     // CUDA_CHECK(cudaProfilerStart());
-    DenseMatrix<float> matrixB_transpose_HOST = DenseMatrix<float>(matrixB_HOST);
-    matrixB_transpose_HOST.transpose();
 
     // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
     int m = matrixA_HOST.getNumRows();
     int k = matrixA_HOST.getNumCols();
     int n = matrixB_transpose_HOST.getNumRows();
 
+    // Print the dimensions of the matrices
+    std::cout << "Dimensions of matrixA: " << matrixA_HOST.getNumRows() << "x" << matrixA_HOST.getNumCols() << std::endl;
+    std::cout << "Dimensions of matrixB_transpose_HOST: " << matrixB_transpose_HOST.getNumRows() << "x" << matrixB_transpose_HOST.getNumCols() << std::endl;
+    std::cout << "Dimensions of matrixC: " << matrixC_HOST.getNumRows() << "x" << matrixC_HOST.getNumCols() << std::endl;
+    std::cout << "Dimensions of matrixResult: " << matrixResult_dense_HOST.getNumRows() << "x" << matrixResult_dense_HOST.getNumCols() << std::endl;
+
     // check the dimensions of the matrices
     assert(matrixB_transpose_HOST.getNumCols() == k && "Error: matrixB_transpose has incompatible dimensions");
-    assert(matrixA_HOST.getNumCols() == matrixB_transpose_HOST.getNumRows() && "Error: matrixA and matrixB_transpose have incompatible dimensions");
+    assert(matrixA_HOST.getNumCols() == matrixB_transpose_HOST.getNumCols() && "Error: matrixA and matrixB_transpose have incompatible dimensions");
     assert(matrixC_HOST.getNumRows() == m && "Error: matrixC has incompatible dimensions m");
     assert(matrixC_HOST.getNumCols() == n && "Error: matrixC has incompatible dimensions n");
     assert(matrixResult_dense_HOST.getNumRows() == m && "Error: matrixResult has incompatible dimensions m");

@@ -195,9 +195,6 @@ void COOMatrix<T>::readFromFile(const std::string& filePath)
     int numNonZeros;
     file >> this->numRows >> this->numCols >> numNonZeros;
 
-    printf("numRows: %d\n", this->numRows);
-    printf("numCols: %d\n", this->numCols);
-
     // resize vectors
     this->values.resize(numNonZeros);
     this->rowIndices.resize(numNonZeros);

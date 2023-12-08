@@ -28,12 +28,44 @@ runner<T>::~runner()
 }
 
 template <typename T>
-bool check_correctness(SparseMatrix<T>& trueSolution, SparseMatrix<T>& calculatedSolution)
+CSRMatrix<T>* convert_to_CSR(SparseMatrix<T>* matrix)
 {
-    assert false && "not working";
-    CSRMatrix<T> trueSolutionCSR = CSRMatrix<T>(trueSolution);
-    CSRMatrix<T> calculatedSolutionCSR = CSRMatrix<T>(calculatedSolution);
-    return calculatedSolutionCSR == trueSolution;
+    // Convert the matrix to CSR if possible else convert to COO
+    CSRMatrix<T>* csr_matrix = dynamic_cast<CSRMatrix<T>*>(matrix);
+    if (csr_matrix == nullptr)
+    {
+        COOMatrix<T>* coo_matrix = dynamic_cast<COOMatrix<T>*>(matrix);
+        if (coo_matrix == nullptr)
+        {
+            std::cout << "Error: the matrix is not a CSR or COO matrix" << std::endl;
+            return nullptr;
+        }
+        else
+        {
+            csr_matrix = new CSRMatrix<T>(*coo_matrix);
+            delete coo_matrix;
+            coo_matrix = nullptr;
+        }
+    }
+    matrix = nullptr;
+    return csr_matrix;
+}
+template <typename T>
+bool check_correctness_and_del_matrices(SparseMatrix<T>& trueSolution, SparseMatrix<T>& calculatedSolution)
+{
+    // Convert the matrices to CSR if possible else convert to COO
+    CSRMatrix<T>* trueSolution_csr = convert_to_CSR(&trueSolution);
+    CSRMatrix<T>* calculatedSolution_csr = convert_to_CSR(&calculatedSolution);
+
+    // Check if the two matrices are equal
+    bool correct = *trueSolution_csr == *calculatedSolution_csr;
+
+    delete trueSolution_csr;
+    trueSolution_csr = nullptr;
+    delete calculatedSolution_csr;
+    calculatedSolution_csr = nullptr;
+
+    return correct;
 }
 
 template <typename T>
@@ -53,19 +85,6 @@ bool runner<T>::test_function(const SparseMatrix<T>* const matrixA, const DenseM
     CooMatrix.readFromFile(sparse_matrix_path);
     CSRMatrix<T> csrMatrix = CSRMatrix<T>(CooMatrix);
 
-    // Type of csrMatrix
-    std::cout
-        << "csrMatrix type: " << typeid(csrMatrix).name() << std::endl;
-    std::cout << "matrixA type: " << typeid(matrixA).name() << std::endl;
-
-    std::cout << "Starting computation of golden Model" << std::endl;
-
-    // print all dimensions
-    std::cout << "csrMatrix: " << csrMatrix.getNumRows() << "x" << csrMatrix.getNumCols() << std::endl;
-    std::cout << "matrixB: " << matrixB.getNumRows() << "x" << matrixB.getNumCols() << std::endl;
-    std::cout << "matrixC: " << matrixC.getNumRows() << "x" << matrixC.getNumCols() << std::endl;
-    std::cout << "result: " << result_standard->getNumRows() << "x" << result_standard->getNumCols() << std::endl;
-
     // Running the CPU version
     csrMatrix.SDDMM(
         matrixB,
@@ -83,7 +102,6 @@ bool runner<T>::test_function(const SparseMatrix<T>* const matrixA, const DenseM
 
     delete class_standard;
     class_standard = nullptr;
-    std::cout << "Finished computation of golden Model" << std::endl;
 
     // Running the GPU version
     matrixA->SDDMM(
@@ -100,19 +118,13 @@ bool runner<T>::test_function(const SparseMatrix<T>* const matrixA, const DenseM
             std::placeholders::_4,
             std::placeholders::_5));
 
-    std::cout << "Finished computation of Function to test" << std::endl;
-
     // Checking if the two versions actually returned correctly
-    bool correct = check_correctness(*result_to_test, *result_standard);
+    bool correct = check_correctness_and_del_matrices(*result_to_test, *result_standard);
 
-    std::cout << "Finished checking correctness" << std::endl;
     if (!correct)
     {
         std::cout << "Error: the two versions did not return the same result" << std::endl;
     }
-
-    delete result_to_test;
-    result_to_test = nullptr;
 
     return correct;
 }
@@ -120,7 +132,7 @@ bool runner<T>::test_function(const SparseMatrix<T>* const matrixA, const DenseM
 template <typename T>
 void runner<T>::run()
 {
-    const int num_iterations_profiling = 3;
+    const int num_iterations_profiling = 3;  // Currently always +1 execution is timed in the output becuase of testing.
     init_result_file();
     // Create the matrices
     COOMatrix<T> matrixA_coo_loader = COOMatrix<T>();
@@ -155,11 +167,9 @@ void runner<T>::run()
 
         // Test the function
         bool test_passed = test_function(matrixA, matrixB, matrixC, sddmm_to_run, sparse_matrix_class, function_class, dataset.SparseMatrix_path);
-        // bool test_passed = true;
-        std::cout << "matrixA type: " << typeid(matrixA).name() << std::endl;
+
         if (test_passed)
         {
-            std::cout << "entered if to do profiling" << std::endl;
             // Actually do the profiling
             // Run the function
             matrixA->SDDMM(
@@ -176,13 +186,10 @@ void runner<T>::run()
                     std::placeholders::_4,
                     std::placeholders::_5));
 
-            std::cout << "Finished profiling" << std::endl;
-
             auto durations = timer.get_runtimes();
             // Append the result to the results list
             _results.push_back(std::make_tuple(function_class, sparse_matrix_class, dataset, durations));
             write_result();
-            std::cout << "result is written" << std::endl;
         }
 
         delete sddmm_to_run;

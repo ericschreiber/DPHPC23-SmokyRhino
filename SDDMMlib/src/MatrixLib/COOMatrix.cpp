@@ -185,11 +185,15 @@ template <typename T>
 void COOMatrix<T>::readFromFile(const std::string& filePath)
 {
     // format is:
+    // <numRows> <numCols>
     // <rowIndex> <colIndex> <value> \n
     // <rowIndex> <colIndex> <value> \n
     // ...
     std::ifstream file(filePath);
     assert(file.is_open() && "Error: Could not open file for reading");
+
+    // Read the matrix dimensions
+    file >> this->numRows >> this->numCols;
 
     int rowIndex, colIndex;
     T value;
@@ -207,6 +211,7 @@ template <typename T>
 void COOMatrix<T>::writeToFile(const std::string& filePath) const
 {
     // format is:
+    // <numRows> <numCols>
     // <rowIndex> <colIndex> <value> \n
     // <rowIndex> <colIndex> <value> \n
     // ...
@@ -216,6 +221,9 @@ void COOMatrix<T>::writeToFile(const std::string& filePath) const
     {
         std::cerr << "Error: Could not open file for writing: " << filePath << std::endl;
     }
+
+    // Write the matrix dimensions
+    file << this->numRows << " " << this->numCols << std::endl;
 
     // Write the actual matrix content
     for (int runner = 0; runner < values.size(); runner++)

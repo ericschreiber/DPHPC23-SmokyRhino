@@ -27,9 +27,7 @@ int main(int argc, char *argv[])
     float sparsity = std::stof(argv[3]);
     std::string dst_path = argv[4];
 
-    COOMatrix<float> matrix;
-    matrix.setNumRows(n);
-    matrix.setNumCols(m);
+    COOMatrix<float> matrix(n, m);
 
     // populate array with uniformly distributed random numbers (respecting the degree of sparsity)
     for (int i = 0; i < n; i++)
@@ -38,7 +36,7 @@ int main(int argc, char *argv[])
         {
             // generate random number between 0 and 1
             float decision_num = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-            if (decision_num < sparsity)
+            if (decision_num > sparsity)
             {
                 // generate a random number in the range of out matrix (atm this range is [0,1])
                 float value = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);

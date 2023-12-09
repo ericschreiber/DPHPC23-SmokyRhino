@@ -11,6 +11,7 @@ then
     echo "Not enough arguments. Usage: 
     ./generateMatrices.sh <MIN_N> <MAX_N> <MIN_M> <MAX_M> <min_sparsity> <max_sparsity> <stride>
     - both sparsities integers that represent percentages
+    - sparsity = 100 means empty matrix, sparsity = 0 means dense matrix
     - if <stride> is not provided, it defaults to 1"
     exit 1
 fi

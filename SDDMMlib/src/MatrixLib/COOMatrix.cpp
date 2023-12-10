@@ -179,56 +179,108 @@ void COOMatrix<T>::setColIndices(const std::vector<int>& colIndices)
     this->colIndices = colIndices;
 }
 
+template <typename T>
+void COOMatrix<T>::make_col_major()
+{
+    // Create a vector of indices to be sorted
+    std::vector<int> indices(rowIndices.size());
+    std::iota(indices.begin(), indices.end(), 0);
+
+    // Sort the indices based on rows and then columns
+    std::sort(indices.begin(), indices.end(), [&](int a, int b)
+              { return (rowIndices[a] < rowIndices[b]) || (rowIndices[a] == rowIndices[b] && colIndices[a] < colIndices[b]); });
+
+    // Reorder the vectors based on the sorted indices
+    std::vector<int> sortedRows(rowIndices.size());
+    std::vector<int> sortedCols(colIndices.size());
+    std::vector<T> sortedValues(values.size());
+
+    for (size_t i = 0; i < indices.size(); ++i)
+    {
+        sortedRows[i] = rowIndices[indices[i]];
+        sortedCols[i] = colIndices[indices[i]];
+        sortedValues[i] = values[indices[i]];
+    }
+
+    // Update the original vectors
+    this->rowIndices = sortedRows;
+    this->colIndices = sortedCols;
+    this->values = sortedValues;
+}
+
 //////////////// FILE IO ////////////////
 
 template <typename T>
 void COOMatrix<T>::readFromFile(const std::string& filePath)
 {
-    // format is:
-    // <numRows> <numCols>
-    // <rowIndex> <colIndex> <value> \n
-    // <rowIndex> <colIndex> <value> \n
-    // ...
+    // Load from matrix market format:
+    // https://math.nist.gov/MatrixMarket/formats.html
+    // All % are comments and should be ignored
+    // The first line  without % is
+    // numRows numCols numNonZeros
+    // The rest of the lines are
+    // rowIndex colIndex value
+    // where rowIndex and colIndex are 1-indexed
+
+    // open file
     std::ifstream file(filePath);
     assert(file.is_open() && "Error: Could not open file for reading");
 
-    // Read the matrix dimensions
-    file >> this->numRows >> this->numCols;
-
-    int rowIndex, colIndex;
-    T value;
-    while (file >> rowIndex >> colIndex >> value)
+    // ignore comments
+    while (file.peek() == '%')
     {
-        this->rowIndices.push_back(rowIndex);
-        this->colIndices.push_back(colIndex);
-        this->values.push_back(value);
+        file.ignore(2048, '\n');
+    }
+
+    // Read numRows, numCols, and the number of non-zero values from the file
+    int numNonZeros;
+    file >> this->numRows >> this->numCols >> numNonZeros;
+
+    assert(numNonZeros > 0 && "Error: Number of non-zero values must be positive");
+
+    // resize vectors
+    this->values.resize(numNonZeros);
+    this->rowIndices.resize(numNonZeros);
+    this->colIndices.resize(numNonZeros);
+
+    // Read the rest
+    for (int i = 0; i < numNonZeros; ++i)
+    {
+        file >> this->rowIndices[i] >> this->colIndices[i] >> this->values[i];
+        // convert to 0-indexed
+        this->rowIndices[i]--;
+        this->colIndices[i]--;
     }
 
     file.close();
+
+    make_col_major();
 }
 
 template <typename T>
 void COOMatrix<T>::writeToFile(const std::string& filePath) const
 {
-    // format is:
-    // <numRows> <numCols>
-    // <rowIndex> <colIndex> <value> \n
-    // <rowIndex> <colIndex> <value> \n
-    // ...
+    // Write to matrix market format:
+    // https://math.nist.gov/MatrixMarket/formats.html
+    // All % are comments and should be ignored
+    // The first line  without % is
+    // numRows numCols numNonZeros
+    // The rest of the lines are
+    // rowIndex colIndex value
+    // where rowIndex and colIndex are 1-indexed
 
+    // open file
     std::ofstream file(filePath);
-    if (!file.is_open())
-    {
-        std::cerr << "Error: Could not open file for writing: " << filePath << std::endl;
-    }
+    assert(file.is_open() && "Error: Could not open file for writing");
 
-    // Write the matrix dimensions
-    file << this->numRows << " " << this->numCols << std::endl;
+    // Write numRows, numCols, and the number of non-zero values to the file
+    file << this->numRows << " " << this->numCols << " " << this->values.size() << std::endl;
 
-    // Write the actual matrix content
-    for (int runner = 0; runner < values.size(); runner++)
+    // Write the rest
+    for (int i = 0; i < this->values.size(); ++i)
     {
-        file << rowIndices[runner] << " " << colIndices[runner] << " " << values[runner] << std::endl;
+        // convert to 1-indexed
+        file << this->rowIndices[i] + 1 << " " << this->colIndices[i] + 1 << " " << this->values[i] << std::endl;
     }
 
     file.close();

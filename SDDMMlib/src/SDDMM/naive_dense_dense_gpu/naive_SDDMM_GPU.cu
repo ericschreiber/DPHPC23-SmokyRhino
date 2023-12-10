@@ -17,42 +17,42 @@ void my_naive_sampling(
     float*);
 
 void naive_SDDMM_GPU<float>::SDDMM_DENSE(
-    const DenseMatrix<float>& matrixA_HOST,
+    const DenseMatrix<float>& matrixA_transpose_HOST,
     const DenseMatrix<float>& matrixB_transpose_HOST,
-    const DenseMatrix<float>& matrixC_HOST,
-    DenseMatrix<float>& matrixResult_dense_HOST,
+    const DenseMatrix<float>& matrixC_transpose_HOST,
+    DenseMatrix<float>& matrixResult_transpose_dense_HOST,
     const int num_iterations) const
 {
     // start the profiler
     // CUDA_CHECK(cudaProfilerStart());
 
-    // get sizes of matrixA and matrixB {A=mxk; B=kxn; B_transpose=nxk}
-    int m = matrixA_HOST.getNumRows();
-    int k = matrixA_HOST.getNumCols();
+    // get sizes of matrixA and matrixB {A=mxk; B=kxn; A_transpose=kxm; B_transpose=nxk}
+    int m = matrixA_transpose_HOST.getNumCols();
+    int k = matrixA_transpose_HOST.getNumRows();
     int n = matrixB_transpose_HOST.getNumRows();
 
     // Print the dimensions of the matrices
-    std::cout << "Dimensions of matrixA: " << matrixA_HOST.getNumRows() << "x" << matrixA_HOST.getNumCols() << std::endl;
+    std::cout << "Dimensions of matrixA: " << matrixA_transpose_HOST.getNumRows() << "x" << matrixA_transpose_HOST.getNumCols() << std::endl;
     std::cout << "Dimensions of matrixB_transpose_HOST: " << matrixB_transpose_HOST.getNumRows() << "x" << matrixB_transpose_HOST.getNumCols() << std::endl;
-    std::cout << "Dimensions of matrixC: " << matrixC_HOST.getNumRows() << "x" << matrixC_HOST.getNumCols() << std::endl;
-    std::cout << "Dimensions of matrixResult: " << matrixResult_dense_HOST.getNumRows() << "x" << matrixResult_dense_HOST.getNumCols() << std::endl;
+    std::cout << "Dimensions of matrixC: " << matrixC_transpose_HOST.getNumRows() << "x" << matrixC_transpose_HOST.getNumCols() << std::endl;
+    std::cout << "Dimensions of matrixResult: " << matrixResult_transpose_dense_HOST.getNumRows() << "x" << matrixResult_transpose_dense_HOST.getNumCols() << std::endl;
 
     // check the dimensions of the matrices
     assert(matrixB_transpose_HOST.getNumCols() == k && "Error: matrixB_transpose has incompatible dimensions");
-    assert(matrixA_HOST.getNumCols() == matrixB_transpose_HOST.getNumCols() && "Error: matrixA and matrixB_transpose have incompatible dimensions");
-    assert(matrixC_HOST.getNumRows() == m && "Error: matrixC has incompatible dimensions m");
-    assert(matrixC_HOST.getNumCols() == n && "Error: matrixC has incompatible dimensions n");
-    assert(matrixResult_dense_HOST.getNumRows() == m && "Error: matrixResult has incompatible dimensions m");
-    assert(matrixResult_dense_HOST.getNumCols() == n && "Error: matrixResult has incompatible dimensions n");
+    assert(matrixA_transpose_HOST.getNumRows() == matrixB_transpose_HOST.getNumCols() && "Error: matrixA_transpose and matrixB_transpose have incompatible dimensions");
+    assert(matrixC_transpose_HOST.getNumCols() == m && "Error: matrixC has incompatible dimensions m");
+    assert(matrixC_transpose_HOST.getNumRows() == n && "Error: matrixC has incompatible dimensions n");
+    assert(matrixResult_transpose_dense_HOST.getNumCols() == m && "Error: matrixResult has incompatible dimensions m");
+    assert(matrixResult_transpose_dense_HOST.getNumRows() == n && "Error: matrixResult has incompatible dimensions n");
 
     // allocate memory for the matrices on the GPU
-    float* matrixA_GPU;
+    float* matrixA_transpose_GPU;
     float* matrixB_transpose_GPU;
-    float* matrixC_GPU;
-    float* matrixResult_GPU;
+    float* matrixC_transpose_GPU;
+    float* matrixResult_transpose_GPU;
     CUDA_CHECK(
         cudaMalloc(
-            &matrixA_GPU,
+            &matrixA_transpose_GPU,
             m * k * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
@@ -60,18 +60,18 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
             n * k * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
-            &matrixC_GPU,
+            &matrixC_transpose_GPU,
             m * n * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
-            &matrixResult_GPU,
+            &matrixResult_transpose_GPU,
             m * n * sizeof(float)));
 
     // copy matrices to the GPU
     CUDA_CHECK(
         cudaMemcpy(
-            matrixA_GPU,
-            matrixA_HOST.getValues(),
+            matrixA_transpose_GPU,
+            matrixA_transpose_HOST.getValues(),
             m * k * sizeof(float),
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
@@ -82,14 +82,8 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
-            matrixC_GPU,
-            matrixC_HOST.getValues(),
-            m * n * sizeof(float),
-            cudaMemcpyHostToDevice));
-    CUDA_CHECK(
-        cudaMemcpy(
-            matrixResult_GPU,
-            matrixResult_dense_HOST.getValues(),
+            matrixC_transpose_GPU,
+            matrixC_transpose_HOST.getValues(),
             m * n * sizeof(float),
             cudaMemcpyHostToDevice));
 
@@ -111,25 +105,25 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
             cublasSgemm(
                 handle,
                 CUBLAS_OP_N,
-                CUBLAS_OP_T,
+                CUBLAS_OP_N,
                 m,
                 n,
                 k,
                 &alpha,
-                matrixA_GPU,
+                matrixA_transpose_GPU,
                 m,
                 matrixB_transpose_GPU,
                 k,
                 &beta,
-                matrixResult_GPU,
+                matrixResult_transpose_GPU,
                 m));
 
         // call my_naive_sampling to compute the SDDMM
         // my_naive_sampling implements a Hadamard product between matrixC and matrixResult
         my_naive_sampling(
             m * n,
-            matrixC_GPU,
-            matrixResult_GPU);
+            matrixC_transpose_GPU,
+            matrixResult_transpose_GPU);
 
         // stop the timer
         this->stop_run();
@@ -140,24 +134,24 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     CUDA_CHECK(
         cudaMemcpy(
             return_values,
-            matrixResult_GPU,
+            matrixResult_transpose_GPU,
             m * n * sizeof(float),
             cudaMemcpyDeviceToHost));
-    matrixResult_dense_HOST.setValues(return_values, m * n);
+    matrixResult_transpose_dense_HOST.setValues(return_values, m * n);
 
     // free memory on the device and destroy the handle
     CUDA_CHECK(
         cudaFree(
-            matrixA_GPU));
+            matrixA_transpose_GPU));
     CUDA_CHECK(
         cudaFree(
             matrixB_transpose_GPU));
     CUDA_CHECK(
         cudaFree(
-            matrixC_GPU));
+            matrixC_transpose_GPU));
     CUDA_CHECK(
         cudaFree(
-            matrixResult_GPU));
+            matrixResult_transpose_GPU));
     CUDA_CHECK(
         cublasDestroy(
             handle));
@@ -175,21 +169,31 @@ void naive_SDDMM_GPU<float>::SDDMM_CSR(
     CSRMatrix<float>& matrixResult_HOST,
     const int num_iterations) const
 {
-    // change matrixB_transpose and matrixResult to a dense matrix
-    const DenseMatrix<float> matrixC_dense_HOST = DenseMatrix<float>(matrixC_HOST);
+    // change matrixC and matrixResult to a dense matrix
+    DenseMatrix<float> matrixC_dense_HOST = DenseMatrix<float>(matrixC_HOST);
     DenseMatrix<float> matrixResult_dense_HOST = DenseMatrix<float>(matrixResult_HOST);
+
+    // transpose matrixC_dense_HOST to C^t
+    matrixC_dense_HOST.transpose();
 
     // transpose matrixB to B^t
     DenseMatrix<float> matrixB_transpose_HOST = DenseMatrix<float>(matrixB_HOST);
     matrixB_transpose_HOST.transpose();
 
+    // transpose matrixA to A^t
+    DenseMatrix<float> matrixA_transpose_HOST = DenseMatrix<float>(matrixA_HOST);
+    matrixA_transpose_HOST.transpose();
+
     // call naive_SDDMM_GPU to compute the SDDMM
     SDDMM_DENSE(
-        matrixA_HOST,
+        matrixA_transpose_HOST,
         matrixB_transpose_HOST,
         matrixC_dense_HOST,
         matrixResult_dense_HOST,
         num_iterations);
+
+    // transpose matrixResult_dense_HOST to get the result
+    matrixResult_dense_HOST.transpose();
 
     // change matrixResult to a sparse matrix
     CSRMatrix<float> matrixResult_finished_HOST(

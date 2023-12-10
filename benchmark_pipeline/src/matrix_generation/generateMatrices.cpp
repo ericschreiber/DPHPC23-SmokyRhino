@@ -8,6 +8,30 @@
 #include "COOMatrix.hpp"
 #include "DenseMatrix.hpp"
 
+// generates a random non-zero number in the range of our matrix and sets it at the given position
+void gen_and_set(COOMatrix<float> &matrix, int i, int j)
+{
+    // generate a random number in the range ]0,1]
+    // i.e. the number can't be zero since we are sure that we want to insert a non-zero value)
+    float value = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    while (value == 0)  // could probably done more efficiently but the chance of getting a 0 (which would make us enter this loop) is very very low
+    {
+        value = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    }
+
+    std::vector<float> oldValues = matrix.getValues();
+    oldValues.push_back(value);
+    matrix.setValues(oldValues);
+
+    std::vector<int> oldRowIndices = matrix.getRowArray();
+    oldRowIndices.push_back(i);
+    matrix.setRowArray(oldRowIndices);
+
+    std::vector<int> oldColIndices = matrix.getColIndices();
+    oldColIndices.push_back(j);
+    matrix.setColIndices(oldColIndices);
+}
+
 // since writeToFile expects the dst_file to already exist this script expects this too
 int main(int argc, char *argv[])
 {
@@ -34,24 +58,23 @@ int main(int argc, char *argv[])
     {
         for (int j = 0; j < m; j++)
         {
-            // generate random number between 0 and 1
-            float decision_num = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-            if (decision_num > sparsity)
+            if (sparsity == 0)
             {
-                // generate a random number in the range of out matrix (atm this range is [0,1])
-                float value = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-
-                std::vector<float> oldValues = matrix.getValues();
-                oldValues.push_back(value);
-                matrix.setValues(oldValues);
-
-                std::vector<int> oldRowIndices = matrix.getRowArray();
-                oldRowIndices.push_back(i);
-                matrix.setRowArray(oldRowIndices);
-
-                std::vector<int> oldColIndices = matrix.getColIndices();
-                oldColIndices.push_back(j);
-                matrix.setColIndices(oldColIndices);
+                // if sparsity is 0 we want a completely empty matrix (see def of sparsity in Notion).
+                // we have to handle this case separately and cant just re-use the else block i.e. generate a decision_num and check if it is <= 0 since decision_num
+                // could be exactly 0 (resulting in a matrix with some non-zeros which is not what we want in case of sparsity = 0)
+                // we also can't change the condition to < sparsity since then the case where sparsity is 1 could result in a matrix with some zeros
+                // (in case decision_num happened to be exactly 1) but by the defintion of sparsity we want a completely full matrix in the case of sparsity = 1.
+                continue;
+            }
+            else
+            {
+                // generate random number in [0,1]
+                float decision_num = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+                if (decision_num <= sparsity)
+                {
+                    gen_and_set(matrix, i, j);
+                }
             }
         }
     }

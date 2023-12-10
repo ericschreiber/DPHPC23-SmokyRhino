@@ -57,6 +57,7 @@ class COOMatrix : virtual public SparseMatrix<T>
         int numRows;
         int numCols;
         virtual bool isEqual(const SparseMatrix<T>& other) const override;
+        void make_col_major();
 };
 
 #endif

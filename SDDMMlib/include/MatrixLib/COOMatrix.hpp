@@ -37,8 +37,10 @@ class COOMatrix : virtual public SparseMatrix<T>
         virtual const std::vector<T>& getValues() const override;
         virtual const std::vector<int>& getRowArray() const override;
         virtual const std::vector<int>& getColIndices() const override;
+        virtual T at(int row, int col) const override;  // by its signature this has to be a getter
         // setters
-        virtual T at(int row, int col) const override;  // set on element
+        virtual void setNumRows(int rows);
+        virtual void setNumCols(int cols);
         virtual void setValues(const std::vector<T>& values) override;
         virtual void setRowArray(const std::vector<int>& rowPtr) override;
         virtual void setColIndices(const std::vector<int>& colIndices) override;
@@ -55,6 +57,7 @@ class COOMatrix : virtual public SparseMatrix<T>
         int numRows;
         int numCols;
         virtual bool isEqual(const SparseMatrix<T>& other) const override;
+        void make_col_major();
 };
 
 #endif

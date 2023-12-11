@@ -83,7 +83,7 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
 }
 
 template <typename T, typename... Args>
-SparseMatrix<T>* get_implemented_SparseMatrix(std::string class_name, Args&&... constructorArgs)
+SparseMatrix<T>* get_implemented_SparseMatrix_from_coo(std::string class_name, Args&&... constructorArgs)
 {
     if (class_name == "CSRMatrix")
     {

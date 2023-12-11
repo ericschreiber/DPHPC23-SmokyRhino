@@ -19,16 +19,19 @@ class COOMatrix : virtual public SparseMatrix<T>
         COOMatrix();                              // Default constructor
         COOMatrix(int rows, int cols);            // Constructor for an empty COO matrix
         COOMatrix(const DenseMatrix<T>& values);  // Constructor from dense matrix
+        COOMatrix(const COOMatrix& other);        // Copy constructor
         // SDDMM
         virtual void SDDMM(
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,
             SparseMatrix<T>& result,
+            const int num_iterations,
             std::function<void(
                 const DenseMatrix<T>& x,
                 const DenseMatrix<T>& y,
                 const SparseMatrix<T>& z,
-                SparseMatrix<T>& result)> SDDMMFunc)
+                SparseMatrix<T>& result,
+                const int num_iterations)> SDDMMFunc)
             const override;
         // getters
         virtual int getNumRows() const override;

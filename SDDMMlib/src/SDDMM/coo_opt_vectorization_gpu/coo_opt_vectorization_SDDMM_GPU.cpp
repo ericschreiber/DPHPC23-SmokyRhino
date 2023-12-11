@@ -12,7 +12,8 @@ void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const COOMatrix<float>& matrixC_HOST,
-    COOMatrix<float>& matrixResult_HOST) const
+    COOMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
     // Get all the sizes (A=mxk; B=kxn; C=mxn; Result=mxn)
     int m = matrixA_HOST.getNumRows();
@@ -55,7 +56,7 @@ void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM_COO(
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_values, (matrixC_HOST.getValues()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < num_iterations; i++)
     {
         this->start_run();
         // call compute in naive_dense_dense.cu
@@ -109,7 +110,8 @@ void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
-    SparseMatrix<float>& matrixResult_HOST) const
+    SparseMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
     const COOMatrix<float>* cooMatrixC = dynamic_cast<const COOMatrix<float>*>(&matrixC_HOST);
     COOMatrix<float>* cooMatrixResult = dynamic_cast<COOMatrix<float>*>(&matrixResult_HOST);
@@ -123,7 +125,8 @@ void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM(
             matrixA_HOST,
             matrixB_HOST,
             *cooMatrixC,
-            *cooMatrixResult);
+            *cooMatrixResult,
+            num_iterations);
     }
 
     cooMatrixC = nullptr;

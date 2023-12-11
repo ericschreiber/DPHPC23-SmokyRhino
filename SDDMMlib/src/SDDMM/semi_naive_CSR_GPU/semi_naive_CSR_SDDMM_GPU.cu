@@ -15,7 +15,8 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const CSRMatrix<float>& matrixC_HOST,
-    CSRMatrix<float>& matrixResult_sparse_HOST) const
+    CSRMatrix<float>& matrixResult_sparse_HOST,
+    const int num_iterations) const
 {
     // start the profiler
     // CUDA_CHECK(cudaProfilerStart());
@@ -100,23 +101,26 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
             (m + 1) * sizeof(int),
             cudaMemcpyHostToDevice));
 
-    // start the timer
-    this->start_run();
+    for (int i = 0; i < num_iterations; i++)
+    {
+        // start the timer
+        this->start_run();
 
-    // Call the kernel to execute the acutal SDDMM
-    compute_blockwise(
-        m,
-        n,
-        k,
-        matrixA_GPU,
-        matrixB_transpose_GPU,
-        matrixC_GPU,
-        row_ptr_GPU,
-        col_idx_GPU,
-        matrixResult_GPU);
+        // Call the kernel to execute the acutal SDDMM
+        compute_blockwise(
+            m,
+            n,
+            k,
+            matrixA_GPU,
+            matrixB_transpose_GPU,
+            matrixC_GPU,
+            row_ptr_GPU,
+            col_idx_GPU,
+            matrixResult_GPU);
 
-    // stop the timer
-    this->stop_run();
+        // stop the timer
+        this->stop_run();
+    }
 
     // copy result from the GPU to the CPU
     float* return_values = new float[nnz];
@@ -165,7 +169,8 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
-    SparseMatrix<float>& matrixResult_HOST) const
+    SparseMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
     const CSRMatrix<float>* csrMatrixC = dynamic_cast<const CSRMatrix<float>*>(&matrixC_HOST);
     CSRMatrix<float>* csrMatrixResult = dynamic_cast<CSRMatrix<float>*>(&matrixResult_HOST);
@@ -179,7 +184,8 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM(
             matrixA_HOST,
             matrixB_HOST,
             *csrMatrixC,
-            *csrMatrixResult);
+            *csrMatrixResult,
+            num_iterations);
     }
 }
 
@@ -188,7 +194,8 @@ void semi_naive_CSR_SDDMM_GPU<T>::SDDMM(
     const DenseMatrix<T>& matrixA_HOST,
     const DenseMatrix<T>& matrixB_HOST,
     const SparseMatrix<T>& matrixC_HOST,
-    SparseMatrix<T>& matrixResult_HOST) const
+    SparseMatrix<T>& matrixResult_HOST,
+    const int num_iterations) const
 {
     assert(false && "Error: semi_naive_CSR_SDDMM_GPU::SDDMM() only accepts float as input. Other types are not supported");
 }

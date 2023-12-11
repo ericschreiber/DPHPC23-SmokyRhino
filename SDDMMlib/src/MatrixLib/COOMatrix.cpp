@@ -56,6 +56,17 @@ COOMatrix<T>::COOMatrix(const DenseMatrix<T>& denseMatrix)
     }
 }
 
+// this constructor is used to copy a COO matrix
+template <typename T>
+COOMatrix<T>::COOMatrix(const COOMatrix& other)
+{
+    this->numRows = other.getNumRows();
+    this->numCols = other.getNumCols();
+    this->values = other.getValues();
+    this->rowIndices = other.getRowArray();
+    this->colIndices = other.getColIndices();
+}
+
 //////////////// SDDMM ////////////////
 
 template <typename T>
@@ -63,15 +74,16 @@ void COOMatrix<T>::SDDMM(
     const DenseMatrix<T>& x,
     const DenseMatrix<T>& y,
     SparseMatrix<T>& result,
+    const int num_iterations,
     std::function<void(
         const DenseMatrix<T>& x,
         const DenseMatrix<T>& y,
         const SparseMatrix<T>& z,
-        SparseMatrix<T>& result)> SDDMMFunc)
+        SparseMatrix<T>& result,
+        const int num_iterations)> SDDMMFunc)
     const
 {
-    // I guess we do the same thing here that we do in CSRMatrix.cpp (?)
-    SDDMMFunc(x, y, *this, result);
+    SDDMMFunc(x, y, *this, result, num_iterations);
 }
 
 //////////////// GETTERS ////////////////

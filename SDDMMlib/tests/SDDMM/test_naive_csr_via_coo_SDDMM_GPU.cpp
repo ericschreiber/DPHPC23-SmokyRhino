@@ -14,6 +14,8 @@ void test_simple_near_zeros()
     CSRMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
     CSRMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
 
+    const int num_iterations = 1;
+
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
     naive_csr_via_coo_SDDMM_GPU<float>* class_to_run = new naive_csr_via_coo_SDDMM_GPU<float>(&timer);
@@ -23,13 +25,15 @@ void test_simple_near_zeros()
         matrixA,
         matrixB,
         calculatedSolution,
+        num_iterations,
         std::bind(
             &naive_csr_via_coo_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     delete class_to_run;
     class_to_run = nullptr;
@@ -70,6 +74,8 @@ void test_small()
     CSRMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
     CSRMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {2, 4, 6}, {3, 6, 9}}));
 
+    const int num_iterations = 1;
+
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
     naive_csr_via_coo_SDDMM_GPU<float>* class_to_run = new naive_csr_via_coo_SDDMM_GPU<float>(&timer);
@@ -79,13 +85,15 @@ void test_small()
         matrixA,
         matrixB,
         calculatedSolution,
+        num_iterations,
         std::bind(
             &naive_csr_via_coo_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     delete class_to_run;
     class_to_run = nullptr;
@@ -126,6 +134,8 @@ void test_small_complex()
     CSRMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
     CSRMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 4, 6}, {4, 8, 12}, {6, 12, 18}}));
 
+    const int num_iterations = 1;
+
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
     naive_csr_via_coo_SDDMM_GPU<float>* class_to_run = new naive_csr_via_coo_SDDMM_GPU<float>(&timer);
@@ -135,13 +145,15 @@ void test_small_complex()
         matrixA,
         matrixB,
         calculatedSolution,
+        num_iterations,
         std::bind(
             &naive_csr_via_coo_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     delete class_to_run;
     class_to_run = nullptr;

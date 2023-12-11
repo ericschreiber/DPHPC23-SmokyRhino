@@ -12,18 +12,22 @@ void run_testcase(COOMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, De
     ExecutionTimer timer = ExecutionTimer();
     tiled_tiles<float>* class_to_run = new tiled_tiles<float>(&timer);
 
+    const int num_iterations = 1;
+
     // Call multiply and pass the multiplication function from the library
     sample_Matrix.SDDMM(
         matrixA,
         matrixB,
         calculatedSolution,
+        num_iterations,
         std::bind(
             &tiled_tiles<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     delete class_to_run;
     class_to_run = nullptr;

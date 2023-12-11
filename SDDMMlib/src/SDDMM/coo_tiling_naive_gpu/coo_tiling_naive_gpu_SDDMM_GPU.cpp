@@ -33,7 +33,8 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const COOMatrix<float>& matrixC_HOST,
-    COOMatrix<float>& matrixResult_HOST) const
+    COOMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
     // Get all the sizes (A=mxk; B=kxn; C=mxn; Result=mxn)
     int m = matrixA_HOST.getNumRows();
@@ -85,28 +86,31 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM_COO(
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
-    this->start_run();
-    // Just for timing reasons, that it is not too good we include this into the timing. because also with CSR we need to
-    // compute the row indices for the COO matrix
-    matrixC_CPU_row_ptr = compute_csr_row_ptr_from_coo(
-        numElementsC,
-        (matrixC_HOST.getRowArray()).data());
+    for (int i = 0; i < num_iterations; i++)
+    {
+        this->start_run();
+        // Just for timing reasons, that it is not too good we include this into the timing. because also with CSR we need to
+        // compute the row indices for the COO matrix
+        matrixC_CPU_row_ptr = compute_csr_row_ptr_from_coo(
+            numElementsC,
+            (matrixC_HOST.getRowArray()).data());
 
-    // call compute in naive_dense_dense.cu
-    compute_coo_tiling_naive_gpu(
-        m,
-        n,
-        k,
-        numElementsC,
-        numElementsCrowPtr,
-        matrixA_GPU_values,
-        matrixB_transpose_GPU_values,
-        matrixC_GPU_values,
-        matrixC_GPU_row_indices,
-        matrixC_GPU_row_ptr,
-        matrixC_GPU_col_indices,
-        matrixResult_GPU_values);
-    this->stop_run();
+        // call compute in naive_dense_dense.cu
+        compute_coo_tiling_naive_gpu(
+            m,
+            n,
+            k,
+            numElementsC,
+            numElementsCrowPtr,
+            matrixA_GPU_values,
+            matrixB_transpose_GPU_values,
+            matrixC_GPU_values,
+            matrixC_GPU_row_indices,
+            matrixC_GPU_row_ptr,
+            matrixC_GPU_col_indices,
+            matrixResult_GPU_values);
+        this->stop_run();
+    }
 
     // copy matrixResult_GPU to matrixResult
     float* matrixResult_HOST_values = new float[numElementsC];
@@ -145,7 +149,8 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
-    SparseMatrix<float>& matrixResult_HOST) const
+    SparseMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
     const COOMatrix<float>* cooMatrixC = dynamic_cast<const COOMatrix<float>*>(&matrixC_HOST);
     COOMatrix<float>* cooMatrixResult = dynamic_cast<COOMatrix<float>*>(&matrixResult_HOST);
@@ -159,7 +164,8 @@ void coo_tiling_naive_gpu_SDDMM_GPU<float>::SDDMM(
             matrixA_HOST,
             matrixB_HOST,
             *cooMatrixC,
-            *cooMatrixResult);
+            *cooMatrixResult,
+            num_iterations);
     }
 
     cooMatrixC = nullptr;

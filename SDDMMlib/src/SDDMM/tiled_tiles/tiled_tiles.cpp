@@ -11,7 +11,8 @@ void tiled_tiles<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const COOMatrix<float>& matrixC_HOST,
-    COOMatrix<float>& matrixResult_HOST) const
+    COOMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
     // Get all the sizes (A=mxk; B=kxn; C=mxn; Result=mxn)
     int m = matrixA_HOST.getNumRows();
@@ -55,20 +56,23 @@ void tiled_tiles<float>::SDDMM_COO(
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
-    this->start_run();
-    // call compute in cache_dense_dense.cu
-    compute(
-        m,
-        n,
-        k,
-        numElementsC,
-        matrixA_GPU_values,
-        matrixB_transpose_GPU_values,
-        matrixC_GPU_values,
-        matrixC_GPU_row_indices,
-        matrixC_GPU_col_indices,
-        matrixResult_GPU_values);
-    this->stop_run();
+    for (int i = 0; i < num_iterations; i++)
+    {
+        this->start_run();
+        // call compute in cache_dense_dense.cu
+        compute(
+            m,
+            n,
+            k,
+            numElementsC,
+            matrixA_GPU_values,
+            matrixB_transpose_GPU_values,
+            matrixC_GPU_values,
+            matrixC_GPU_row_indices,
+            matrixC_GPU_col_indices,
+            matrixResult_GPU_values);
+        this->stop_run();
+    }
 
     // copy matrixResult_GPU to matrixResult
     float* matrixResult_HOST_values = new float[numElementsC];
@@ -107,7 +111,8 @@ void tiled_tiles<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
-    SparseMatrix<float>& matrixResult_HOST) const
+    SparseMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
     const COOMatrix<float>* cooMatrixC = dynamic_cast<const COOMatrix<float>*>(&matrixC_HOST);
     COOMatrix<float>* cooMatrixResult = dynamic_cast<COOMatrix<float>*>(&matrixResult_HOST);
@@ -121,7 +126,8 @@ void tiled_tiles<float>::SDDMM(
             matrixA_HOST,
             matrixB_HOST,
             *cooMatrixC,
-            *cooMatrixResult);
+            *cooMatrixResult,
+            num_iterations);
     }
 
     cooMatrixC = nullptr;

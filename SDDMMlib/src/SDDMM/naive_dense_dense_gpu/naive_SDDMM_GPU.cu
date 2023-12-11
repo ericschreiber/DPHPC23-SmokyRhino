@@ -31,12 +31,6 @@ void naive_SDDMM_GPU<float>::SDDMM_DENSE(
     int k = matrixA_transpose_HOST.getNumRows();
     int n = matrixB_transpose_HOST.getNumRows();
 
-    // Print the dimensions of the matrices
-    std::cout << "Dimensions of matrixA: " << matrixA_transpose_HOST.getNumRows() << "x" << matrixA_transpose_HOST.getNumCols() << std::endl;
-    std::cout << "Dimensions of matrixB_transpose_HOST: " << matrixB_transpose_HOST.getNumRows() << "x" << matrixB_transpose_HOST.getNumCols() << std::endl;
-    std::cout << "Dimensions of matrixC: " << matrixC_transpose_HOST.getNumRows() << "x" << matrixC_transpose_HOST.getNumCols() << std::endl;
-    std::cout << "Dimensions of matrixResult: " << matrixResult_transpose_dense_HOST.getNumRows() << "x" << matrixResult_transpose_dense_HOST.getNumCols() << std::endl;
-
     // check the dimensions of the matrices
     assert(matrixB_transpose_HOST.getNumCols() == k && "Error: matrixB_transpose has incompatible dimensions");
     assert(matrixA_transpose_HOST.getNumRows() == matrixB_transpose_HOST.getNumCols() && "Error: matrixA_transpose and matrixB_transpose have incompatible dimensions");

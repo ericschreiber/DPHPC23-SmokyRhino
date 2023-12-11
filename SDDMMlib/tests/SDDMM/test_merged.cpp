@@ -17,13 +17,15 @@ void run_testcase(COOMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, De
         matrixA,
         matrixB,
         calculatedSolution,
+        1,
         std::bind(
             &merged<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     delete class_to_run;
     class_to_run = nullptr;

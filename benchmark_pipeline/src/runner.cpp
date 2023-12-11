@@ -141,7 +141,6 @@ bool runner<T>::test_function(
     // Get the function class
     SDDMMlib<T>* sddmm_to_run = get_implemented_SDDMM<T>(function_class);
     sddmm_to_run->set_timer(&timer_for_testing);
-    // SDDMMlib<T>* sddmm_standard = new naive_SDDMM_GPU<T>(&timer_for_testing);
     SDDMMlib<T>* sddmm_standard = new naive_coo_SDDMM_GPU<T>(&timer_for_testing);
 
     // Run the function

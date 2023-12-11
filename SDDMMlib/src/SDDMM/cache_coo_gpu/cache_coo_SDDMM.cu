@@ -117,7 +117,6 @@ __global__ void cache_coo(
     {
         ////////////////    COMPUTE SIZE OF CURR TILE    ////////////////
         int curr_tile_size = tiles_sizes[tiling_step];
-        // printf("block: %i, curr_tile_size: %i, tiling_step:%i\n", row_index, curr_tile_size, tiling_step);
 
         ////////////////    THREAD 0: COPY TILE INTO SHARED MEM    ////////////////
         // TODO: this can very likely also be parallelized over the threads in the block
@@ -130,7 +129,6 @@ __global__ void cache_coo(
             {
                 // second summand (in parentheses) = offset of the tile that we're working on in this iteration of outer loop
                 tile[i] = *(A_vals_row_start + (tiling_step * SHARED_MEM_SIZE) + i);
-                // printf("block: %i, tile[%d] = %f\n", row_index, i, tile[i]);
             }
         }
         __syncthreads();  // this is a barrier

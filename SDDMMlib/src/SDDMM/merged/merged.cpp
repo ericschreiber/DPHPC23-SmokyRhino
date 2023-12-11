@@ -75,7 +75,6 @@ void merged<float>::SDDMM_COO(
     float* matrixB_transpose_GPU_values;
     float* matrixC_GPU_values;
     int* matrixC_GPU_row_ptr;
-    int* matrixC_GPU_row_indices;
     int* matrixC_GPU_col_indices;
     float* matrixResult_GPU_values;
     int* matrixResult_GPU_row_indices;
@@ -85,7 +84,6 @@ void merged<float>::SDDMM_COO(
     CUDA_CHECK(cudaMalloc(&matrixB_transpose_GPU_values, n * k * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_values, numElementsC * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_ptr, numElementsCrowPtr * sizeof(int)));
-    CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_indices, numElementsC * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_col_indices, numElementsC * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixResult_GPU_values, numElementsC * sizeof(float)));
 
@@ -94,11 +92,10 @@ void merged<float>::SDDMM_COO(
     CUDA_CHECK(cudaMemcpy(matrixB_transpose_GPU_values, matrixBTranspose_HOST.getValues(), n * k * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_values, (matrixC_HOST.getValues()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_ptr, matrixC_CPU_row_ptr.data(), numElementsCrowPtr * sizeof(int), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
     // zero out the result matrix
-    CUDA_CHECK(cudaMemset(matrixResult_GPU_values, 0, numElementsC * sizeof(float)));
+    CUDA_CHECK(cudaMemset(matrixResult_GPU_values, 0.0, numElementsC * sizeof(float)));
 
     this->start_run();
     // Just for timing reasons, that it is not too good we include this into the timing. because also with CSR we need to
@@ -115,7 +112,6 @@ void merged<float>::SDDMM_COO(
         matrixA_GPU_values,
         matrixB_transpose_GPU_values,
         matrixC_GPU_values,
-        matrixC_GPU_row_indices,
         matrixC_GPU_row_ptr,
         matrixC_GPU_col_indices,
         matrixResult_GPU_values);
@@ -136,14 +132,12 @@ void merged<float>::SDDMM_COO(
     CUDA_CHECK(cudaFree(matrixA_GPU_values));
     CUDA_CHECK(cudaFree(matrixB_transpose_GPU_values));
     CUDA_CHECK(cudaFree(matrixC_GPU_values));
-    CUDA_CHECK(cudaFree(matrixC_GPU_row_indices));
     CUDA_CHECK(cudaFree(matrixC_GPU_col_indices));
     CUDA_CHECK(cudaFree(matrixResult_GPU_values));
 
     matrixA_GPU_values = nullptr;
     matrixB_transpose_GPU_values = nullptr;
     matrixC_GPU_values = nullptr;
-    matrixC_GPU_row_indices = nullptr;
     matrixC_GPU_col_indices = nullptr;
     matrixResult_GPU_values = nullptr;
 

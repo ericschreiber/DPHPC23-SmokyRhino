@@ -116,6 +116,7 @@ void t5()
 int main()
 {
     printf("Running tests...\n");
+    t4();
     t1();
     t2();
     t3();

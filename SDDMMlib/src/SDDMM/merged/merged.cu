@@ -40,6 +40,7 @@ __device__ float tiled_dot_product_thread_subset_m(
     const int tiling_step,
     const int normal_tile_size,
     const int curr_tile_size,  // curr_tile_size can be smaller than normal_tile_size if we are working on the last tile of a row
+    const int last_chunk_size,
     const float* matrixB_transposed_GPU_values,
     const int B_col_index,  // indexes the col of B that we are computing the dot prod with in this method call
     const int k,            // number of rows of B
@@ -55,7 +56,7 @@ __device__ float tiled_dot_product_thread_subset_m(
     const float4* B_col_tile_beginning_float4 = (const float4*)B_col_tile_beginning;
 
     float4 sum_of_chunks = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    for (int i = tid; i < numChunksInTile - 1; i += bdim)
+    for (int i = tid; i < numChunksInTile; i += bdim)
     {
         // compute the chunk of the dot product that this thread is responsible for
         float4 vector1_beginning = tile_float4[i];
@@ -68,16 +69,15 @@ __device__ float tiled_dot_product_thread_subset_m(
     // let thread 0 take care of the last chunk (bc it might be smaller than 4)
     if (tid == THREADS_PER_BLOCK - 1)
     {
-        int loop_end = curr_tile_size & 3;  // this is less expensive than a modulo op
-        for (int i = 0; i < loop_end; i++)
+        const int beginning = numChunksInTile << 2;
+        for (int i = 0; i < last_chunk_size; i++)
         {
             // cant unroll here because we only know last_chunk_size at runtime
-            sum_of_chunks.x += (tile + ((numChunksInTile - 1) << 2))[i] * (B_col_tile_beginning + ((numChunksInTile - 1) << 2))[i];
+            sum_of_chunks.x += (tile + beginning)[i] * (B_col_tile_beginning + beginning)[i];
         }
     }
 
     float sum_of_chunks_synced = sum_of_chunks.x + sum_of_chunks.y + sum_of_chunks.z + sum_of_chunks.w;
-    __syncthreads();  // all threads wait togehter here before we reduce their results
 
     // WARP-WIDE REDUCTION
     // i.e. reduce the sum_of_chunks varible (that each thread has) into one value per warp
@@ -123,7 +123,6 @@ __global__ void merged_m(
     const float* __restrict__ const matrixA_GPU_values,
     const float* __restrict__ const matrixB_transposed_GPU_values,
     const float* __restrict__ const matrixC_GPU_values,
-    const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_row_ptr,
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values,
@@ -132,19 +131,15 @@ __global__ void merged_m(
 {
     // return if no non zeros in current row of C
     const int bid = blockIdx.x;
-    if (matrixC_GPU_row_ptr[bid + 1] - matrixC_GPU_row_ptr[bid] == 0)
+    int tile_index = bid / num_rows;  // this is called tiling_step in tiled_tiles.cu
+    int row_index = bid - (tile_index * num_rows);
+    if (matrixC_GPU_row_ptr[row_index + 1] - matrixC_GPU_row_ptr[row_index] == 0)
     {
         return;
     }
 
     const int tid = threadIdx.x;
     const int bdim = blockDim.x;
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    // This is the main part that I moved over from Erics implementation
-
-    int tile_index = bid / num_rows;  // this is called tiling_step in tiled_tiles.cu
-    int row_index = bid - (tile_index * num_rows);
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////    COMPUTE CURR TILE SIZE    ////////////////
     int curr_tile_size;
@@ -159,15 +154,15 @@ __global__ void merged_m(
 
     ////////////////    COPY TILE INTO SHARED MEM (NOW IN PARALLEL)    ////////////////
     __shared__ float tile[COMPUTATION_SHARED_MEM];
-    int last_chunk_size = curr_tile_size & 3;  // this is less expensive than a modulo op
-    int numChunksInTile = (curr_tile_size + 3) >> 2;
+    int last_chunk_size = curr_tile_size & 3;   // this is less expensive than a modulo op
+    int numChunksInTile = curr_tile_size >> 2;  // only the number of chunks that are fully unrolled
     const float* tile_start =
         matrixA_GPU_values + (row_index * k) +  // start of the row of A that we are working on
         (tile_index * COMPUTATION_SHARED_MEM);  // shift by the number of floats that are part of the previous tiles
     // do all but the last chunk
     int q;
     const float* start;
-    for (int i = tid; i < numChunksInTile - 1; i += bdim)  // i steps through the chunks
+    for (int i = tid; i < numChunksInTile; i += bdim)  // i steps through the chunks
     {
         q = i << 2;  // shared mem is indexed in bytes
         // can't be i = i << 2 because then the i in the for loop would change
@@ -181,10 +176,10 @@ __global__ void merged_m(
     // last chunk
     if (tid == THREADS_PER_BLOCK - 1)
     {
-        for (int i = 0; i < last_chunk_size; i++)  // i now steps through the elems in a chunk (different to the loop above) i.e. no need to multiply by 4
+        for (int i = numChunksInTile << 2; i < curr_tile_size; i++)
         {
             // cant unroll here because we only know last_chunk_size at runtime
-            tile[i] = *(tile_start + ((numChunksInTile - 1) << 2) + i);
+            tile[i] = *(tile_start + i);
         }
     }
 
@@ -202,6 +197,7 @@ __global__ void merged_m(
             tile_index,
             COMPUTATION_SHARED_MEM,
             curr_tile_size,
+            last_chunk_size,
             matrixB_transposed_GPU_values,
             matrixC_GPU_col_indices[elem_index],  // col of B for dot product is the same col in which the nonzero of C sits
             k,
@@ -222,7 +218,6 @@ void compute_m(
     const float* __restrict__ const matrixA_GPU_values,
     const float* __restrict__ const matrixB_transposed_GPU_values,
     const float* __restrict__ const matrixC_GPU_values,
-    const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_row_ptr,
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values)
@@ -241,7 +236,6 @@ void compute_m(
         matrixA_GPU_values,
         matrixB_transposed_GPU_values,
         matrixC_GPU_values,
-        matrixC_GPU_row_indices,
         matrixC_GPU_row_ptr,
         matrixC_GPU_col_indices,
         matrixResult_GPU_values,

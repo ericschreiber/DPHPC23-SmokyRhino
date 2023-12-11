@@ -179,7 +179,6 @@ bool runner<T>::test_function(
 template <typename T>
 void runner<T>::run()
 {
-    const int num_iterations_profiling = 3;  // Currently always +1 execution is timed in the output becuase of testing.
     init_result_file();
     // Create the matrices
     COOMatrix<T> matrixA_coo_loader = COOMatrix<T>();

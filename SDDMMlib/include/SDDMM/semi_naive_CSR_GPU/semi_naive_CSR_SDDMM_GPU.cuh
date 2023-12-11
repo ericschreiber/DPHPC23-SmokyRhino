@@ -20,7 +20,8 @@ class semi_naive_CSR_SDDMM_GPU : public SDDMMlib<T>
             const DenseMatrix<T>& matrixA_HOST,
             const DenseMatrix<T>& matrixB_HOST,
             const SparseMatrix<T>& matrixC_HOST,
-            SparseMatrix<T>& matrixResult_HOST) const override;
+            SparseMatrix<T>& matrixResult_HOST,
+            const int num_iterations) const override;
         virtual void start_run() const override {}  // Would need to be implemented but we don't need it because the class can never be constructed except for float
         virtual void stop_run() const override {}
 };
@@ -35,14 +36,16 @@ class semi_naive_CSR_SDDMM_GPU<float> : public SDDMMlib<float>
             const DenseMatrix<float>& matrixA_HOST,
             const DenseMatrix<float>& matrixB_HOST,
             const SparseMatrix<float>& matrixC_HOST,
-            SparseMatrix<float>& matrixResult_HOST) const override;
+            SparseMatrix<float>& matrixResult_HOST,
+            const int num_iterations) const override;
 
     private:
         void SDDMM_CSR(
             const DenseMatrix<float>& matrixA_HOST,
             const DenseMatrix<float>& matrixB_HOST,
             const CSRMatrix<float>& matrixC_HOST,
-            CSRMatrix<float>& matrixResult_HOST) const;
+            CSRMatrix<float>& matrixResult_HOST,
+            const int num_iterations) const;
         virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE
         virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 };

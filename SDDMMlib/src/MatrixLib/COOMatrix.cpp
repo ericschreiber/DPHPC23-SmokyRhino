@@ -1,7 +1,9 @@
 #include "COOMatrix.hpp"
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
+#include <numeric>
 
 //////////////// CONSTRUCTORS ////////////////
 template <typename T>
@@ -54,6 +56,17 @@ COOMatrix<T>::COOMatrix(const DenseMatrix<T>& denseMatrix)
     }
 }
 
+// this constructor is used to copy a COO matrix
+template <typename T>
+COOMatrix<T>::COOMatrix(const COOMatrix& other)
+{
+    this->numRows = other.getNumRows();
+    this->numCols = other.getNumCols();
+    this->values = other.getValues();
+    this->rowIndices = other.getRowArray();
+    this->colIndices = other.getColIndices();
+}
+
 //////////////// SDDMM ////////////////
 
 template <typename T>
@@ -61,15 +74,16 @@ void COOMatrix<T>::SDDMM(
     const DenseMatrix<T>& x,
     const DenseMatrix<T>& y,
     SparseMatrix<T>& result,
+    const int num_iterations,
     std::function<void(
         const DenseMatrix<T>& x,
         const DenseMatrix<T>& y,
         const SparseMatrix<T>& z,
-        SparseMatrix<T>& result)> SDDMMFunc)
+        SparseMatrix<T>& result,
+        const int num_iterations)> SDDMMFunc)
     const
 {
-    // I guess we do the same thing here that we do in CSRMatrix.cpp (?)
-    SDDMMFunc(x, y, *this, result);
+    SDDMMFunc(x, y, *this, result, num_iterations);
 }
 
 //////////////// GETTERS ////////////////
@@ -116,8 +130,7 @@ const std::vector<int>& COOMatrix<T>::getColIndices() const
     return this->colIndices;
 }
 
-//////////////// SETTERS ////////////////
-
+// I think this is a getter and not a setter
 template <typename T>
 T COOMatrix<T>::at(int row, int col) const
 {
@@ -147,6 +160,20 @@ T COOMatrix<T>::at(int row, int col) const
     return 0;
 }
 
+//////////////// SETTERS ////////////////
+
+template <typename T>
+void COOMatrix<T>::setNumRows(int numRows)
+{
+    this->numRows = numRows;
+}
+
+template <typename T>
+void COOMatrix<T>::setNumCols(int numCols)
+{
+    this->numCols = numCols;
+}
+
 template <typename T>
 void COOMatrix<T>::setValues(const std::vector<T>& values)
 {
@@ -165,27 +192,111 @@ void COOMatrix<T>::setColIndices(const std::vector<int>& colIndices)
     this->colIndices = colIndices;
 }
 
+template <typename T>
+void COOMatrix<T>::make_col_major()
+{
+    // Create a vector of indices to be sorted
+    std::vector<int> indices(rowIndices.size());
+    std::iota(indices.begin(), indices.end(), 0);
+
+    // Sort the indices based on rows and then columns
+    std::sort(indices.begin(), indices.end(), [&](int a, int b)
+              { return (rowIndices[a] < rowIndices[b]) || (rowIndices[a] == rowIndices[b] && colIndices[a] < colIndices[b]); });
+
+    // Reorder the vectors based on the sorted indices
+    std::vector<int> sortedRows(rowIndices.size());
+    std::vector<int> sortedCols(colIndices.size());
+    std::vector<T> sortedValues(values.size());
+
+    for (size_t i = 0; i < indices.size(); ++i)
+    {
+        sortedRows[i] = rowIndices[indices[i]];
+        sortedCols[i] = colIndices[indices[i]];
+        sortedValues[i] = values[indices[i]];
+    }
+
+    // Update the original vectors
+    this->rowIndices = sortedRows;
+    this->colIndices = sortedCols;
+    this->values = sortedValues;
+}
+
 //////////////// FILE IO ////////////////
 
 template <typename T>
 void COOMatrix<T>::readFromFile(const std::string& filePath)
 {
-    // TODO: do we even need this since the matrix generation script is
-    // generating CSR matrices (and the matrix generation script is
-    // the only place where we want to save matrices to a file
-    // (if I am not mistaken))?
-    //
-    // throw not implemented error for now
-    throw std::runtime_error("error: COOMatrix<T>::readFromFile() not implemented");
+    // Load from matrix market format:
+    // https://math.nist.gov/MatrixMarket/formats.html
+    // All % are comments and should be ignored
+    // The first line  without % is
+    // numRows numCols numNonZeros
+    // The rest of the lines are
+    // rowIndex colIndex value
+    // where rowIndex and colIndex are 1-indexed
+
+    // open file
+    std::ifstream file(filePath);
+    assert(file.is_open() && "Error: Could not open file for reading");
+
+    // ignore comments
+    while (file.peek() == '%')
+    {
+        file.ignore(2048, '\n');
+    }
+
+    // Read numRows, numCols, and the number of non-zero values from the file
+    int numNonZeros;
+    file >> this->numRows >> this->numCols >> numNonZeros;
+
+    assert(numNonZeros > 0 && "Error: Number of non-zero values must be positive");
+
+    // resize vectors
+    this->values.resize(numNonZeros);
+    this->rowIndices.resize(numNonZeros);
+    this->colIndices.resize(numNonZeros);
+
+    // Read the rest
+    for (int i = 0; i < numNonZeros; ++i)
+    {
+        file >> this->rowIndices[i] >> this->colIndices[i] >> this->values[i];
+        // convert to 0-indexed
+        this->rowIndices[i]--;
+        this->colIndices[i]--;
+    }
+
+    file.close();
+
+    make_col_major();
 }
 
 template <typename T>
 void COOMatrix<T>::writeToFile(const std::string& filePath) const
 {
-    // TODO: same comment as in readFromFile
-    //
-    // throw not implemented error for now
-    throw std::runtime_error("error: COOMatrix<T>::writeToFile() not implemented");
+    // Write to matrix market format:
+    // https://math.nist.gov/MatrixMarket/formats.html
+    // All % are comments and should be ignored
+    // The first line  without % is
+    // numRows numCols numNonZeros
+    // The rest of the lines are
+    // rowIndex colIndex value
+    // where rowIndex and colIndex are 1-indexed
+
+    // open file
+    std::ofstream file(filePath);
+    assert(file.is_open() && "Error: Could not open file for writing");
+
+    // Write numRows, numCols, and the number of non-zero values to the file
+    file << this->numRows << " " << this->numCols << " " << this->values.size() << std::endl;
+
+    // Write the rest
+    for (int i = 0; i < this->values.size(); ++i)
+    {
+        // convert to 1-indexed
+        file << this->rowIndices[i] + 1 << " " << this->colIndices[i] + 1 << " " << this->values[i] << std::endl;
+    }
+
+    file.close();
 }
 
 //////////////// OTHER ////////////////

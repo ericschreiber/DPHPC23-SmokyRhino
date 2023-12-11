@@ -13,7 +13,7 @@ int main()
     DenseMatrix<float> matrixC(std::vector<std::vector<float>>{{1}, {2}, {3}});
     CSRMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
     CSRMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
-
+    const int num_iterations = 1;
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
     naive_SDDMM<float>* class_to_run = new naive_SDDMM<float>(&timer);
@@ -25,13 +25,15 @@ int main()
         matrixB,
         matrixC,
         calculatedSolution,
+        num_iterations,
         std::bind(
             &naive_SDDMM<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     delete class_to_run;
     class_to_run = nullptr;

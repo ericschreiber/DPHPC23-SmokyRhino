@@ -39,7 +39,7 @@ fi
 # Remove the point in the density if it exists
 MATRIX_DENSITY_file_name=$(echo $MATRIX_DENSITY | sed 's/\.//g')
 NAME="n_"$n"_m_"$m"_sparsity_"$MATRIX_DENSITY_file_name
-FILE=$OUTPUT_DIR"/"$NAME".txt"
+FILE=$OUTPUT_DIR"/"$NAME
 touch $FILE
 $EXECUTABLE "${n}" "${m}" "${MATRIX_DENSITY}" "${FILE}"
 echo "Generated matrix "$FILE

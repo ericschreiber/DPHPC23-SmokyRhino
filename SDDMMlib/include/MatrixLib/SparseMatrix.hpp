@@ -16,11 +16,13 @@ class SparseMatrix
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,
             SparseMatrix<T>& result,
+            const int num_iterations,
             std::function<void(
                 const DenseMatrix<T>& x,
                 const DenseMatrix<T>& y,
                 const SparseMatrix<T>& z,
-                SparseMatrix<T>& result)> SDDMMFunc) const = 0;
+                SparseMatrix<T>& result,
+                const int num_iterations)> SDDMMFunc) const = 0;
         virtual void readFromFile(const std::string& filePath) = 0;
         virtual void writeToFile(const std::string& filePath) const = 0;
         virtual ~SparseMatrix() {}

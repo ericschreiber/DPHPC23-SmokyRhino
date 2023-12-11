@@ -52,6 +52,7 @@ __global__ void blocked_SDDMM_kernel(
             {
                 my_sum += d_A[i * k + l] * d_B[d_colIdx[j] * k + l];
             }
+
             // We reduce that local sum over all threads in a block
             float warp_sum = warp_wise_reduction(my_sum);
 
@@ -60,12 +61,13 @@ __global__ void blocked_SDDMM_kernel(
             {
                 warpSums_buffer[warp_idx] = warp_sum;
             }
+            __syncthreads();
 
             // The first warp in the block now does another reduction on the elements in the buffer
             float block_sum = 0.0;
             if (warp_idx == 0)
             {
-                float block_sum = warp_wise_reduction(warpSums_buffer[thread_id]);
+                block_sum = warp_wise_reduction(warpSums_buffer[thread_id]);
             }
 
             // after we got the final sum, we now do the multiplication with the sample matrix and write the result

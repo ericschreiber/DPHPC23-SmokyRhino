@@ -8,7 +8,8 @@ void naive_SDDMM<float>::SDDMM(
     const DenseMatrix<float>& x,
     const DenseMatrix<float>& y,
     const SparseMatrix<float>& z,
-    SparseMatrix<float>& result) const
+    SparseMatrix<float>& result,
+    const int num_iterations) const
 {
     // Check if CSRMatrix
     const CSRMatrix<float>* csrMatrix = dynamic_cast<const CSRMatrix<float>*>(&z);
@@ -19,7 +20,7 @@ void naive_SDDMM<float>::SDDMM(
     }
     else
     {
-        naive_SDDMM_CSR(x, y, *csrMatrix, *csrResult);
+        naive_SDDMM_CSR(x, y, *csrMatrix, *csrResult, num_iterations);
     }
 
     csrMatrix = nullptr;
@@ -33,7 +34,8 @@ void naive_SDDMM<T>::SDDMM(
     const DenseMatrix<T>& x,
     const DenseMatrix<T>& y,
     const SparseMatrix<T>& z,
-    SparseMatrix<T>& result) const
+    SparseMatrix<T>& result,
+    const int num_iterations) const
 {
     assert(false && "Error: naive_SDDMM::SDDMM() only accepts float as input. Other types are not supported yet");
 }
@@ -42,7 +44,8 @@ void naive_SDDMM<float>::naive_SDDMM_CSR(
     const DenseMatrix<float>& x,
     const DenseMatrix<float>& y,
     const CSRMatrix<float>& z,
-    CSRMatrix<float>& result) const
+    CSRMatrix<float>& result,
+    const int num_iterations) const
 {
     // please implement
     this->start_run();

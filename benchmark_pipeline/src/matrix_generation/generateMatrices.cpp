@@ -32,6 +32,52 @@ void gen_and_set(COOMatrix<float> &matrix, int i, int j)
     matrix.setColIndices(oldColIndices);
 }
 
+// generates a random non-zero number in the range of our matrix and sets it at the given position
+void gen_and_set(DenseMatrix<float> &matrix, int i, int j)
+{
+    // generate a random number in the range ]0,1]
+    // i.e. the number can't be zero since we are sure that we want to insert a non-zero value)
+    float value = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    while (value == 0)  // could probably done more efficiently but the chance of getting a 0 (which would make us enter this loop) is very very low
+    {
+        value = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    }
+
+    matrix.setValue(i, j, value);
+}
+
+void gen_dense_matrix(DenseMatrix<float> &matrix)
+{
+    int n = matrix.getNumRows();
+    int m = matrix.getNumCols();
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)  // TODO: maybe parallelize this loop
+        {
+            gen_and_set(matrix, i, j);
+        }
+    }
+}
+
+void gen_coo_matrix(COOMatrix<float> &matrix, float sparsity)
+{
+    int n = matrix.getNumRows();
+    int m = matrix.getNumCols();
+    // populate array with uniformly distributed random numbers (respecting the degree of sparsity)
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            // generate random number in [0,1]
+            float decision_num = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            if (decision_num <= sparsity)
+            {
+                gen_and_set(matrix, i, j);
+            }
+        }
+    }
+}
+
 // since writeToFile expects the dst_file to already exist this script expects this too
 int main(int argc, char *argv[])
 {
@@ -51,35 +97,22 @@ int main(int argc, char *argv[])
     float sparsity = std::stof(argv[3]);
     std::string dst_path = argv[4];
 
-    COOMatrix<float> matrix(n, m);
+    assert(sparsity >= 0 && sparsity <= 1 && "sparsity must be in [0,1]");
 
-    // populate array with uniformly distributed random numbers (respecting the degree of sparsity)
-    for (int i = 0; i < n; i++)
+    if (sparsity == 1)
     {
-        for (int j = 0; j < m; j++)
-        {
-            if (sparsity == 0)
-            {
-                // if sparsity is 0 we want a completely empty matrix (see def of sparsity in Notion).
-                // we have to handle this case separately and cant just re-use the else block i.e. generate a decision_num and check if it is <= 0 since decision_num
-                // could be exactly 0 (resulting in a matrix with some non-zeros which is not what we want in case of sparsity = 0)
-                // we also can't change the condition to < sparsity since then the case where sparsity is 1 could result in a matrix with some zeros
-                // (in case decision_num happened to be exactly 1) but by the defintion of sparsity we want a completely full matrix in the case of sparsity = 1.
-                continue;
-            }
-            else
-            {
-                // generate random number in [0,1]
-                float decision_num = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-                if (decision_num <= sparsity)
-                {
-                    gen_and_set(matrix, i, j);
-                }
-            }
-        }
+        DenseMatrix<float> matrix(n, m);
+        gen_dense_matrix(matrix);
+        matrix.writeToFile(dst_path);
+        return 0;
     }
-
-    matrix.writeToFile(dst_path);
+    else
+    {
+        COOMatrix<float> matrix(n, m);
+        gen_coo_matrix(matrix, sparsity);
+        matrix.writeToFile(dst_path);
+        return 0;
+    }
 
     /*
     // test matrix read/write

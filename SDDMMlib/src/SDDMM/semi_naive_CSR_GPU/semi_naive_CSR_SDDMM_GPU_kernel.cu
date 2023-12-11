@@ -67,7 +67,6 @@ __global__ void blocked_SDDMM_kernel(
             float block_sum = 0.0;
             if (warp_idx == 0)
             {
-                // printf("warpSums_buffer[%d] = %f\n", thread_id, warpSums_buffer[thread_id]);
                 block_sum = warp_wise_reduction(warpSums_buffer[thread_id]);
             }
 

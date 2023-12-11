@@ -11,6 +11,7 @@ then
     echo "Not enough arguments. Usage: 
     ./generateMatrices.sh <MIN_N> <MAX_N> <MIN_M> <MAX_M> <min_sparsity> <max_sparsity> <stride>
     - both sparsities integers that represent percentages
+    - sparsity = 100 means full matrix, sparsity = 0 means empty matrix
     - if <stride> is not provided, it defaults to 1"
     exit 1
 fi
@@ -48,13 +49,12 @@ for ((n = MIN_N; n <= MAX_N; n++)); do
             then
                 continue
             fi
-            sparsity=$(echo "scale=2; $s/100" | bc)
+            sparsity=$(awk -v s="$s" 'BEGIN {printf "%.2f", s / 100}')
             NAME="n_"$n"_m_"$m"_sparsity_"$sparsity
             echo "n = "$n", m = "$m", sparsity = "$sparsity
             FILE=$DATASET_DIR"/"$NAME".txt"
             touch $FILE
             $EXECUTABLE $n $m $sparsity $FILE
-            # echo "Generated matrix "$FILE
         done
     done
 done

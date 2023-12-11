@@ -130,8 +130,7 @@ const std::vector<int>& COOMatrix<T>::getColIndices() const
     return this->colIndices;
 }
 
-//////////////// SETTERS ////////////////
-
+// I think this is a getter and not a setter
 template <typename T>
 T COOMatrix<T>::at(int row, int col) const
 {
@@ -159,6 +158,20 @@ T COOMatrix<T>::at(int row, int col) const
     // if we get here the value is 0 (since we are a sparse matrix
     // and we have made sure that row and col are not out of bounds)
     return 0;
+}
+
+//////////////// SETTERS ////////////////
+
+template <typename T>
+void COOMatrix<T>::setNumRows(int numRows)
+{
+    this->numRows = numRows;
+}
+
+template <typename T>
+void COOMatrix<T>::setNumCols(int numCols)
+{
+    this->numCols = numCols;
 }
 
 template <typename T>

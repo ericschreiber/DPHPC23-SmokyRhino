@@ -1,0 +1,2 @@
+function, SparseFormat, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/first/sparse/matrix, result
+merged_1024_threads,/scratch/eschreib/matrices/Dataset005_testing/A/n_100_m_50_sparsity_1,/scratch/eschreib/matrices/Dataset005_testing/B/n_50_m_30_sparsity_1,/scratch/eschreib/matrices/Dataset005_testing/n_100_m_30_sparsity_0001.mtx,12288.000435,9216.000326,9216.000326,

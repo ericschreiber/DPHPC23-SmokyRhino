@@ -13,8 +13,7 @@
 // work on all blocks and then split the work between threads on the tile level. The working
 // sets of the threads are not consecutive anymore but in regular intervals.
 
-// TODO:
-// make this use CSR (maybe I can use Erics cpp file for that?) and replace the precomputation by using the rowPtr array and the blockIdx.x
+// Float4 does not work for some reason
 
 #include <cuda_profiler_api.h>
 #include <cuda_runtime.h>
@@ -25,8 +24,8 @@
 #include "merged/merged.cuh"
 #include "utils.h"
 
-#define THREADS_PER_BLOCK 2                                                              // this should be 1024 (unless we are running tests, then we may want to set it to something small)
-#define GPU_SHARED_MEM_SIZE_BYTES 136                                                    // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
+#define THREADS_PER_BLOCK 1024                                                           // this should be 1024 (unless we are running tests, then we may want to set it to something small)
+#define GPU_SHARED_MEM_SIZE_BYTES 49152                                                  // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
                                                                                          // can force tiling (e.g. for testing) by setting this to something small.
 #define COMPUTATION_SHARED_MEM_BYTES (GPU_SHARED_MEM_SIZE_BYTES - (sizeof(float) << 5))  // reserve 32 floats for last reduction in tiled_dot_product_thread_subset
 #define COMPUTATION_SHARED_MEM (COMPUTATION_SHARED_MEM_BYTES / sizeof(float))            // unit: floats
@@ -51,22 +50,36 @@ __device__ float tiled_dot_product_thread_subset_m(
         (matrixB_transposed_GPU_values + B_col_index * k) +  // the thing in parens is ptr to start of col of B that we are computing the dot prod with
         tiling_step * normal_tile_size;
 
-    // setup float4
-    const float4* tile_float4 = (const float4*)tile;
-    const float4* B_col_tile_beginning_float4 = (const float4*)B_col_tile_beginning;
-
+    // setup float4                                                  // Float4 does not work for some reason
+    const float4* tile_float4 = reinterpret_cast<const float4*>(tile);
+    const float4* B_col_tile_beginning_float4 = reinterpret_cast<const float4*>(B_col_tile_beginning);
     float4 sum_of_chunks = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    // // setup float2
+    // const float2* tile_float2 = reinterpret_cast<const float2*>(tile);
+    // const float2* B_col_tile_beginning_float2 = reinterpret_cast<const float2*>(B_col_tile_beginning);
+    // float2 sum_of_chunks = make_float2(0.0f, 0.0f);
+
     for (int i = tid; i < numChunksInTile; i += bdim)
     {
         // compute the chunk of the dot product that this thread is responsible for
-        float4 vector1_beginning = tile_float4[i];
-        float4 vector2_beginning = B_col_tile_beginning_float4[i];
+        // Use float4 for the dot product
+        const float4 vector1_beginning = tile_float4[i * 2];
+        const float4 vector2_beginning = B_col_tile_beginning_float4[i * 2];
         sum_of_chunks.x += vector1_beginning.x * vector2_beginning.x;
         sum_of_chunks.y += vector1_beginning.y * vector2_beginning.y;
         sum_of_chunks.z += vector1_beginning.z * vector2_beginning.z;
         sum_of_chunks.w += vector1_beginning.w * vector2_beginning.w;
+        // float2 vector1_beginning = tile_float2[i * 2];
+        // float2 vector2_beginning = B_col_tile_beginning_float2[i * 2];
+        // sum_of_chunks.x += vector1_beginning.x * vector2_beginning.x;
+        // sum_of_chunks.y += vector1_beginning.y * vector2_beginning.y;
+        // vector1_beginning = tile_float2[i * 2 + 1];
+        // vector2_beginning = B_col_tile_beginning_float2[i * 2 + 1];
+        // sum_of_chunks.x += vector1_beginning.x * vector2_beginning.x;
+        // sum_of_chunks.y += vector1_beginning.y * vector2_beginning.y;
     }
-    // let thread 0 take care of the last chunk (bc it might be smaller than 4)
+    // FLOAT4 let last thread take care of the last chunk (bc it might be smaller than 4)
     if (tid == THREADS_PER_BLOCK - 1)
     {
         const int beginning = numChunksInTile << 2;
@@ -76,8 +89,19 @@ __device__ float tiled_dot_product_thread_subset_m(
             sum_of_chunks.x += (tile + beginning)[i] * (B_col_tile_beginning + beginning)[i];
         }
     }
-
     float sum_of_chunks_synced = sum_of_chunks.x + sum_of_chunks.y + sum_of_chunks.z + sum_of_chunks.w;
+
+    // // FLOAT2 let the last thread take care of the last chunk (bc it might be smaller than 2)
+    // if (tid == THREADS_PER_BLOCK - 1)
+    // {
+    //     const int beginning = numChunksInTile << 2;
+    //     for (int i = 0; i < last_chunk_size; i++)
+    //     {
+    //         // cant unroll here because we only know last_chunk_size at runtime
+    //         sum_of_chunks.x += (tile + beginning)[i] * (B_col_tile_beginning + beginning)[i];
+    //     }
+    // }
+    // float sum_of_chunks_synced = sum_of_chunks.x + sum_of_chunks.y;
 
     // WARP-WIDE REDUCTION
     // i.e. reduce the sum_of_chunks varible (that each thread has) into one value per warp
@@ -100,17 +124,17 @@ __device__ float tiled_dot_product_thread_subset_m(
     if (tid < 32)  // only use the threads from the first warp for the final reduction
     {
         // 2: load the vals that we just wrote into shared mem into variables of the threads of the first warp
-        float val = reduction_space[tid];
+        sum_of_chunks_synced = reduction_space[tid];
         // 3: now warp reduce those vals
-        val += __shfl_down_sync(0xffffffff, val, 16);  // the final reduction comprises a max of 32 values so hard coding 16 here is fine
-        val += __shfl_down_sync(0xffffffff, val, 8);
-        val += __shfl_down_sync(0xffffffff, val, 4);
-        val += __shfl_down_sync(0xffffffff, val, 2);
-        val += __shfl_down_sync(0xffffffff, val, 1);
+        sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 16);  // the final reduction comprises a max of 32 values so hard coding 16 here is fine
+        sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 8);
+        sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 4);
+        sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 2);
+        sum_of_chunks_synced += __shfl_down_sync(0xffffffff, sum_of_chunks_synced, 1);
         // 4: now the final sum should sit int the first thread of the first warp (= thread 0) so it can return it
         if (tid == 0)
         {
-            return val;
+            return sum_of_chunks_synced;
         }
     }
 }
@@ -153,25 +177,38 @@ __global__ void merged_m(
     }
 
     ////////////////    COPY TILE INTO SHARED MEM (NOW IN PARALLEL)    ////////////////
-    __shared__ float tile[COMPUTATION_SHARED_MEM];
+    // __shared__ float tile[COMPUTATION_SHARED_MEM];  // This would be static shared mem allocation.
+    extern __shared__ float tile[];  // Dynamic shared memory allocation. That way we can use all the shared memory that is available to us. THis would not be possible with static shared mem allocation.
+
     int last_chunk_size = curr_tile_size & 3;   // this is less expensive than a modulo op
     int numChunksInTile = curr_tile_size >> 2;  // only the number of chunks that are fully unrolled
     const float* tile_start =
         matrixA_GPU_values + (row_index * k) +  // start of the row of A that we are working on
         (tile_index * COMPUTATION_SHARED_MEM);  // shift by the number of floats that are part of the previous tiles
-    // do all but the last chunk
-    int q;
-    const float* start;
+
+    // copy all but the last chunk
+    // float4* tile_float4 = reinterpret_cast<float4*>(tile);
+    float2* tile_float2 = reinterpret_cast<float2*>(tile);
+    const float2* tile_start_float2 = reinterpret_cast<const float2*>(tile_start);
+    // const float4* tile_float4_start = reinterpret_cast<const float4*>(tile_start);
     for (int i = tid; i < numChunksInTile; i += bdim)  // i steps through the chunks
     {
-        q = i << 2;  // shared mem is indexed in bytes
-        // can't be i = i << 2 because then the i in the for loop would change
-        // unrolling (because compiler likes unrolling I guess)
-        start = tile_start + q;  // kinda fishy with const in there
-        tile[q] = *(start);
-        tile[q + 1] = *(start + 1);
-        tile[q + 2] = *(start + 2);
-        tile[q + 3] = *(start + 3);
+        // const float4 to_print = tile_float4_start[i];            // SOMEHOW FLOAT4 DOES NOT WORK
+        // printf("value x if i = %d: %f\n", i, to_print.x);
+        // printf("value y if i = %d: %f\n", i, to_print.y);
+        // printf("value z if i = %d: %f\n", i, to_print.z);
+        // printf("value w if i = %d: %f\n", i, to_print.w);
+        // return;
+        // tile_float4[i] = *((float4*)tile_start + i);
+        // float4 to_print2 = tile_float4[i];
+        // printf("to_print2 x: %f\n", to_print2.x);
+        // printf("to_print2 y: %f\n", to_print2.y);
+        // printf("to_print2 z: %f\n", to_print2.z);
+        // printf("to_print2 w: %f\n", to_print2.w);
+        float2 to_copy = tile_start_float2[i * 2];
+        tile_float2[i * 2] = to_copy;
+        to_copy = tile_start_float2[i * 2 + 1];
+        tile_float2[i * 2 + 1] = to_copy;
     }
     // last chunk
     if (tid == THREADS_PER_BLOCK - 1)
@@ -179,7 +216,7 @@ __global__ void merged_m(
         for (int i = numChunksInTile << 2; i < curr_tile_size; i++)
         {
             // cant unroll here because we only know last_chunk_size at runtime
-            tile[i] = *(tile_start + i);
+            tile[i] = tile_start[i];
         }
     }
 
@@ -187,7 +224,7 @@ __global__ void merged_m(
 
     ////////////////    ACTUAL COMPUTATION    ////////////////
     // iterate over all elems OF THE ENTIRE ROW OF C (that this block is working on)
-    __shared__ float reduction_space[sizeof(float) << 5];  // this is the shared mem that we use for the final reduction
+    extern __shared__ float reduction_space[sizeof(float) << 5];  // this is the shared mem that we use for the final reduction
     for (int elem_index = matrixC_GPU_row_ptr[row_index]; elem_index < matrixC_GPU_row_ptr[row_index + 1]; elem_index++)
     {
         float dot_prod = tiled_dot_product_thread_subset_m(
@@ -203,10 +240,10 @@ __global__ void merged_m(
             k,
             reduction_space,
             numChunksInTile);
+
         if (tid == 0)  // in tiled_dot_product_thread_subset only thread 0 returns something so only it needs to do the addition
         {
             atomicAdd(&matrixResult_GPU_values[elem_index], dot_prod * matrixC_GPU_values[elem_index]);
-            // TODO: in merged version use dot_product_float4 from coo_opt_vectorization_SDDMM.cu instead of tiled_dot_product_thread_subset (which is not vectorized)
         }
     }
 }
@@ -229,8 +266,12 @@ void compute_m(
     int blocks = m * num_tiles;
     ////////////////////////////////////////////////////////////////
 
+    // Allow the GPU to use all available shared memory
+    // https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#shared-memory-7-x
+    CUDA_CHECK(cudaFuncSetAttribute(merged_m, cudaFuncAttributeMaxDynamicSharedMemorySize, GPU_SHARED_MEM_SIZE_BYTES));
+
     // call main kernel
-    merged_m<<<blocks, THREADS_PER_BLOCK>>>(
+    merged_m<<<blocks, THREADS_PER_BLOCK, GPU_SHARED_MEM_SIZE_BYTES>>>(
         m,
         k,
         matrixA_GPU_values,

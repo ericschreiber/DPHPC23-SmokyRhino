@@ -28,7 +28,7 @@
 #define GPU_SHARED_MEM_SIZE_BYTES 49152                                                  // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
                                                                                          // can force tiling (e.g. for testing) by setting this to something small.
 #define COMPUTATION_SHARED_MEM_BYTES (GPU_SHARED_MEM_SIZE_BYTES - (sizeof(float) << 5))  // reserve 32 floats for last reduction in tiled_dot_product_thread_subset
-#define COMPUTATION_SHARED_MEM (COMPUTATION_SHARED_MEM_BYTES / sizeof(float) - 3)        // unit: floats -3 bc we need to reserve some space for it to align with float4
+#define COMPUTATION_SHARED_MEM (COMPUTATION_SHARED_MEM_BYTES / sizeof(float))            // unit: floats -3 bc we need to reserve some space for it to align with float4
 
 // helper function that abstracts away the indexing logic of computing a tiled dot product
 // in the updated version, a thread does not compute the whole dot product of the tile but only a subset of it
@@ -53,11 +53,6 @@ __device__ float tiled_dot_product_thread_subset_m(
     // setup float4
     int float4_col_offset = 4 - (col_offset % 4);  // Those are the elements that are in front of the first float4
     float4 sum_of_chunks = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-
-    // // setup float2
-    // const float2* tile_float2 = reinterpret_cast<const float2*>(tile);
-    // const float2* B_col_tile_beginning_float2 = reinterpret_cast<const float2*>(B_col_tile_beginning);
-    // float2 sum_of_chunks = make_float2(0.0f, 0.0f);
 
     // For float 4 to work we need that the offset is divisible by 4. The rest has to be done by float.
     // Since we only have this problem with B_col_tile_beginning, we need to load the first col_offset % 4 elements
@@ -88,40 +83,10 @@ __device__ float tiled_dot_product_thread_subset_m(
             sum_of_chunks.y += vector2_beginning.y * tile[i * 4 + float4_col_offset + 1];
             sum_of_chunks.z += vector2_beginning.z * tile[i * 4 + float4_col_offset + 2];
             sum_of_chunks.w += vector2_beginning.w * tile[i * 4 + float4_col_offset + 3];
-            // float2 vector1_beginning = tile_float2[i * 2];
-            // float2 vector2_beginning = B_col_tile_beginning_float2[i * 2];
-            // sum_of_chunks.x += vector1_beginning.x * vector2_beginning.x;
-            // sum_of_chunks.y += vector1_beginning.y * vector2_beginning.y;
-            // vector1_beginning = tile_float2[i * 2 + 1];
-            // vector2_beginning = B_col_tile_beginning_float2[i * 2 + 1];
-            // sum_of_chunks.x += vector1_beginning.x * vector2_beginning.x;
-            // sum_of_chunks.y += vector1_beginning.y * vector2_beginning.y;
         }
     }
-    // // FLOAT4 let last thread take care of the last chunk (bc it might be smaller than 4)
-    // if (tid == THREADS_PER_BLOCK - 1)
-    // {
-    //     for (int i = (numChunksInTile * 4) + col_offset_mod_4; i < curr_tile_size; i++)
-    //     {
-    //         printf("tid: %d is adding %f after float4 for col_offset_mod_4: %d\n", tid, (tile)[i] * (B_col_tile_beginning)[i], col_offset_mod_4);
-    //         // cant unroll here because we only know last_chunk_size at runtime
-    //         sum_of_chunks.x += (tile)[i] * (B_col_tile_beginning)[i];
-    //     }
-    // }
 
     float sum_of_chunks_synced = sum_of_chunks.x + sum_of_chunks.y + sum_of_chunks.z + sum_of_chunks.w;
-
-    // // FLOAT2 let the last thread take care of the last chunk (bc it might be smaller than 2)
-    // if (tid == THREADS_PER_BLOCK - 1)
-    // {
-    //     const int beginning = numChunksInTile << 2;
-    //     for (int i = 0; i < last_chunk_size; i++)
-    //     {
-    //         // cant unroll here because we only know last_chunk_size at runtime
-    //         sum_of_chunks.x += (tile + beginning)[i] * (B_col_tile_beginning + beginning)[i];
-    //     }
-    // }
-    // float sum_of_chunks_synced = sum_of_chunks.x + sum_of_chunks.y;
 
     // WARP-WIDE REDUCTION
     // i.e. reduce the sum_of_chunks varible (that each thread has) into one value per warp
@@ -235,39 +200,6 @@ __global__ void merged_m(
             tile[local_offset + 3] = to_copy.w;
         }
     }
-
-    // copy all but the last chunk
-    // float4* tile_float4 = reinterpret_cast<float4*>(tile);
-    // float2* tile_float2 = reinterpret_cast<float2*>(tile);
-    // const float2* tile_start_float2 = reinterpret_cast<const float2*>(tile_start);
-    // for (int i = tid; i < numChunksInTile; i += bdim)  // i steps through the chunks
-    // {
-    //     // const float4 to_print = tile_float4_start[i];            // SOMEHOW FLOAT4 DOES NOT WORK
-    //     // printf("value x if i = %d: %f\n", i, to_print.x);
-    //     // printf("value y if i = %d: %f\n", i, to_print.y);
-    //     // printf("value z if i = %d: %f\n", i, to_print.z);
-    //     // printf("value w if i = %d: %f\n", i, to_print.w);
-    //     // return;
-    //     // tile_float4[i] = *((float4*)tile_start + i);
-    //     // float4 to_print2 = tile_float4[i];
-    //     // printf("to_print2 x: %f\n", to_print2.x);
-    //     // printf("to_print2 y: %f\n", to_print2.y);
-    //     // printf("to_print2 z: %f\n", to_print2.z);
-    //     // printf("to_print2 w: %f\n", to_print2.w);
-    //     float2 to_copy = tile_start_float2[i * 2];
-    //     tile_float2[i * 2] = to_copy;
-    //     to_copy = tile_start_float2[i * 2 + 1];
-    //     tile_float2[i * 2 + 1] = to_copy;
-    // }
-    // // last chunk
-    // if (tid == THREADS_PER_BLOCK - 1)
-    // {
-    //     for (int i = numChunksInTile << 2; i < curr_tile_size; i++)
-    //     {
-    //         // cant unroll here because we only know last_chunk_size at runtime
-    //         tile[i] = tile_start[i];
-    //     }
-    // }
 
     __syncthreads();  // this is a barrier
 

@@ -140,12 +140,12 @@ void naive_coo_SDDMM_GPU<float>::SDDMM(
 void naive_coo_SDDMM_GPU<float>::start_run() const
 {
     assert(this->_timer != nullptr && "Error: naive_coo_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
-    this->_timer->start_cpu_run();
+    this->_timer->start_gpu_run();
 }
 
 void naive_coo_SDDMM_GPU<float>::stop_run() const
 {
-    this->_timer->stop_cpu_run();
+    this->_timer->stop_gpu_run();
 }
 
 // Explicit template instantiation

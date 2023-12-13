@@ -205,7 +205,7 @@ __global__ void merged_m(
 
     ////////////////    ACTUAL COMPUTATION    ////////////////
     // iterate over all elems OF THE ENTIRE ROW OF C (that this block is working on)
-    extern __shared__ float reduction_space[sizeof(float) << 5];  // this is the shared mem that we use for the final reduction
+    __shared__ float reduction_space[sizeof(float) << 5];  // this is the shared mem that we use for the final reduction
     for (int elem_index = matrixC_GPU_row_ptr[row_index]; elem_index < matrixC_GPU_row_ptr[row_index + 1]; elem_index++)
     {
         float dot_prod = tiled_dot_product_thread_subset_m(

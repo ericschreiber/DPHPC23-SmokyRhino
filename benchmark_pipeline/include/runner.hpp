@@ -39,10 +39,10 @@ class runner
             std::string sparse_matrix_class,
             int num_iterations);
 
-        bool do_test = false;
+        bool do_test = true;
 
         const int num_iterations_testing = 1;
-        const int num_iterations_profiling = 1;
+        const int num_iterations_profiling = 220;
         std::string _out_path;
         std::string _results_file_path;
         // A list of tuples to be run. Each tuple contains:

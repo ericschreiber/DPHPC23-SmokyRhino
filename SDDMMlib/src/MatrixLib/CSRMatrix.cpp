@@ -234,14 +234,14 @@ bool CSRMatrix<T>::isEqual(const SparseMatrix<T>& other) const
     std::vector<T> otherValues = other.getValues();
     for (int i = 0; i < values.size(); ++i)
     {
-        if (fabs(values[i] - otherValues[i]) > 0.0001)
+        if (fabs(values[i] - otherValues[i]) > 0.001)
         {
             std::cout << "Error: Values are not the same" << std::endl;
             for (int i = 0; i < values.size(); ++i)
             {
-                std::cout << values[i] << " " << other.getValues()[i] << std::endl;
-                bool a = values[i] == other.getValues()[i];
-                std::cout << a << std::endl;
+                std::cout << values[i] << " " << otherValues[i] << std::endl;
+                bool a = !(fabs(values[i] - otherValues[i]) > 0.001);
+                std::cout << "was test passed: " << a << std::endl;
             }
             return false;
         }

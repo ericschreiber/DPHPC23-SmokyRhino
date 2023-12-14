@@ -18,8 +18,8 @@
 #include "cache_coo_gpu/cache_coo_SDDMM.cuh"
 #include "utils.h"
 
-#define THREADS_PER_BLOCK 2
-#define SHARED_MEM_SIZE_BYTES 8                                // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
+#define THREADS_PER_BLOCK 1024
+#define SHARED_MEM_SIZE_BYTES 49152                            // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
                                                                // can force tiling (e.g. for testing) by setting this to something small.
 #define SHARED_MEM_SIZE SHARED_MEM_SIZE_BYTES / sizeof(float)  // shared mem size in number of floats
 
@@ -46,7 +46,7 @@ __device__ float dot_product(
     float result = 0;
     for (int i = 0; i < size; i++)
     {
-        result += vector1_beginning[i] * vector2_beginning[i];
+        result += vector1_beginning[i] * vector2_beginning[i];  // indexing 1 with i breaks it, indexing v2 with i is fine
     }
     return result;
 }
@@ -121,14 +121,14 @@ __global__ void cache_coo(
         ////////////////    THREAD 0: COPY TILE INTO SHARED MEM    ////////////////
         // TODO: this can very likely also be parallelized over the threads in the block
         // decalare a ptr to a shared mem region (this needs to be done so that threads other than thread 0 can access the tile later on)
-        extern __shared__ float tile[];
+        __shared__ float tile[SHARED_MEM_SIZE];
         if (threadIdx.x == 0)
         {
             // copy the tile into shared mem (I think this copying happens float by float (bc of pointer arithmetic) but maybe also byte by byte (?))
             for (int i = 0; i < curr_tile_size; i++)
             {
                 // second summand (in parentheses) = offset of the tile that we're working on in this iteration of outer loop
-                tile[i] = *(A_vals_row_start + (tiling_step * SHARED_MEM_SIZE) + i);
+                tile[i] = *(A_vals_row_start + (tiling_step * SHARED_MEM_SIZE) + i);  // bot indexing tile with i and dereferencing the ptr breaks it
             }
         }
         __syncthreads();  // this is a barrier
@@ -233,7 +233,7 @@ void compute(
 
     // call main kernel
     // TODO: currently I am spawning dynamic shared mem, maybe non dynamic shared mem is better?
-    cache_coo<<<blocks, threadsPerBlock, SHARED_MEM_SIZE>>>(
+    cache_coo<<<blocks, threadsPerBlock>>>(
         k,
         numElementsC,
         matrixA_GPU_values,
@@ -247,9 +247,9 @@ void compute(
         tiling_steps);
     // Aggregate the return value of the kernel
     CUDA_CHECK(cudaGetLastError());
-    CUDA_CHECK(cudaDeviceSynchronize());
+    // CUDA_CHECK(cudaDeviceSynchronize());not needed i think
 
     // free the array prevBlocksWork on GPU
-    CUDA_CHECK(cudaFree(prevBlocksWork));
-    CUDA_CHECK(cudaFree(tiles_sizes));
+    // CUDA_CHECK(cudaFree(prevBlocksWork));
+    // CUDA_CHECK(cudaFree(tiles_sizes));
 }

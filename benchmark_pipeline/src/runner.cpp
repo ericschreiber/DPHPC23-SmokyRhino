@@ -204,8 +204,11 @@ void runner<T>::run()
         }
 
         // Test the function
-        bool test_passed = test_function(matrixA_coo_loader, matrixB, matrixC, sparse_matrix_class, function_class);
-
+        bool test_passed = true;
+        if (do_test)
+        {
+            test_passed = test_function(matrixA_coo_loader, matrixB, matrixC, sparse_matrix_class, function_class);
+        }
         if (test_passed)
         {
             //  Actually do the profiling

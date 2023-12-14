@@ -254,7 +254,7 @@ void compute_m(
     // CUDA_CHECK(cudaFuncSetAttribute(merged_m, cudaFuncAttributeMaxDynamicSharedMemorySize, GPU_SHARED_MEM_SIZE_BYTES));
 
     // call main kernel
-    merged_m<<<blocks, THREADS_PER_BLOCK>>>(
+    merged_m<<<blocks, THREADS_PER_BLOCK, GPU_SHARED_MEM_SIZE_BYTES>>>(
         m,
         k,
         matrixA_GPU_values,

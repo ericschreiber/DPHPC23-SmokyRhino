@@ -24,25 +24,20 @@
 #include "merged/merged.cuh"
 #include "utils.h"
 
-#define THREADS_PER_BLOCK 1024                                                           // this should be 1024 (unless we are running tests, then we may want to set it to something small)
-#define GPU_SHARED_MEM_SIZE_BYTES 48770                                                  // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
-                                                                                         // can force tiling (e.g. for testing) by setting this to something small.
-#define COMPUTATION_SHARED_MEM_BYTES (GPU_SHARED_MEM_SIZE_BYTES - (sizeof(float) << 5))  // reserve 32 floats for last reduction in tiled_dot_product_thread_subset
-#define COMPUTATION_SHARED_MEM (COMPUTATION_SHARED_MEM_BYTES / sizeof(float))            // unit: floats
+#define THREADS_PER_BLOCK 1024  // this should be 1024 (unless we are running tests, then we may want to set it to something small)
+// #define GPU_SHARED_MEM_SIZE_BYTES 48760     // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
+// can force tiling (e.g. for testing) by setting this to something small.
+// #define COMPUTATION_SHARED_MEM_BYTES 12140  // (GPU_SHARED_MEM_SIZE_BYTES - (sizeof(float) << 5))  // reserve 32 floats for last reduction in tiled_dot_product_thread_subset
+#define COMPUTATION_SHARED_MEM 12160  // (COMPUTATION_SHARED_MEM_BYTES / sizeof(float))            // unit: floats
 
 // helper function that abstracts away the indexing logic of computing a tiled dot product
 // in the updated version, a thread does not compute the whole dot product of the tile but only a subset of it
 __device__ float tiled_dot_product_thread_subset_m(
     const int tid,
-    // const int bdim,
     const float* tile,
     const int col_offset,
-    //  const int tiling_step,
-    // const int normal_tile_size,
     const int curr_tile_size,  // curr_tile_size can be smaller than normal_tile_size if we are working on the last tile of a row
     const float* matrixB_transposed_GPU_values,
-    // const int B_col_index,  // indexes the col of B that we are computing the dot prod with in this method call
-    // const int k,            // number of rows of B
     float* reduction_space,
     int numChunksInTile)
 {
@@ -56,34 +51,32 @@ __device__ float tiled_dot_product_thread_subset_m(
 
     // For float 4 to work we need that the offset is divisible by 4. The rest has to be done by float.
     // Since we only have this problem with B_col_tile_beginning, we need to load the first col_offset % 4 elements
-    if (tid < float4_col_offset)
+    if (tid < float4_col_offset && tid < curr_tile_size)
     {
         sum_of_chunks.x += (tile)[tid] * (B_col_tile_beginning)[tid];
     }
 
     int rest_to_calculate = curr_tile_size - float4_col_offset;
-    if (rest_to_calculate <= 4)
-    {
-        if (tid < rest_to_calculate)
-        {
-            sum_of_chunks.x += (tile + float4_col_offset)[tid] * (B_col_tile_beginning + float4_col_offset)[tid];
-        }
-    }
-    else
+    if (rest_to_calculate >= 4)
     {
         const float4* B_col_tile_beginning_float4 = reinterpret_cast<const float4*>(B_col_tile_beginning + float4_col_offset);
 
-        for (int i = tid; i < numChunksInTile; i += blockDim.x)  // i steps through the chunks
+        for (int i = tid; i < numChunksInTile - 1; i += blockDim.x)  // i steps through the chunks
         {
             // compute the chunk of the dot product that this thread is responsible for
             // Use float4 for the dot product
-            const float4 vector2_beginning = B_col_tile_beginning_float4[i];           // This is already offsetted by col_offset % 4
-            sum_of_chunks.x += vector2_beginning.x * tile[i * 4 + float4_col_offset];  // We cannot iterate with float4 over tile because it can be offsetted by col_offset % 4 in respect to B_col_tile_beginning.
-                                                                                       // Since it's in shared mem and therefore anyway faster, we can just iterate with float and then use float4 for B_col_tile_beginning.
-            sum_of_chunks.y += vector2_beginning.y * tile[i * 4 + float4_col_offset + 1];
-            sum_of_chunks.z += vector2_beginning.z * tile[i * 4 + float4_col_offset + 2];
-            sum_of_chunks.w += vector2_beginning.w * tile[i * 4 + float4_col_offset + 3];
+            const float4 vector2_beginning = B_col_tile_beginning_float4[i];  // This is already offsetted by col_offset % 4
+            int local_offset = i * 4 + float4_col_offset;
+            sum_of_chunks.x += vector2_beginning.x * tile[local_offset];  // We cannot iterate with float4 over tile because it can be offsetted by col_offset % 4 in respect to B_col_tile_beginning.
+                                                                          // Since it's in shared mem and therefore anyway faster, we can just iterate with float and then use float4 for B_col_tile_beginning.
+            sum_of_chunks.y += vector2_beginning.y * tile[local_offset + 1];
+            sum_of_chunks.z += vector2_beginning.z * tile[local_offset + 2];
+            sum_of_chunks.w += vector2_beginning.w * tile[local_offset + 3];
         }
+    }
+    if (tid < curr_tile_size - ((numChunksInTile - 1) << 2) - float4_col_offset)
+    {
+        sum_of_chunks.x += (tile)[curr_tile_size - tid - 1] * (B_col_tile_beginning)[curr_tile_size - tid - 1];
     }
 
     float sum_of_chunks_synced = sum_of_chunks.x + sum_of_chunks.y + sum_of_chunks.z + sum_of_chunks.w;
@@ -163,33 +156,24 @@ __global__ void merged_m(
 
     ////////////////    COPY TILE INTO SHARED MEM (NOW IN PARALLEL)    ////////////////
     __shared__ float tile[COMPUTATION_SHARED_MEM];  // This would be static shared mem allocation.
-    // extern __shared__ float tile[];  // Dynamic shared memory allocation. That way we can use all the shared memory that is available to us. THis would not be possible with static shared mem allocation.
 
-    int last_chunk_size = curr_tile_size & 3;                      // this is less expensive than a modulo op
+    // int last_chunk_size = curr_tile_size & 3;                      // this is less expensive than a modulo op
     int numChunksInTile = curr_tile_size >> 2;                     // only the number of chunks that are fully unrolled
     const int row_offset = (row_index * k) +                       // start of the row of A that we are working on
                            (tile_index * COMPUTATION_SHARED_MEM);  // shift by the number of floats that are part of the previous tiles
     const float* tile_start = matrixA_GPU_values + row_offset;
-    const int float4_row_offset = 4 - last_chunk_size;  // Those are the elements that are in front of the first float4
+    const int float4_row_offset = 4 - (row_offset % 4);  // Those are the elements that are in front of the first float4
 
     // Copy the first row_offset % 4 elements
-    if (tid < float4_row_offset)
+    if ((tid < float4_row_offset && tid < curr_tile_size))
     {
         tile[tid] = tile_start[tid];
     }
-    if (curr_tile_size - float4_row_offset <= 4)
-    {
-        // Add the rest of the elements
-        if (tid < curr_tile_size - float4_row_offset)
-        {
-            tile[tid + float4_row_offset] = tile_start[tid + float4_row_offset];
-        }
-    }
-    else
+    if (curr_tile_size - float4_row_offset >= 4)
     {
         // Copy the rest of the elements
         const float4* tile_start_float4 = reinterpret_cast<const float4*>(tile_start + float4_row_offset);
-        for (int i = tid; i < numChunksInTile; i += blockDim.x)  // i steps through the chunks
+        for (int i = tid; i < numChunksInTile - 1; i += blockDim.x)  // i steps through the chunks
         {
             // cant unroll here because we only know last_chunk_size at runtime
             float4 to_copy = tile_start_float4[i];
@@ -199,6 +183,11 @@ __global__ void merged_m(
             tile[local_offset + 2] = to_copy.z;
             tile[local_offset + 3] = to_copy.w;
         }
+    }
+    // Copy the last chunk
+    if (tid < curr_tile_size - ((numChunksInTile - 1) << 2) - float4_row_offset)
+    {
+        tile[curr_tile_size - tid - 1] = tile_start[curr_tile_size - tid - 1];
     }
 
     __syncthreads();  // this is a barrier
@@ -212,15 +201,10 @@ __global__ void merged_m(
                                tile_index * COMPUTATION_SHARED_MEM;
         float dot_prod = tiled_dot_product_thread_subset_m(
             tid,
-            // bdim,
             tile,
             col_offset,
-            //     tile_index,
-            // COMPUTATION_SHARED_MEM,
             curr_tile_size,
             matrixB_transposed_GPU_values,
-            // matrixC_GPU_col_indices[elem_index],  // col of B for dot product is the same col in which the nonzero of C sits
-            // k,
             reduction_space,
             numChunksInTile);
 

@@ -33,8 +33,13 @@ else()
     # # set_property(TARGET SDDMMlib PROPERTY CUDA_ARCHITECTURES 70)
     target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_70,code=sm_70>)
     # # limit maxrregcount to 64 to avoid that the compiler uses too many registers if we use 1024 threads per block
-    # target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas -maxrregcount=32>)
+    # target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas -maxrregcount=64>)
 
+    add_library(MAX_64_REGS_LIB
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
+                )
+    target_compile_options(MAX_64_REGS_LIB PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas -maxrregcount=32>)
 
     target_sources(SDDMMlib PRIVATE
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
@@ -72,6 +77,10 @@ else()
                                 ${THIRD_PARTY_ROOT}/include_gpu
                                 ../../include/SDDMM/naive_dense_dense_gpu
                                 /usr/local/cuda-12.1/targets/x86_64-linux/include)
+    target_include_directories(MAX_64_REGS_LIB PUBLIC 
+                                ../../include/SDDMM
+                                ${THIRD_PARTY_ROOT}/include_gpu
+                                /usr/local/cuda-12.1/targets/x86_64-linux/include)
 
     target_link_libraries(SDDMMlib
                             MatrixLib
@@ -79,5 +88,8 @@ else()
                             CUDA::cublas
                             CUDA::cudart
                             CUDA::cuda_driver)
+    target_link_libraries(MAX_64_REGS_LIB
+                            MatrixLib
+                            TimingLib)
 
 endif()

@@ -42,7 +42,7 @@ target_link_libraries(test_naive_csr_via_coo_SDDMM_GPU
                        SDDMMlib)
 target_link_libraries(test_coo_opt_vectorization_SDDMM_GPU 
                        MatrixLib
-                       MAX_64_REGS_LIB)
+                       SDDMMlib)
 target_link_libraries(test_cache_coo_SDDMM_GPU 
                        MatrixLib
                        SDDMMlib)

@@ -67,18 +67,17 @@ __device__ float dot_product_float4(
 
     // calculate SUM_i row[i] * col[i]
     // Start at k and go to 0 to allow for better code for small rows too
-    for (int i = 0; i < k - offsetA - 3; i += 4)
+    for (int i = offsetA; i < k - 3; i += 4)
     {
-        float4 a = matrixA_GPU_values_row_float4[i / 4];
-        int local_offset = i + offsetA;
-        result += a.x * matrixB_transposed_GPU_values_col[local_offset];
-        result += a.y * matrixB_transposed_GPU_values_col[local_offset + 1];
-        result += a.z * matrixB_transposed_GPU_values_col[local_offset + 2];
-        result += a.w * matrixB_transposed_GPU_values_col[local_offset + 3];
+        float4 a = matrixA_GPU_values_row_float4[(i - offsetA) >> 2];
+        result += a.x * matrixB_transposed_GPU_values_col[i];
+        result += a.y * matrixB_transposed_GPU_values_col[i + 1];
+        result += a.z * matrixB_transposed_GPU_values_col[i + 2];
+        result += a.w * matrixB_transposed_GPU_values_col[i + 3];
     }
 
     // Add the rest if k is not divisible by 4
-    for (int i = max(k - offsetA - 3, offsetA); i < k; i++)
+    for (int i = max(offsetA, k - (k - offsetA) % 4); i < k; i++)
     {
         result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
     }

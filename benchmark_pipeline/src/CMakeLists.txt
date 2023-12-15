@@ -26,7 +26,6 @@ add_executable(benchmark_pipeline benchmark_pipeline.cpp)
 target_link_libraries(benchmark_pipeline 
                         MatrixLib
                         SDDMMlib
-                        MAX_64_REGS_LIB
                         BenchmarkPipelinelib
 )
 

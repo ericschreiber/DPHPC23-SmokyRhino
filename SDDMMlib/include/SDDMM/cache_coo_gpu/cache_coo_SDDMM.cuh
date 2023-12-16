@@ -12,6 +12,8 @@ void compute(
     const float* __restrict__ const matrixC_GPU_values,
     const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_col_indices,
-    float* __restrict__ const matrixResult_GPU_values);
+    float* __restrict__ const matrixResult_GPU_values,
+    int* prevBlocksWork,
+    int* tiles_sizes);
 
 #endif  // CACHE_COO_SDDMM_H

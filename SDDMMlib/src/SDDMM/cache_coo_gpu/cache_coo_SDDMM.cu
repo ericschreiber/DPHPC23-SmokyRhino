@@ -232,7 +232,6 @@ void compute(
     dim3 threadsPerBlock(THREADS_PER_BLOCK);
 
     // call main kernel
-    // TODO: currently I am spawning dynamic shared mem, maybe non dynamic shared mem is better?
     cache_coo<<<blocks, threadsPerBlock>>>(
         k,
         numElementsC,
@@ -247,9 +246,9 @@ void compute(
         tiling_steps);
     // Aggregate the return value of the kernel
     CUDA_CHECK(cudaGetLastError());
-    // CUDA_CHECK(cudaDeviceSynchronize());not needed i think
+    CUDA_CHECK(cudaDeviceSynchronize());
 
     // free the array prevBlocksWork on GPU
-    // CUDA_CHECK(cudaFree(prevBlocksWork));
-    // CUDA_CHECK(cudaFree(tiles_sizes));
+    CUDA_CHECK(cudaFree(prevBlocksWork));
+    CUDA_CHECK(cudaFree(tiles_sizes));
 }

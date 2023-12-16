@@ -1,5 +1,6 @@
 #include "cache_coo_gpu/cache_coo_SDDMM_GPU.hpp"
 
+#include <cmath>
 #include <iostream>
 #include <type_traits>
 #include <typeinfo>
@@ -41,6 +42,8 @@ void cache_coo_SDDMM_GPU<float>::SDDMM_COO(
         float* matrixResult_GPU_values;
         int* matrixResult_GPU_row_indices;
         int* matrixResult_GPU_col_indices;
+        int* prevBlocksWork;
+        int* tiles_sizes;
 
         CUDA_CHECK(cudaMalloc(&matrixA_GPU_values, m * k * sizeof(float)));
         CUDA_CHECK(cudaMalloc(&matrixB_transpose_GPU_values, n * k * sizeof(float)));
@@ -50,6 +53,8 @@ void cache_coo_SDDMM_GPU<float>::SDDMM_COO(
         CUDA_CHECK(cudaMalloc(&matrixResult_GPU_values, numElementsC * sizeof(float)));
         CUDA_CHECK(cudaMalloc(&matrixResult_GPU_row_indices, numElementsC * sizeof(float)));
         CUDA_CHECK(cudaMalloc(&matrixResult_GPU_col_indices, numElementsC * sizeof(float)));
+        CUDA_CHECK(cudaMalloc(&prevBlocksWork, (m + 1) * sizeof(int)));
+        CUDA_CHECK(cudaMalloc(&tiles_sizes, ceil(k * sizeof(float) / (float)(49152)) * sizeof(int)));
 
         // copy matrices to the GPU
         CUDA_CHECK(cudaMemcpy(matrixA_GPU_values, matrixA_HOST.getValues(), m * k * sizeof(float), cudaMemcpyHostToDevice));
@@ -73,7 +78,9 @@ void cache_coo_SDDMM_GPU<float>::SDDMM_COO(
             matrixC_GPU_values,
             matrixC_GPU_row_indices,
             matrixC_GPU_col_indices,
-            matrixResult_GPU_values);
+            matrixResult_GPU_values,
+            prevBlocksWork,
+            tiles_sizes);
         this->stop_run();
 
         // copy matrixResult_GPU to matrixResult
@@ -96,6 +103,8 @@ void cache_coo_SDDMM_GPU<float>::SDDMM_COO(
         CUDA_CHECK(cudaFree(matrixResult_GPU_values));
         CUDA_CHECK(cudaFree(matrixResult_GPU_row_indices));
         CUDA_CHECK(cudaFree(matrixResult_GPU_col_indices));
+        CUDA_CHECK(cudaFree(prevBlocksWork));
+        CUDA_CHECK(cudaFree(tiles_sizes));
 
         matrixA_GPU_values = nullptr;
         matrixB_transpose_GPU_values = nullptr;
@@ -105,6 +114,8 @@ void cache_coo_SDDMM_GPU<float>::SDDMM_COO(
         matrixResult_GPU_values = nullptr;
         matrixResult_GPU_row_indices = nullptr;
         matrixResult_GPU_col_indices = nullptr;
+        prevBlocksWork = nullptr;
+        tiles_sizes = nullptr;
     }
     return;
 }

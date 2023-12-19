@@ -7,7 +7,7 @@ sparsity (rounded), size, num nonzeros, link (for downloaded matrices), dataset 
 
 ####  10k x 10k  ####
 0.01, 9506 x 9506, 971870, https://sparse.tamu.edu/Nemeth/nemeth20, Dataset_010
-0.0046, 10605 x 10605, 522387, https://sparse.tamu.edu/Bindel/ted_AB, Dataset_011
+0.005, 9506 x 9506, 496144, https://sparse.tamu.edu/Nemeth/nemeth14, Dataset_011
 0.001, 9769 x 9769, 101635, https://sparse.tamu.edu/Schenk_IBMNA/c-41, Dataset_012
 0.0005, 10001 x 10001, 49999, https://sparse.tamu.edu/GHS_indef/bloweybq, Dataset_013
 0.00016, 8032 x 8032, 10485, https://sparse.tamu.edu/Boeing/bcsstm38, Dataset_014

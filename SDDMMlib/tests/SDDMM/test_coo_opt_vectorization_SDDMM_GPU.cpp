@@ -104,6 +104,13 @@ void test_small()
             std::cout << calculatedValues.at(i) << " ";
         }
         std::cout << std::endl;
+        std::cout << "Expected solution is: " << std::endl;
+        auto expectedValues = expectedSolution.getValues();
+        for (int i = 0; i < expectedValues.size(); ++i)
+        {
+            std::cout << expectedValues.at(i) << " ";
+        }
+        std::cout << std::endl;
         assert(false && "Test failed! Calculated solution is not equal to the expected solution.");
     }
 

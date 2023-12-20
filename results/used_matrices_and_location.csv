@@ -14,7 +14,7 @@ sparsity (rounded), size, num nonzeros, link (for downloaded matrices), path (fo
 
 ####  24k x 24k  ####
 0.01, 25626 x 25626, 6761100, https://sparse.tamu.edu/TSOPF/TSOPF_RS_b2052_c1
-0.0056, 25710 x 25710, 3749582, https://sparse.tamu.edu/TKK/smt
+0.0056, 25710 x 25710, 3749582, https://sparse.tamu.edu/TKK/smt, path=/scratch/eschreib/matrix_market_matrices/smt/smt_fixed.mtx
 0.00096, 24696 x 24696, 583770, https://sparse.tamu.edu/Boeing/crystm03
 0.00046, 23670 x 23670, 259648, https://sparse.tamu.edu/Hollinger/g7jac080
 0.0001, 20000 x 20000, 45000, https://sparse.tamu.edu/GHS_indef/qpband

@@ -9,7 +9,7 @@ sparsity (rounded), size, num nonzeros, link (for downloaded matrices), path (fo
 0.01, 9506 x 9506, 971870, https://sparse.tamu.edu/Nemeth/nemeth20, path=/scratch/eschreib/matrix_market_matrices/nemeth20/nemeth20_001_fixed.mtx
 0.005, 9506 x 9506, 474472, https://sparse.tamu.edu/Nemeth/nemeth13, path=/scratch/eschreib/matrix_market_matrices/nemeth13/nemeth13_fixed.mtx
 0.001, 9769 x 9769, 101745, https://sparse.tamu.edu/Schenk_IBMNA/c-41, path=/scratch/eschreib/matrix_market_matrices/c-41/c-41_0001_fixed.mtx
-0.0005, 10001 x 10001, 49999, https://sparse.tamu.edu/GHS_indef/bloweybq
+0.0005, 10001 x 10001, 49999, https://sparse.tamu.edu/GHS_indef/bloweybq, path=/scratch/eschreib/matrix_market_matrices/bloweybq/bloweybq_00005_fixed.mtx
 0.00016, 8032 x 8032, 10485, https://sparse.tamu.edu/Boeing/bcsstm38
 
 ####  24k x 24k  ####

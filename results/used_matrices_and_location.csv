@@ -3,7 +3,10 @@ sparsity (rounded), size, num nonzeros, link (for downloaded matrices), path (fo
 ############  DOWNLOADED MATRICES  ############
 
 ####  1k x 1k  ####
-# TODO: add indexing info for this group of matrices
+0.015, 1080 x 1080, 18278, https://sparse.tamu.edu/ML_Graph/cnae9_10NN
+0.01, 961 x 961, 10591, https://sparse.tamu.edu/Bai/dwg961b
+0.004, 1059 x 1059, 4919, https://sparse.tamu.edu/Pajek/SmaGri
+0.0009, 1074 x 1074, 1074 https://sparse.tamu.edu/HB/bcsstm08
 
 ####  10k x 10k  ####
 0.01, 9506 x 9506, 971870, https://sparse.tamu.edu/Nemeth/nemeth20, path=/scratch/eschreib/matrix_market_matrices/nemeth20/nemeth20_001_fixed.mtx

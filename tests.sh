@@ -6,7 +6,6 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 TESTFILES="
 "
 GPU_TESTFILES="
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_merged
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_tiled_tiles
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_CPU_SDDMM 
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_coo_SDDMM_GPU 

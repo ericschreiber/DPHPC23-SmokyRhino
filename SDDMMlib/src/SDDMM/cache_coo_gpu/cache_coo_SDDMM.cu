@@ -216,23 +216,21 @@ void compute(
     const float* __restrict__ const matrixC_GPU_values,
     const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_col_indices,
-    float* __restrict__ const matrixResult_GPU_values)
+    float* __restrict__ const matrixResult_GPU_values,
+    int* prevBlocksWork,
+    int* tiles_sizes)
 {
     int blocks = m;  // one block per row of A
     // allocate array that will be populated by the precomputation kernel
-    int* prevBlocksWork;
     int row_mem_size = k * sizeof(float);                                    // size of a row of A (= non-sparse) in mem
     int tiling_steps = ceil(row_mem_size / (float)(SHARED_MEM_SIZE_BYTES));  // #pieces that we need to chop row of A into (bc it might not fit into shared mem)
-    int* tiles_sizes;
-    CUDA_CHECK(cudaMalloc((void**)&prevBlocksWork, (blocks + 1) * sizeof(int)));  // + 1 needed for the computation (for last block) of nnzs in the main kernel
-    CUDA_CHECK(cudaMalloc((void**)&tiles_sizes, tiling_steps * sizeof(int)));
+
     // run the precomputation kernel
     precomputation<<<1, 1>>>(numElementsC, matrixC_GPU_row_indices, prevBlocksWork, blocks, tiles_sizes, tiling_steps, row_mem_size);
 
     dim3 threadsPerBlock(THREADS_PER_BLOCK);
 
     // call main kernel
-    // TODO: currently I am spawning dynamic shared mem, maybe non dynamic shared mem is better?
     cache_coo<<<blocks, threadsPerBlock>>>(
         k,
         numElementsC,
@@ -247,9 +245,5 @@ void compute(
         tiling_steps);
     // Aggregate the return value of the kernel
     CUDA_CHECK(cudaGetLastError());
-    // CUDA_CHECK(cudaDeviceSynchronize());not needed i think
-
-    // free the array prevBlocksWork on GPU
-    // CUDA_CHECK(cudaFree(prevBlocksWork));
-    // CUDA_CHECK(cudaFree(tiles_sizes));
+    CUDA_CHECK(cudaDeviceSynchronize());
 }

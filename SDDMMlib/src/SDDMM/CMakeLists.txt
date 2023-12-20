@@ -33,8 +33,7 @@ else()
     # # set_property(TARGET SDDMMlib PROPERTY CUDA_ARCHITECTURES 70)
     target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_70,code=sm_70>)
     # # limit maxrregcount to 64 to avoid that the compiler uses too many registers if we use 1024 threads per block
-    # target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas -maxrregcount=32>)
-
+    # target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas -maxrregcount=64>)
 
     target_sources(SDDMMlib PRIVATE
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
@@ -42,6 +41,9 @@ else()
                 
                 coo_opt_loop_unrolled_gpu/coo_opt_loop_unrolled_SDDMM_GPU.cpp
                 coo_opt_loop_unrolled_gpu/coo_opt_loop_unrolled_SDDMM.cu
+
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
 
                 naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.cpp
                 naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu

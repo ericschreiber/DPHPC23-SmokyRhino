@@ -1,4 +1,4 @@
-sparsity (rounded), size, num nonzeros, link (for downloaded matrices), dataset name
+sparsity (rounded), size, num nonzeros, link (for downloaded matrices), path (for matrices that had to be fixed by hand)
 
 ############  DOWNLOADED MATRICES  ############
 
@@ -6,17 +6,17 @@ sparsity (rounded), size, num nonzeros, link (for downloaded matrices), dataset 
 # TODO: add indexing info for this group of matrices
 
 ####  10k x 10k  ####
-0.01, 9506 x 9506, 971870, https://sparse.tamu.edu/Nemeth/nemeth20, Dataset_010
-0.005, 9506 x 9506, 496144, https://sparse.tamu.edu/Nemeth/nemeth14, Dataset_011
-0.001, 9769 x 9769, 101635, https://sparse.tamu.edu/Schenk_IBMNA/c-41, Dataset_012
-0.0005, 10001 x 10001, 49999, https://sparse.tamu.edu/GHS_indef/bloweybq, Dataset_013
-0.00016, 8032 x 8032, 10485, https://sparse.tamu.edu/Boeing/bcsstm38, Dataset_014
+0.01, 9506 x 9506, 971870, https://sparse.tamu.edu/Nemeth/nemeth20, path=/scratch/eschreib/matrix_market_matrices/nemeth20/nemeth20_001_fixed.mtx
+0.005, 9506 x 9506, 474472, https://sparse.tamu.edu/Nemeth/nemeth13, path=/scratch/eschreib/matrix_market_matrices/nemeth13/nemeth13_fixed.mtx
+0.001, 9769 x 9769, 101635, https://sparse.tamu.edu/Schenk_IBMNA/c-41, path=/scratch/eschreib/matrix_market_matrices/c-41/c-41_0001_fixed.mtx
+0.0005, 10001 x 10001, 49999, https://sparse.tamu.edu/GHS_indef/bloweybq, path=/scratch/eschreib/matrix_market_matrices/bloweybq/bloweybq_00005_fixed.mtx
+0.00016, 8032 x 8032, 10485, https://sparse.tamu.edu/Boeing/bcsstm38, path=/scratch/eschreib/matrix_market_matrices/bcsstm38/bcsstm38_000016_fixed.mtx
 
 ####  24k x 24k  ####
-0.01, 25626 x 25626, 6761100, https://sparse.tamu.edu/TSOPF/TSOPF_RS_b2052_c1, Dataset_020
-0.0056, 25710 x 25710, 3749582, https://sparse.tamu.edu/TKK/smt, Dataset_021
-0.00096, 24696 x 24696, 583770, https://sparse.tamu.edu/Boeing/crystm03, Dataset_022
-0.00046, 23670 x 23670, 259648, https://sparse.tamu.edu/Hollinger/g7jac080, Dataset_023
-0.0001, 20000 x 20000, 45000, https://sparse.tamu.edu/GHS_indef/qpband, Dataset_024
+0.01, 25626 x 25626, 6761100, https://sparse.tamu.edu/TSOPF/TSOPF_RS_b2052_c1
+0.0056, 25710 x 25710, 3749582, https://sparse.tamu.edu/TKK/smt, path=/scratch/eschreib/matrix_market_matrices/smt/smt_fixed.mtx
+0.00096, 24696 x 24696, 583770, https://sparse.tamu.edu/Boeing/crystm03, path=/scratch/eschreib/matrix_market_matrices/crystm03/crystm03_000096_fixed.mtx
+0.00046, 23670 x 23670, 259648, https://sparse.tamu.edu/Hollinger/g7jac080, path=/scratch/eschreib/matrix_market_matrices/g7jac080/g7jac080_000046_fixed.mtx
+0.0001, 20000 x 20000, 45000, https://sparse.tamu.edu/GHS_indef/qpband, path=/scratch/eschreib/matrix_market_matrices/qpband/qpband_00001_fixed.mtx
 
 ############  GENERATED MATRICES  ############

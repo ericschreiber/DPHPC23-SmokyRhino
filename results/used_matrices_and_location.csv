@@ -1,4 +1,4 @@
-sparsity (rounded), size, num nonzeros, link (for downloaded matrices), dataset name
+sparsity (rounded), size, num nonzeros, link (for downloaded matrices), path (for matrices that had to be fixed by hand)
 
 ############  DOWNLOADED MATRICES  ############
 

@@ -39,6 +39,9 @@ else()
     target_sources(SDDMMlib PRIVATE
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
+                
+                coo_opt_loop_unrolled_gpu/coo_opt_loop_unrolled_SDDMM_GPU.cpp
+                coo_opt_loop_unrolled_gpu/coo_opt_loop_unrolled_SDDMM.cu
 
                 naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.cpp
                 naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu

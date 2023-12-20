@@ -22,30 +22,30 @@
 //
 // *********** ***** ***********
 
-// Calculate the dotproduct but loading 4 values at a time
-__device__ float dot_product_4(
-    const int k,
-    const float* __restrict__ const matrixA_GPU_values_row,
-    const float* __restrict__ const matrixB_transposed_GPU_values_col)
-{
-    // calculate SUM_i row[i] * col[i]
-    float result = 0;
-    // Start at k and go to 0 to allow for better code for small rows too
-    for (int i = k - 1; i >= 3; i -= 4)
-    {
-        result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
-        result += matrixA_GPU_values_row[i - 1] * matrixB_transposed_GPU_values_col[i - 1];
-        result += matrixA_GPU_values_row[i - 2] * matrixB_transposed_GPU_values_col[i - 2];
-        result += matrixA_GPU_values_row[i - 3] * matrixB_transposed_GPU_values_col[i - 3];
-    }
+// // Calculate the dotproduct but loading 4 values at a time
+// __device__ float dot_product_4(
+//     const int k,
+//     const float* __restrict__ const matrixA_GPU_values_row,
+//     const float* __restrict__ const matrixB_transposed_GPU_values_col)
+// {
+//     // calculate SUM_i row[i] * col[i]
+//     float result = 0;
+//     // Start at k and go to 0 to allow for better code for small rows too
+//     for (int i = k - 1; i >= 3; i -= 4)
+//     {
+//         result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
+//         result += matrixA_GPU_values_row[i - 1] * matrixB_transposed_GPU_values_col[i - 1];
+//         result += matrixA_GPU_values_row[i - 2] * matrixB_transposed_GPU_values_col[i - 2];
+//         result += matrixA_GPU_values_row[i - 3] * matrixB_transposed_GPU_values_col[i - 3];
+//     }
 
-    // Add the rest if k is not divisible by 4
-    for (int i = 0; i < k % 4; i++)
-    {
-        result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
-    }
-    return result;
-}
+//     // Add the rest if k is not divisible by 4
+//     for (int i = 0; i < k % 4; i++)
+//     {
+//         result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
+//     }
+//     return result;
+// }
 
 __device__ float dot_product_float4(
     const int k,

@@ -30,6 +30,9 @@ add_executable(test_naive_csr_via_coo_SDDMM_GPU
 add_executable(test_coo_opt_vectorization_SDDMM_GPU
                test_coo_opt_vectorization_SDDMM_GPU.cpp
 )
+add_executable(test_coo_opt_loop_unrolled_SDDMM_GPU
+               test_coo_opt_loop_unrolled_SDDMM_GPU.cpp
+)
 add_executable(test_coo_tiling_naive_gpu
                test_coo_tiling_naive_gpu.cpp
 )
@@ -43,6 +46,9 @@ target_link_libraries(test_naive_csr_via_coo_SDDMM_GPU
 target_link_libraries(test_coo_opt_vectorization_SDDMM_GPU 
                        MatrixLib
                        SDDMMlib)
+target_link_libraries(test_coo_opt_loop_unrolled_SDDMM_GPU
+                          MatrixLib
+                          SDDMMlib)
 target_link_libraries(test_cache_coo_SDDMM_GPU 
                        MatrixLib
                        SDDMMlib)

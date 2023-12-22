@@ -36,6 +36,9 @@ else()
     # target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas -maxrregcount=64>)
 
     target_sources(SDDMMlib PRIVATE
+                SM_L2/SM_L2_GPU.cpp
+                SM_L2/SM_L2.cu
+                
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
                 

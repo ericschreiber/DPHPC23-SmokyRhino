@@ -9,8 +9,18 @@
 #include "SM_L2/SM_L2_util.h"
 #include "utils.h"
 
+inline cudaError_t checkCuda(cudaError_t result, int s)
+{
+    if (result != cudaSuccess)
+    {
+        fprintf(stderr, "CUDA Runtime Error in line : %s - %d\n", cudaGetErrorString(result), s);
+        assert(result == cudaSuccess);
+    }
+    return result;
+}
+
 // Their code in file sddmm.cu
-void sddmm_SM_L2_GPU(const Matrix S, const TiledMatrix tS, float* P, vector<float> W, vector<float> H, int num_iterations, int k)
+void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, float* P, vector<float> W, vector<float> H, int num_iterations, int k)
 {
     float *d_val, *d_W, *d_H, *d_W_t;
     int *d_row_ptr, *d_col_ind, *d_row_ind, *d_tiled_ind, *d_lastIdx,
@@ -81,13 +91,13 @@ void sddmm_SM_L2_GPU(const Matrix S, const TiledMatrix tS, float* P, vector<floa
         }
 
         compute_sm_l2(
-            this.BLOCKSIZE,
-            this.SM_CAPACITY,
-            this.actv_row_size,
+            this->BLOCKSIZE,
+            this->SM_CAPACITY,
+            this->actv_row_size,
             n_tile,
             tS,
             k,
-            &stream,
+            stream,
             d_row_ind,
             d_col_ind,
             d_val,
@@ -143,7 +153,7 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     S.cols = matrixC_HOST.getColIndices();
     S.vals = matrixC_HOST.getValues();
 
-    TiledMatrix tiledS(S, this.tile_sizeX, this.tile_sizeY);
+    TiledMatrix tiledS(S, this->tile_sizeX, this->tile_sizeY, this->actv_row_size, this->BLOCKSIZE);
     tiledS.nnz = 0;
 
     // convert the matrix to CSR in their format
@@ -152,15 +162,15 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     make_CSR(S.rows, S.cols, S.vals, S.nnz, S.n_rows, row_ptr, row_holder);
 
     tiledS.max_active_row =
-        rewrite_matrix_1D(S, tiledS, row_ptr, tile_sizeX, row_holder);
+        rewrite_matrix_1D(S, tiledS, row_ptr, tile_sizeX, row_holder, this->actv_row_size);
 
     // result matrix
     float* P = new float[S.nnz];
 
-    sddmm_SM_L2_GPU(S, tiledS, P, std::vector(matrixA_HOST.getValues()), std::vector(matrixB_HOST.getValues()), num_iterations, k);
+    sddmm_SM_L2_GPU(S, tiledS, P, std::vector<float>(matrixA_HOST.getValues()), std::vector<float>(matrixB_HOST.getValues()), num_iterations, k);
 
     // Build the result matrix
-    matrixResult_HOST.setValues(std::vector(P));
+    matrixResult_HOST.setValues(std::vector<float>(P));
     std::vector<int> row_indices;
     std::vector<int> col_indices;
     for (int i = 0; i < S.num_rows; i++)

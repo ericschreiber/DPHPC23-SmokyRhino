@@ -1,4 +1,4 @@
-#ifdef SM_L2_UTIL_H
+#ifndef SM_L2_UTIL_H
 #define SM_L2_UTIL_H
 
 #include <bits/stdc++.h>
@@ -17,10 +17,6 @@ inline double seconds()
     gettimeofday(&tp, NULL);
     return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
-
-int actv_row_size = 180;
-int SM_CAPACITY = 6144;
-int BLOCKSIZE = 512;
 
 class Matrix
 {
@@ -52,7 +48,7 @@ class TiledMatrix
         vector<int> lastIdx_tile;
         vector<int> tiled_ind;
 
-        TiledMatrix(Matrix S, int tile_sizeX, int tile_sizeY)
+        TiledMatrix(Matrix S, int tile_sizeX, int tile_sizeY, int actv_row_size, int BLOCKSIZE)
         {
             ntile_c = S.n_cols / tile_sizeX + 1;
             ntile_r = S.n_rows / tile_sizeY + 1;
@@ -199,7 +195,7 @@ void rewrite_col_sorted_matrix(int *row_ptr, int *row_ind, int *col_ind, float *
     new_nnz = nnz;
 }
 
-int rewrite_matrix_1D(const Matrix S, TiledMatrix &tS, int *row_ptr, int TS, int *row_holder)
+int rewrite_matrix_1D(const Matrix S, TiledMatrix &tS, int *row_ptr, int TS, int *row_holder, int actv_row_size)
 {
     long new_idx = 0, idx = 0;
     int max_block_inAtile = S.n_rows / actv_row_size + 1;

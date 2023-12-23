@@ -58,13 +58,17 @@ void run_testcase(COOMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, De
     return;
 }
 
-void t1()
+void big_0()
 {
-    COOMatrix<float> sample_Matrix(DenseMatrix(std::vector<std::vector<float>>{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
-    DenseMatrix<float> matrixA(std::vector<std::vector<float>>{{1, 1}, {2, 2}, {3, 3}});
-    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}});
-    COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
-    COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+    COOMatrix<float> sample_Matrix = COOMatrix<float>();
+    sample_Matrix.readFromFile("/users/eschreib/eric/DPHPC23-SmokyRhino/SDDMMlib/tests/SDDMM/data/nips.mtx");
+    DenseMatrix<float> matrixA(1500, 100);
+    DenseMatrix<float> matrixB(100, 12419);
+    COOMatrix<float> calculatedSolution = COOMatrix<float>(1500, 12419);
+    COOMatrix<float> expectedSolution = COOMatrix<float>(1500, 12419);
+    expectedSolution.setRowArray(sample_Matrix.getRowArray());
+    expectedSolution.setColIndices(sample_Matrix.getColIndices());
+    expectedSolution.setValues(std::vector<float>(sample_Matrix.getColIndices().size(), 0));
 
     run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
 }
@@ -72,7 +76,7 @@ void t1()
 int main()
 {
     printf("Running tests...\n");
-    t1();
+    big_0();
 
     // TODO: more tests!
     return 0;

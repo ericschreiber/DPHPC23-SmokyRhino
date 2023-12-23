@@ -111,6 +111,7 @@ int main()
     printf("Running tests...\n");
     t1();
     t2_div_by_four();
+    t3_4x4§();
     // big_0();
 
     // TODO: more tests!

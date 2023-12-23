@@ -69,6 +69,7 @@ __global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__re
 
             if (tId > block_lim)
             {
+                printf("Resetting sm1 and sm2 to 0\n");
                 sm1 = 0;
                 sm2 = 0;
             }

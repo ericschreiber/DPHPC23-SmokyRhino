@@ -55,7 +55,7 @@ class sm_l2_SDDMM_GPU<float> : public SDDMMlib<float>
             COOMatrix<float>& matrixResult_HOST,
             const int num_iterations) const;
 
-        void sddmm_SM_L2_GPU(const Matrix S, const TiledMatrix tS, float* P, vector<float> W, vector<float> H, int num_iterations, int k);
+        void sddmm_SM_L2_GPU(const Matrix S, const TiledMatrix tS, float* P, vector<float> W, vector<float> H, int num_iterations, int k) const;
 
         virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE
         virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE

@@ -76,6 +76,30 @@ void make_HTasH(const vector<float> H, vector<float> &H_t, int n_cols, int k)
     }
 }
 
+void make_CSR(vector<int> rows, vector<int> cols, vector<float> vals, long nnz, long n_rows, int *row_ptr, int *row_holder)
+{
+    // assuming sorted
+
+    // if CSR
+    long idx = 0;
+    row_ptr[0] = 0;
+    int holder = 0;
+    int r = rows[idx];
+
+    while (idx < nnz)
+    {
+        row_holder[holder] = r;
+        while (rows[idx] == r && idx < nnz)
+        {
+            idx++;
+        }
+        holder++;
+        row_ptr[holder] = idx;
+        r = rows[idx];
+    }
+    row_ptr[holder + 1] = idx;
+}
+
 void make_2DBlocks(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, long nnz, long n_rows, long n_cols)
 {
     int *new_row_ind = new int[nnz];
@@ -83,14 +107,11 @@ void make_2DBlocks(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, lon
     float *new_val_ind = new float[nnz];
     int block_dimX = 2;
     int block_dimY = 2;
-    int n_blockY = n_cols / block_dimX + 1;
     int n_blockX = n_rows / block_dimY + 1;
     int n_block = (n_rows / block_dimY + 1) * (n_cols / block_dimX + 1);
-    int nnz_row = 0;
     int *new_ind = new int[nnz];
     int *list = new int[n_block];
-    long idx = 0;
-    int dimx = 0, dimy = 0, block_no = 0;
+    int block_no = 0;
 
     // initialization
     for (int i = 0; i < n_block; ++i)
@@ -122,7 +143,6 @@ void rewrite_matrix_2D(int *row_ptr, int *row_ind, int *col_ind, float *val_ind,
     int TS_r = 2;
     long new_idx = 0, idx = 0;
     int n_tile_c = n_cols / TS + 1, n_tile_r = n_rows / TS_r + 1, tile_no = 0;
-    int tot_tile = n_tile_c * n_tile_r;
     int *row_lim = new int[(n_tile_c + 1) * n_rows];
     lastIdx_tile[0] = 0;
     for (int i = 0; i < nnz; ++i)
@@ -167,11 +187,10 @@ void rewrite_matrix_2D(int *row_ptr, int *row_ind, int *col_ind, float *val_ind,
 void rewrite_col_sorted_matrix(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, int *new_rows, int *new_cols, float *new_vals, long nnz, long n_rows, long n_cols, int TS, int *tiled_ind, int *lastIdx_tile, int block, long &new_nnz)
 {
     long new_idx = 0, idx = 0;
-    int n_tile = n_cols / TS + 1, tile_no = 0;
+    int tile_no = 0;
     lastIdx_tile[0] = 0;
 
     // #pragma omp parallel for
-    int c = 0;
     for (int tile_lim = TS; tile_lim <= (n_cols + TS - 1); tile_lim += TS)
     {
         tile_no = tile_lim / TS;
@@ -199,11 +218,8 @@ int rewrite_matrix_1D(const Matrix S, TiledMatrix &tS, int *row_ptr, int TS, int
 {
     long new_idx = 0, idx = 0;
     int max_block_inAtile = S.n_rows / actv_row_size + 1;
-    int n_tile = tS.ntile_c, tile_no = 0;
+    int tile_no = 0;
     tS.lastIdx_tile[0] = 0;
-    unsigned char c[4];
-    int row = 0, col = 0;
-    unsigned int final_int = 0, final_row, final_col;
     long n_rows = S.n_rows;
     long n_cols = S.n_cols;
     vector<int> row_lim(n_rows);

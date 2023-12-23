@@ -6,11 +6,10 @@
 #include "SM_L2/SM_L2.cuh"
 #include "utils.h"
 // with VWARP more K
-__global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__restrict__ col_ind, float *val, const float *__restrict__ u, const float *__restrict__ v, int nnz, int n_rows, int n_cols, int k, int tile_stIdx, int tile_limIdx, int *d_last_blockIdx, int *active_row, int tile_no, int t_st, int act_rlimit, int sh_tile, int k_slc)
+__global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__restrict__ col_ind, const float *val, float *val_out, const float *__restrict__ u, const float *__restrict__ v, int nnz, int n_rows, int n_cols, int k, int tile_stIdx, int tile_limIdx, const int *d_last_blockIdx, const int *active_row, int tile_no, int t_st, int act_rlimit, int sh_tile, int k_slc)
 {
     unsigned int tId = threadIdx.x;
     unsigned int laneId = tId & 1;
-    unsigned int c = (blockIdx.x * blockDim.x + tId);
     int block_st = 0;
     if (blockIdx.x == 0)
         block_st = tile_stIdx;
@@ -39,7 +38,7 @@ __global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__re
     for (int c = block_st + (tId >> 1); c < block_lim_upscaled_to_1024;
          c += (blockDim.x >> 1))
     {
-        float sm = 0, g = 0, sm1 = 0, sm2 = 0;
+        float sm1 = 0, sm2 = 0;
         if (c > block_lim)
         {
             sm1 = 0;
@@ -77,8 +76,8 @@ __global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__re
         // work.
         sm2 += __shfl_xor_sync(0xFFFFFFFF, sm2, 1);
 
-        val[c] = val[c] * (sm1 + sm2);
-        val[c] += (sm1 + sm2);
+        val_out[c] = val[c] * (sm1 + sm2);
+        val_out[c] += (sm1 + sm2);
     }
 }
 
@@ -87,20 +86,21 @@ void compute_sm_l2(
     int SM_CAPACITY,
     int actv_row_size,
     int n_tile,
+    const Matrix &S,
     TiledMatrix &tS,
     const int k,
     cudaStream_t *stream,
-    const float *__restrict__ const d_row_ind,
-    const float *__restrict__ const d_col_ind,
+    const int *__restrict__ const d_row_ind,
+    const int *__restrict__ const d_col_ind,
     const float *__restrict__ const d_val,
+    float *__restrict__ const out,
     const float *__restrict__ const d_W,
     const float *__restrict__ const d_H,
     const int *__restrict__ const d_active_row,
-    const int *__restrict__ const d_lastIdx_block_tile, )
+    const int *__restrict__ const d_lastIdx_block_tile)
 {
     dim3 block(BLOCKSIZE, 1, 1), grid(1, 1, 1);
     int sum = 0;
-    int t_st = 0;
 
     int k_slice = SM_CAPACITY / actv_row_size;
 
@@ -119,7 +119,7 @@ void compute_sm_l2(
             // std::cout << "Start Kernel with t_st: " << t_st << " in tile: " << tile
             //           << std::endl;
             comp_kernel_COO<<<grid, block, 0, stream[0]>>>(
-                d_row_ind, d_col_ind, d_val, d_W, d_H, S.nnz, S.n_rows, S.n_cols, k, tS.lastIdx_tile[tile], tS.lastIdx_tile[tile + 1], &(d_lastIdx_block_tile[(tile)*tS.max_active_block]), d_active_row + sum, tile, t_st, tS.n_actv_row[tile], actv_row_size, k_slice);
+                d_row_ind, d_col_ind, d_val, out, d_W, d_H, S.nnz, S.n_rows, S.n_cols, k, tS.lastIdx_tile[tile], tS.lastIdx_tile[tile + 1], &(d_lastIdx_block_tile[(tile)*tS.max_active_block]), d_active_row + sum, tile, t_st, tS.n_actv_row[tile], actv_row_size, k_slice);
         }
         sum += tS.n_actv_row[tile];
     }

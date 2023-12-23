@@ -9,6 +9,8 @@
 #include "SM_L2/SM_L2_util.h"
 #include "utils.h"
 
+// IMPORTANT: This methode only works once as it overwrites the input matrix S
+
 inline cudaError_t checkCuda(cudaError_t result, int s)
 {
     if (result != cudaSuccess)
@@ -20,9 +22,9 @@ inline cudaError_t checkCuda(cudaError_t result, int s)
 }
 
 // Their code in file sddmm.cu
-void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, float* P, vector<float> W, vector<float> H, int num_iterations, int k)
+void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, float* P, vector<float> W, vector<float> H, int num_iterations, int k) const
 {
-    float *d_val, *d_W, *d_H, *d_W_t;
+    float *d_val, *d_W, *d_H, *d_W_t, *val_out;
     int *d_row_ptr, *d_col_ind, *d_row_ind, *d_tiled_ind, *d_lastIdx,
         *d_active_row, *d_lastIdx_block_tile, *d_passive_row;
 
@@ -33,6 +35,7 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
     checkCuda(cudaMalloc((void**)&d_row_ind, tS.nnz * sizeof(int)), 4);
     checkCuda(cudaMalloc((void**)&d_col_ind, tS.nnz * sizeof(int)), 4);
     checkCuda(cudaMalloc((void**)&d_val, tS.nnz * sizeof(float)), 4);
+    checkCuda(cudaMalloc((void**)&val_out, tS.nnz * sizeof(float)), 4);
     checkCuda(cudaMalloc((void**)&d_lastIdx, (tS.ntile_c + 1) * sizeof(float)), 4);
     checkCuda(cudaMalloc((void**)&d_active_row, tS.ntile_c * tS.max_active_row * sizeof(int)), 4);
     checkCuda(cudaMalloc((void**)&d_lastIdx_block_tile, tS.ntile_c * tS.max_active_block * sizeof(int)), 4);
@@ -95,12 +98,14 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
             this->SM_CAPACITY,
             this->actv_row_size,
             n_tile,
+            S,
             tS,
             k,
             stream,
             d_row_ind,
             d_col_ind,
             d_val,
+            val_out,
             d_W,
             d_H,
             d_active_row,
@@ -109,13 +114,14 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
         this->stop_run();
     }
 
-    checkCuda(cudaMemcpy(&(P[0]), d_val, tS.nnz * sizeof(float), cudaMemcpyDeviceToHost), 4);
+    checkCuda(cudaMemcpy(&(P[0]), val_out, tS.nnz * sizeof(float), cudaMemcpyDeviceToHost), 4);
 
     // freeing device allocation
     cudaFree(d_row_ptr);
     cudaFree(d_row_ind);
     cudaFree(d_col_ind);
     cudaFree(d_val);
+    cudaFree(val_out);
     cudaFree(d_active_row);
     cudaFree(d_passive_row);
     cudaFree(d_lastIdx_block_tile);
@@ -145,11 +151,11 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     assert(matrixResult_HOST.getNumCols() == n && "Error: matrixResult has incompatible dimensions n");
 
     // Convert the matrices to their format
-    Matrix S = new Matrix();
-    S.num_rows = m;
-    S.num_cols = n;
-    S.num_nonzeros = numElementsC;
-    S.rows = matrixC_HOST.getRowIndices();
+    Matrix S = Matrix();
+    S.n_rows = m;
+    S.n_cols = n;
+    S.nnz = numElementsC;
+    S.rows = matrixC_HOST.getRowArray();
     S.cols = matrixC_HOST.getColIndices();
     S.vals = matrixC_HOST.getValues();
 
@@ -167,13 +173,13 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     // result matrix
     float* P = new float[S.nnz];
 
-    sddmm_SM_L2_GPU(S, tiledS, P, std::vector<float>(matrixA_HOST.getValues()), std::vector<float>(matrixB_HOST.getValues()), num_iterations, k);
+    sddmm_SM_L2_GPU(S, tiledS, P, std::vector<float>(matrixA_HOST.getValues(), matrixA_HOST.getValues() + matrixA_HOST.getNumRows() * matrixA_HOST.getNumCols()), std::vector<float>(matrixB_HOST.getValues(), matrixB_HOST.getValues() + matrixB_HOST.getNumRows() * matrixB_HOST.getNumCols()), num_iterations, k);
 
     // Build the result matrix
-    matrixResult_HOST.setValues(std::vector<float>(P));
+    matrixResult_HOST.setValues(std::vector<float>(P, P + S.nnz));
     std::vector<int> row_indices;
     std::vector<int> col_indices;
-    for (int i = 0; i < S.num_rows; i++)
+    for (int i = 0; i < S.n_rows; i++)
     {
         for (int j = row_ptr[i]; j < row_ptr[i + 1]; j++)
         {
@@ -181,7 +187,7 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
             col_indices.push_back(S.cols[j]);
         }
     }
-    matrixResult_HOST.setRowIndices(row_indices);
+    matrixResult_HOST.setRowArray(row_indices);
     matrixResult_HOST.setColIndices(col_indices);
 
     return;

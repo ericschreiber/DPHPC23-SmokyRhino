@@ -41,11 +41,14 @@ class sm_l2_SDDMM_GPU<float> : public SDDMMlib<float>
             const int num_iterations) const override;
 
     private:
-        int tile_sizeX = 256;
-        int tile_sizeY = 25000;
-        int SM_CAPACITY = 12288;
+        // int tile_sizeX = 256;
+        // int tile_sizeY = 25000;
+        int tile_sizeX = 50000;
+        int tile_sizeY = 192;
+        // int SM_CAPACITY = 12288; // To use that change the shared memory size in the kernel (bad initial coding)
+        int SM_CAPACITY = 6144;
         int BLOCKSIZE = 512;
-        int actv_row_size = 180;
+        int actv_row_size = tile_sizeY;
 
         void
         SDDMM_COO(

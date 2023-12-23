@@ -52,15 +52,17 @@ class COOMatrix : virtual public SparseMatrix<T>
         virtual void writeToFile(const std::string& filePath) const override;
         // other
         virtual ~COOMatrix() {}
+        void make_row_major();
+        void make_col_major();  // Per default the matrix is in row major format, this function converts it to row major format
 
     private:
-        std::vector<T> values;
+        std::vector<T>
+            values;
         std::vector<int> rowIndices;
         std::vector<int> colIndices;
         int numRows;
         int numCols;
         virtual bool isEqual(const SparseMatrix<T>& other) const override;
-        void make_col_major();
 };
 
 #endif

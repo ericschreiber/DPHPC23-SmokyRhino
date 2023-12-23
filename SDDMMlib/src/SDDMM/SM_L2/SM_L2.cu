@@ -30,8 +30,10 @@ __global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__re
          i += step)
     {
         for (int w_r = 0; w_r < k_slc; w_r += WARP_SIZE)
+        {
             sh_r[i * k_slc + t + w_r] =
                 u[active_row[blockIdx.x * sh_tile + i] * k + t + t_st + w_r];
+        }
     }
 
     int block_lim_upscaled_to_1024 = (block_lim + 1023) >> 10;
@@ -56,11 +58,13 @@ __global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__re
                 float4 ctmp1 = *((float4 *)&v[col * k + t_st + t]);
                 sm1 += rtmp1.x * ctmp1.x + rtmp1.y * ctmp1.y + rtmp1.z * ctmp1.z +
                        rtmp1.w * ctmp1.w;
+                printf("calculating sm1: %f * %f + %f * %f + %f * %f + %f * %f\n", rtmp1.x, ctmp1.x, rtmp1.y, ctmp1.y, rtmp1.z, ctmp1.z, rtmp1.w, ctmp1.w);
 
                 float4 rtmp2 = *((float4 *)&sh_r[sh_row * k_slc + t + 4]);
                 float4 ctmp2 = *((float4 *)&v[col * k + t_st + t + 4]);
                 sm2 += rtmp2.x * ctmp2.x + rtmp2.y * ctmp2.y + rtmp2.z * ctmp2.z +
                        rtmp2.w * ctmp2.w;
+                printf("calculating sm2: %f * %f + %f * %f + %f * %f + %f * %f\n", rtmp2.x, ctmp2.x, rtmp2.y, ctmp2.y, rtmp2.z, ctmp2.z, rtmp2.w, ctmp2.w);
             }
 
             if (tId > block_lim)
@@ -111,15 +115,16 @@ void compute_sm_l2(
         int active_block_this_tile = tS.n_actv_row[tile] / actv_row_size + 1;
 
         grid.x = active_block_this_tile;
-        // std::cout << "Tile: " << tile
-        //           << " active blocks: " << active_block_this_tile
-        //           << " active rows: " << tS.n_actv_row[tile] << std::endl;
+        std::cout << "Tile: " << tile
+                  << " active blocks: " << active_block_this_tile
+                  << " active rows: " << tS.n_actv_row[tile] << std::endl;
         for (int t_st = 0; t_st < k; t_st += k_slice)
         {
-            // std::cout << "Start Kernel with t_st: " << t_st << " in tile: " << tile
-            //           << std::endl;
+            std::cout << "Start Kernel with t_st: " << t_st << " in tile: " << tile
+                      << std::endl;
             comp_kernel_COO<<<grid, block, 0, stream[0]>>>(
                 d_row_ind, d_col_ind, d_val, out, d_W, d_H, S.nnz, S.n_rows, S.n_cols, k, tS.lastIdx_tile[tile], tS.lastIdx_tile[tile + 1], &(d_lastIdx_block_tile[(tile)*tS.max_active_block]), d_active_row + sum, tile, t_st, tS.n_actv_row[tile], actv_row_size, k_slice);
+            CUDA_CHECK(cudaDeviceSynchronize());
         }
         sum += tS.n_actv_row[tile];
     }

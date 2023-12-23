@@ -75,7 +75,18 @@ void t2_div_by_four()
     DenseMatrix<float> matrixA(std::vector<std::vector<float>>{{1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}});
     DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}, {1, 2, 3}, {1, 2, 3}});
     COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
-    COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+    COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{4, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+
+    run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
+}
+
+void t3_4x4()
+{
+    COOMatrix<float> sample_Matrix(DenseMatrix(std::vector<std::vector<float>>{{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}));
+    DenseMatrix<float> matrixA(std::vector<std::vector<float>>{{1, 1, 1, 1}, {2, 2, 2, 2}, {3, 3, 3, 3}, {4, 4, 4, 4}});
+    DenseMatrix<float> matrixB(std::vector<std::vector<float>>{{1, 2, 3}, {1, 2, 3}, {1, 2, 3}, {1, 2, 3}, {1, 2, 3}});
+    COOMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3, 4}, {4, 5, 6, 7}, {1, 2, 3, 4}, {4, 5, 6, 7}}));
+    COOMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{4, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
 
     run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
 }

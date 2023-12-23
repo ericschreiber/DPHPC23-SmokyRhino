@@ -137,6 +137,9 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     assert(matrixResult_HOST.getNumRows() == m && "Error: matrixResult has incompatible dimensions m");
     assert(matrixResult_HOST.getNumCols() == n && "Error: matrixResult has incompatible dimensions n");
 
+    DenseMatrix<float> matrixB_transpose_HOST(matrixB_HOST);
+    matrixB_transpose_HOST.transpose();
+
     // Convert the matrices to their format
     Matrix S = Matrix();
     S.n_rows = m;
@@ -241,7 +244,7 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     // result matrix
     float* P = new float[S.nnz];
 
-    sddmm_SM_L2_GPU(S, tiledS, P, std::vector<float>(matrixA_HOST.getValues(), matrixA_HOST.getValues() + matrixA_HOST.getNumRows() * matrixA_HOST.getNumCols()), std::vector<float>(matrixB_HOST.getValues(), matrixB_HOST.getValues() + matrixB_HOST.getNumRows() * matrixB_HOST.getNumCols()), num_iterations, k);
+    sddmm_SM_L2_GPU(S, tiledS, P, std::vector<float>(matrixA_HOST.getValues(), matrixA_HOST.getValues() + matrixA_HOST.getNumRows() * matrixA_HOST.getNumCols()), std::vector<float>(matrixB_transpose_HOST.getValues(), matrixB_transpose_HOST.getValues() + matrixB_transpose_HOST.getNumRows() * matrixB_transpose_HOST.getNumCols()), num_iterations, k);
 
     // Build the result matrix
     matrixResult_HOST.setValues(std::vector<float>(P, P + S.nnz));

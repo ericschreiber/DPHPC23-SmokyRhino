@@ -65,7 +65,7 @@ class TiledMatrix
         }
 };
 
-void make_HTasH(const vector<float> H, vector<float> &H_t, int n_cols, int k)
+static void make_HTasH(const vector<float> H, vector<float> &H_t, int n_cols, int k)
 {
     // """Transpose of H"""
 
@@ -76,7 +76,7 @@ void make_HTasH(const vector<float> H, vector<float> &H_t, int n_cols, int k)
     }
 }
 
-void make_CSR(vector<int> rows, vector<int> cols, vector<float> vals, long nnz, long n_rows, int *row_ptr, int *row_holder)
+static void make_CSR(vector<int> rows, vector<int> cols, vector<float> vals, long nnz, long n_rows, int *row_ptr, int *row_holder)
 {
     // assuming sorted
 
@@ -100,7 +100,7 @@ void make_CSR(vector<int> rows, vector<int> cols, vector<float> vals, long nnz, 
     row_ptr[holder + 1] = idx;
 }
 
-void make_2DBlocks(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, long nnz, long n_rows, long n_cols)
+static void make_2DBlocks(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, long nnz, long n_rows, long n_cols)
 {
     int *new_row_ind = new int[nnz];
     int *new_col_ind = new int[nnz];
@@ -138,7 +138,7 @@ void make_2DBlocks(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, lon
         cout << " adf " << i << " " << list[i] << endl;
 }
 
-void rewrite_matrix_2D(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, int *new_rows, int *new_cols, float *new_vals, long nnz, long n_rows, long n_cols, int TS, int *tiled_ind, int *lastIdx_tile)
+static void rewrite_matrix_2D(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, int *new_rows, int *new_cols, float *new_vals, long nnz, long n_rows, long n_cols, int TS, int *tiled_ind, int *lastIdx_tile)
 {
     int TS_r = 2;
     long new_idx = 0, idx = 0;
@@ -184,7 +184,7 @@ void rewrite_matrix_2D(int *row_ptr, int *row_ind, int *col_ind, float *val_ind,
     //        <<" , "<< new_rows[i] <<" "<< new_cols[i]<< endl;
     delete (row_lim);
 }
-void rewrite_col_sorted_matrix(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, int *new_rows, int *new_cols, float *new_vals, long nnz, long n_rows, long n_cols, int TS, int *tiled_ind, int *lastIdx_tile, int block, long &new_nnz)
+static void rewrite_col_sorted_matrix(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, int *new_rows, int *new_cols, float *new_vals, long nnz, long n_rows, long n_cols, int TS, int *tiled_ind, int *lastIdx_tile, int block, long &new_nnz)
 {
     long new_idx = 0, idx = 0;
     int tile_no = 0;
@@ -214,7 +214,7 @@ void rewrite_col_sorted_matrix(int *row_ptr, int *row_ind, int *col_ind, float *
     new_nnz = nnz;
 }
 
-int rewrite_matrix_1D(const Matrix S, TiledMatrix &tS, int *row_ptr, int TS, int *row_holder, int actv_row_size)
+static int rewrite_matrix_1D(const Matrix S, TiledMatrix &tS, int *row_ptr, int TS, int *row_holder, int actv_row_size)
 {
     long new_idx = 0, idx = 0;
     int max_block_inAtile = S.n_rows / actv_row_size + 1;
@@ -295,7 +295,7 @@ int rewrite_matrix_1D(const Matrix S, TiledMatrix &tS, int *row_ptr, int TS, int
     return tS.max_active_row;
 }
 
-void make_2Dtile(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, long nnz, long n_rows, long n_cols, int TS, int *row_lim)
+static void make_2Dtile(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, long nnz, long n_rows, long n_cols, int TS, int *row_lim)
 {
     int *tiled_matrix = new int[TS * n_rows];
     // #pragma omp parallel for

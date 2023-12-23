@@ -6,20 +6,9 @@
 #include <typeinfo>
 
 #include "SM_L2/SM_L2.cuh"
-#include "SM_L2/SM_L2_util.h"
 #include "utils.h"
 
 // IMPORTANT: This methode only works once as it overwrites the input matrix S
-
-inline cudaError_t checkCuda(cudaError_t result, int s)
-{
-    if (result != cudaSuccess)
-    {
-        fprintf(stderr, "CUDA Runtime Error in line : %s - %d\n", cudaGetErrorString(result), s);
-        assert(result == cudaSuccess);
-    }
-    return result;
-}
 
 // Their code in file sddmm.cu
 void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, float* P, vector<float> W, vector<float> H, int num_iterations, int k) const
@@ -29,30 +18,29 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
         *d_active_row, *d_lastIdx_block_tile, *d_passive_row;
 
     //***********Starting GPU****************
-    checkCuda(cudaMalloc((void**)&d_W, k * S.n_rows * sizeof(float)), 0);
-    checkCuda(cudaMalloc((void**)&d_H, k * S.n_cols * sizeof(float)), 1);
-    // checkCuda(cudaMalloc((void**)&d_row_ptr, (n_rows+1) * sizeof (int)),2);
-    checkCuda(cudaMalloc((void**)&d_row_ind, tS.nnz * sizeof(int)), 4);
-    checkCuda(cudaMalloc((void**)&d_col_ind, tS.nnz * sizeof(int)), 4);
-    checkCuda(cudaMalloc((void**)&d_val, tS.nnz * sizeof(float)), 4);
-    checkCuda(cudaMalloc((void**)&val_out, tS.nnz * sizeof(float)), 4);
-    checkCuda(cudaMalloc((void**)&d_lastIdx, (tS.ntile_c + 1) * sizeof(float)), 4);
-    checkCuda(cudaMalloc((void**)&d_active_row, tS.ntile_c * tS.max_active_row * sizeof(int)), 4);
-    checkCuda(cudaMalloc((void**)&d_lastIdx_block_tile, tS.ntile_c * tS.max_active_block * sizeof(int)), 4);
+    CUDA_CHECK(cudaMalloc((void**)&d_W, k * S.n_rows * sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void**)&d_H, k * S.n_cols * sizeof(float)));
+    // CUDA_CHECK(cudaMalloc((void**)&d_row_ptr, (n_rows+1) * sizeof (int)),2);
+    CUDA_CHECK(cudaMalloc((void**)&d_row_ind, tS.nnz * sizeof(int)));
+    CUDA_CHECK(cudaMalloc((void**)&d_col_ind, tS.nnz * sizeof(int)));
+    CUDA_CHECK(cudaMalloc((void**)&d_val, tS.nnz * sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void**)&val_out, tS.nnz * sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void**)&d_lastIdx, (tS.ntile_c + 1) * sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void**)&d_active_row, tS.ntile_c * tS.max_active_row * sizeof(int)));
+    CUDA_CHECK(cudaMalloc((void**)&d_lastIdx_block_tile, tS.ntile_c * tS.max_active_block * sizeof(int)));
 
-    // checkCuda(cudaMemcpy(d_row_ptr,  &(row_ptr[0]), (n_rows+1) * sizeof (int),
+    // CUDA_CHECK(cudaMemcpy(d_row_ptr,  &(row_ptr[0]), (n_rows+1) * sizeof (int),
     // cudaMemcpyHostToDevice),4);
-    checkCuda(cudaMemcpy(d_row_ind, &(tS.rows[0]), tS.nnz * sizeof(int), cudaMemcpyHostToDevice), 4);
-    checkCuda(cudaMemcpy(d_col_ind, &(tS.cols[0]), tS.nnz * sizeof(int), cudaMemcpyHostToDevice), 4);
-    // checkCuda(cudaMemcpy(d_val, &(new_vals[0]), tS.nnz * sizeof (float),
+    CUDA_CHECK(cudaMemcpy(d_row_ind, &(tS.rows[0]), tS.nnz * sizeof(int), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_col_ind, &(tS.cols[0]), tS.nnz * sizeof(int), cudaMemcpyHostToDevice));
+    // CUDA_CHECK(cudaMemcpy(d_val, &(new_vals[0]), tS.nnz * sizeof (float),
     // cudaMemcpyHostToDevice),4);
     cudaMemset(d_val, 0, S.nnz * sizeof(float));
-    checkCuda(cudaMemcpy(d_lastIdx, &(tS.lastIdx_tile[0]), (tS.ntile_c + 1) * sizeof(int), cudaMemcpyHostToDevice), 4);
+    CUDA_CHECK(cudaMemcpy(d_lastIdx, &(tS.lastIdx_tile[0]), (tS.ntile_c + 1) * sizeof(int), cudaMemcpyHostToDevice));
     for (int i = 0; i < tS.ntile_c; ++i)
     {
-        checkCuda(
-            cudaMemcpy(d_lastIdx_block_tile + i * tS.max_active_block, &(tS.lastIdx_block_tile[i * tS.max_active_block]), tS.max_active_block * sizeof(int), cudaMemcpyHostToDevice),
-            4);
+        CUDA_CHECK(
+            cudaMemcpy(d_lastIdx_block_tile + i * tS.max_active_block, &(tS.lastIdx_block_tile[i * tS.max_active_block]), tS.max_active_block * sizeof(int), cudaMemcpyHostToDevice));
         // cout <<i<<" "<< tS.lastIdx_tile[i]<<"
         // "<<tS.lastIdx_block_tile[i*tS.max_active_block]<< endl;
     }
@@ -60,14 +48,13 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
     int sum = 0;
     for (int i = 0; i < tS.ntile_c; ++i)
     {
-        checkCuda(
-            cudaMemcpy(d_active_row + sum, &(tS.active_row[i * S.n_rows]), tS.n_actv_row[i] * sizeof(int), cudaMemcpyHostToDevice),
-            4);
+        CUDA_CHECK(
+            cudaMemcpy(d_active_row + sum, &(tS.active_row[i * S.n_rows]), tS.n_actv_row[i] * sizeof(int), cudaMemcpyHostToDevice));
         sum += tS.n_actv_row[i];
     }
     // sum=0;
     // for (int i = 0; i < tS.ntile_c; ++i){
-    //     checkCuda(cudaMemcpy(d_passive_row+sum, &(passive_row[i*S.n_rows]),
+    //     CUDA_CHECK(cudaMemcpy(d_passive_row+sum, &(passive_row[i*S.n_rows]),
     //     S.n_rows * sizeof (int), cudaMemcpyHostToDevice),4); sum += S.n_rows;
     // }
 
@@ -114,7 +101,7 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
         this->stop_run();
     }
 
-    checkCuda(cudaMemcpy(&(P[0]), val_out, tS.nnz * sizeof(float), cudaMemcpyDeviceToHost), 4);
+    CUDA_CHECK(cudaMemcpy(&(P[0]), val_out, tS.nnz * sizeof(float), cudaMemcpyDeviceToHost));
 
     // freeing device allocation
     cudaFree(d_row_ptr);

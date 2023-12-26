@@ -8,7 +8,8 @@
 #include "SM_L2/SM_L2.cuh"
 #include "utils.h"
 
-// IMPORTANT: This methode only works once as it overwrites the input matrix S
+// IMPORTANT: This methode only works once as it overwrites the input matrix S (should be resolved)
+// IMPORTANT: Works only for K multiple of 32
 
 // Their code in file sddmm.cu
 void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, float* P, vector<float> W, vector<float> H, int num_iterations, int k) const

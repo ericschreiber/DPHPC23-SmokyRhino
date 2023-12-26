@@ -41,13 +41,16 @@ __global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__re
          c += (blockDim.x >> 1))
     {
         float sm1 = 0, sm2 = 0;
+        bool takes_part_in_shuffle;
         if (c > block_lim)
         {
             sm1 = 0;
             sm2 = 0;
+            takes_part_in_shuffle = false;
         }
         else
         {
+            takes_part_in_shuffle = true;
             int row = row_ind[c];
             int col = col_ind[c];
             int sh_row = row - blockIdx.x * sh_tile;
@@ -74,12 +77,13 @@ __global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__re
                 sm2 = 0;
             }
         }
-        sm1 += __shfl_xor_sync(0xFFFFFFFF, sm1,
+        unsigned int shfl_mask = __ballot_sync(0xffffffff, takes_part_in_shuffle);
+        sm1 += __shfl_xor_sync(shfl_mask, sm1,
                                1);  // not all threads of one warp are in the loop
                                     // with the old shuffle
         // this was not synced. Not it is and therefore it does not
         // work.
-        sm2 += __shfl_xor_sync(0xFFFFFFFF, sm2, 1);
+        sm2 += __shfl_xor_sync(shfl_mask, sm2, 1);
 
         val_out[c] = val[c] * (sm1 + sm2);
         val_out[c] += (sm1 + sm2);

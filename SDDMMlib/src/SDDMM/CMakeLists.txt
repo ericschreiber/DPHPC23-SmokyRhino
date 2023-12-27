@@ -68,6 +68,9 @@ else()
 
                 coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM_GPU.cpp
                 coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM.cu
+
+                sml2_our/sml2.cu
+                sml2_our/sml2_kernel.cu
                 )      
 
 

@@ -19,15 +19,20 @@ void send_initital_B(
     int t_k,
     int k)
 {
+    // t_k % 4 == 0
     const float* values;
     values = matrixB_transpose_HOST.getValues();
     for (int i = 0; i < t_j; i++)
     {
-        // if t_k % 4 != 0 then we need to pad the matrix
+        const float* temp[t_k];
+        for (int j = 0; j < t_k; j++)
+        {
+            temp[j] = values + i * k + j;
+        }
         CUDA_CHECK(
             cudaMemcpyAsync(
                 matrixB_transpose_GPU_a + i * t_k,
-                values + i * k,
+                temp,
                 t_k * sizeof(float),
                 cudaMemcpyHostToDevice,
                 stream));
@@ -35,53 +40,56 @@ void send_initital_B(
 }
 
 void send_B(
-    cudaStream_t stream_a,
-    cudaStream_t stream_b,
+    cudaStream_t stream,
     float* matrixB_transpose_GPU_a,
     float* matrixB_transpose_GPU_b,
     DenseMatrix<float>& matrixB_transpose_HOST,
     int t_j,
     int t_k,
-    int curr_col_id,  // col starts index
-    int curr_row_id,  // row starts index
-    int num_row_blocks,
-    int k)
+    int curr_col_id,  // col starts index of B
+    int curr_row_id,  // row starts index of B
+    int k,
+    int target)
 {
+    // t_k % 4 == 0
     const float* values;
     values = matrixB_transpose_HOST.getValues();
-    if (curr_col_id * num_row_blocks + curr_row_id % 2 == 0)
+    if (target % 2 == 0)
     {
         for (int i = 0; i < t_j; i++)
         {
-            // if t_k % 4 != 0 then we need to pad the matrix
+            const float* temp[t_k];
+            for (int j = 0; j < t_k; j++)
+            {
+                temp[j] = values + curr_col_id * k + curr_row_id + i * k + j;
+            }
             CUDA_CHECK(
                 cudaMemcpyAsync(
                     matrixB_transpose_GPU_a + i * t_k,
-                    values + curr_col_id * k + curr_row_id + i * k,
+                    temp,
                     t_k * sizeof(float),
                     cudaMemcpyHostToDevice,
-                    stream_a));
+                    stream));
         }
     }
     else
     {
         for (int i = 0; i < t_j; i++)
         {
-            // if t_k % 4 != 0 then we need to pad the matrix
+            const float* temp[t_k];
+            for (int j = 0; j < t_k; j++)
+            {
+                temp[j] = values + curr_col_id * k + curr_row_id + i * k + j;
+            }
             CUDA_CHECK(
                 cudaMemcpyAsync(
                     matrixB_transpose_GPU_b + i * t_k,
-                    values + curr_col_id * k + curr_row_id + i * k,
+                    temp,
                     t_k * sizeof(float),
                     cudaMemcpyHostToDevice,
-                    stream_b));
+                    stream));
         }
     }
-}
-
-void send_last_B()
-{
-    // TODO
 }
 
 void sml2_our<float>::SDDMM_CSR(
@@ -113,8 +121,12 @@ void sml2_our<float>::SDDMM_CSR(
     // here we need some magic to define t_j, t_k, t_i and num_iterations
     int t_j = 10;
     int t_k = 4;
+    int t_k_by_4 = 1;
     int t_i = 10;
-    int num_iterations = 10;
+    int num_iterations_t_j = 10;  // n / t_j
+    int num_iterations_t_k = 10;  // k / t_k
+    int curr_col_id = 0;
+    int curr_row_id = 0;
 
     // allocate memory for the matrices on the GPU
     // _a is for the kernels 0-79, 160-239, ...
@@ -181,13 +193,11 @@ void sml2_our<float>::SDDMM_CSR(
             &row_ptr_GPU_b,
             (80 * t_i + 1) * sizeof(int)));
 
-    cudaStream_t stream_a_send, stream_a_compute, stream_a_receive, stream_b_send, stream_b_compute, stream_b_receive;
+    cudaStream_t stream_a_send, stream_b_send, stream_receive, stream_compute;
     cudaStreamCreate(&stream_a_send);
-    cudaStreamCreate(&stream_a_compute);
-    cudaStreamCreate(&stream_a_receive);
     cudaStreamCreate(&stream_b_send);
-    cudaStreamCreate(&stream_b_compute);
-    cudaStreamCreate(&stream_b_receive);
+    cudaStreamCreate(&stream_receive);
+    cudaStreamCreate(&stream_compute);
 
     // // copy matrices to the GPU
     // CUDA_CHECK(
@@ -221,28 +231,76 @@ void sml2_our<float>::SDDMM_CSR(
     //         (m + 1) * sizeof(int),
     //         cudaMemcpyHostToDevice));
 
+    // ints to differentiate between loading to _a or _b
+    int target_b = 0;
+    int target_a = 0;
+
     // start the timer
     this->start_run();
 
     // transfer the memory for the first iteration
     // whole block of B
-    send_initital_B(stream_a_send, matrixB_transpose_GPU_a, matrixB_transpose_HOST, t_j, t_k);
+    send_B(
+        stream_b_send,
+        matrixB_transpose_GPU_a,
+        matrixB_transpose_GPU_b,
+        matrixB_transpose_HOST,
+        t_j,
+        t_k,
+        curr_col_id,
+        curr_row_id,
+        k,
+        target_b);
 
     // the correspnding blocks of A
+    // m % 80 == 0; for m % 80 != 0 we need to add functionality
+    for (int q = 0; q < 80; q++)
+    {
+        // load 1 block of A
+    }
 
     // we want to limit the memory transfers between host and device
 
-    for (int i = 0; i < k; i = i + t_k)
+    for (int i = 0; i < num_iterations_t_k; i = i++)
     {
-        for (int j = 0; j < num_iterations; j = j++)
+        // check that the memory transfer for this iteration is finished (B)
+        cudaStreamSynchronize(stream_b_send);
+
+        target_b++;
+        curr_row_id = i * t_k;
+        for (int j = 0; j < num_iterations_t_j; j = j++)
         {
-            // check that the memory transfer for this iteration is finished
+            curr_col_id = j * t_j;
+            // check that the memory transfer for this iteration is finished (A)
+            cudaStreamSynchronize(stream_a_send);
 
+            target_a++;
             // start memory transfer for the next iteration (not on last iteration)
-
-            // each block in B uses all rows of A
-
-            // B can be loaded throughout all loop iterations
+            if (i != num_iterations_t_k - 1 || j != num_iterations_t_j - 1)
+            {
+                // load the next 80 blocks of A
+                // m % 80 == 0
+                for (int q = 0; q < 80; q++)
+                {
+                    // load 1 block of A
+                }
+            }
+            // B can be loaded throughout all loop iterations so it only has to be started once
+            if (j == 0 && i != num_iterations_t_k - 1)
+            {
+                // this could also be split over num_iterations_t_j iterations
+                send_B(
+                    stream_b_send,
+                    matrixB_transpose_GPU_a,
+                    matrixB_transpose_GPU_b,
+                    matrixB_transpose_HOST,
+                    t_j,
+                    t_k,
+                    curr_col_id,
+                    curr_row_id,
+                    k,
+                    target_b);
+            }
 
             for (int q = 0; q < 80; q++)
             {
@@ -250,10 +308,11 @@ void sml2_our<float>::SDDMM_CSR(
                 compute_lml2();
             }
             // check that the memory transfer from device to host has finished
+            cudaStreamSynchronize(stream_receive);
 
+            // check that computation has finished
+            cudaStreamSynchronize(stream_compute);
             // start memory transfer from device to host
-
-            // barrier until all kernels are finished
         }
     }
     // wait until the last results are loaded back

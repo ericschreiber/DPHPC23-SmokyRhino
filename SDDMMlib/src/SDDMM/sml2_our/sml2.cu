@@ -117,6 +117,10 @@ void send_A(
     }
 }
 
+void send_row_ptr_and_col_id()
+{
+}
+
 void sml2_our<float>::SDDMM_CSR(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
@@ -279,9 +283,7 @@ void sml2_our<float>::SDDMM_CSR(
         10 * p * t_i * t_j * sizeof(float),
         stream_set_zero);
 
-    // set initial row_ptr
-
-    // set intial col_idx
+    // set initial row_ptr and col_idx
 
     // set initial matrixC
 
@@ -365,9 +367,7 @@ void sml2_our<float>::SDDMM_CSR(
                         curr_t_i_id++;
                     }
 
-                    // load the next row_ptr
-
-                    // load the next col_idx
+                    // load the next row_ptr and col_idx
 
                     // load the next matrixC
                 }

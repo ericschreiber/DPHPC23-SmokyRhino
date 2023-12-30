@@ -3,6 +3,7 @@
 #include <cuda_runtime.h>
 #include <cusparse.h>
 
+#include <CSRMatrix.hpp>
 #include <cmath>
 #include <iostream>
 #include <type_traits>
@@ -10,6 +11,8 @@
 #include <vector>
 
 #include "utils.h"
+
+// TODO: remove the transposition of matrixB_HOST
 
 void cusparse_baseline<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
@@ -82,6 +85,9 @@ void cusparse_baseline<float>::SDDMM_COO(
         )
         */
 
+        // convert matrixC_HOST to CSR format
+        CSRMatrix<float> matrixC_HOST_CSR = CSRMatrix<float>(matrixC_HOST);
+
         for (int i = 0; i < m * k; i++)
         {
             printf("matrixA_GPU_values[%d]: %f \n", i, matrixA_HOST.getValues()[i]);
@@ -97,14 +103,17 @@ void cusparse_baseline<float>::SDDMM_COO(
         cusparseCreateDnMat(&matrixA_desc, m, k, m, matrixA_GPU_values, CUDA_R_32F, CUSPARSE_ORDER_ROW);
         cusparseCreateDnMat(&matrixB_desc, n, k, n, matrixB_transpose_GPU_values, CUDA_R_32F, CUSPARSE_ORDER_ROW);
         cusparseSpMatDescr_t matrixC_desc;
+        std::vector<int> colIndicesCopy = matrixC_HOST_CSR.getColIndices();
+        std::vector<int> rowArrayCopy = matrixC_HOST_CSR.getRowArray();
+        std::vector<float> valuesCopy = matrixC_HOST_CSR.getValues();
         cusparseCreateCsr(
             &matrixC_desc,
             m,
             n,
-            numElementsC,
-            matrixC_GPU_row_indices,
-            matrixC_GPU_col_indices,
-            matrixC_GPU_values,
+            valuesCopy.size(),
+            colIndicesCopy.data(),
+            rowArrayCopy.data(),
+            valuesCopy.data(),
             CUSPARSE_INDEX_32I,
             CUSPARSE_INDEX_32I,
             CUSPARSE_INDEX_BASE_ZERO,

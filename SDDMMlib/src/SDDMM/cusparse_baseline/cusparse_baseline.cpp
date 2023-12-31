@@ -87,25 +87,15 @@ void cusparse_baseline<float>::SDDMM_COO(
 
         // convert matrixC_HOST to CSR format
         CSRMatrix<float> matrixC_HOST_CSR = CSRMatrix<float>(matrixC_HOST);
-
-        for (int i = 0; i < m * k; i++)
-        {
-            printf("matrixA_GPU_values[%d]: %f \n", i, matrixA_HOST.getValues()[i]);
-        }
-
-        for (int i = 0; i < n * k; i++)
-        {
-            printf("matrixB_transpose_GPU_values[%d]: %f \n", i, matrixBTranspose_HOST.getValues()[i]);
-        }
-
-        cusparseDnMatDescr_t matrixA_desc;
-        cusparseDnMatDescr_t matrixB_desc;
-        cusparseCreateDnMat(&matrixA_desc, m, k, m, matrixA_GPU_values, CUDA_R_32F, CUSPARSE_ORDER_ROW);
-        cusparseCreateDnMat(&matrixB_desc, n, k, n, matrixB_transpose_GPU_values, CUDA_R_32F, CUSPARSE_ORDER_ROW);
-        cusparseSpMatDescr_t matrixC_desc;
         std::vector<int> colIndicesCopy = matrixC_HOST_CSR.getColIndices();
         std::vector<int> rowArrayCopy = matrixC_HOST_CSR.getRowArray();
         std::vector<float> valuesCopy = matrixC_HOST_CSR.getValues();
+
+        cusparseDnMatDescr_t matrixA_desc;
+        cusparseDnMatDescr_t matrixB_desc;
+        cusparseCreateDnMat(&matrixA_desc, m, k, k, matrixA_GPU_values, CUDA_R_32F, CUSPARSE_ORDER_ROW);
+        cusparseCreateDnMat(&matrixB_desc, n, k, k, matrixB_transpose_GPU_values, CUDA_R_32F, CUSPARSE_ORDER_ROW);
+        cusparseSpMatDescr_t matrixC_desc;
         cusparseCreateCsr(
             &matrixC_desc,
             m,
@@ -118,6 +108,7 @@ void cusparse_baseline<float>::SDDMM_COO(
             CUSPARSE_INDEX_32I,
             CUSPARSE_INDEX_BASE_ZERO,
             CUDA_R_32F);
+
         /*
         cusparseStatus_t
         cusparseSDDMM(

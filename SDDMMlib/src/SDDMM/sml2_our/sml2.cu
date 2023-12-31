@@ -15,7 +15,7 @@ void send_B(
     cudaStream_t stream,
     float* matrixB_transpose_GPU_a,
     float* matrixB_transpose_GPU_b,
-    DenseMatrix<float>& matrixB_transpose_HOST,
+    const float* values,
     int t_j,
     int t_k,
     int col_id,  // col starts index of B
@@ -24,8 +24,6 @@ void send_B(
     int target)
 {
     // t_k % 4 == 0
-    const float* values;
-    values = matrixB_transpose_HOST.getValues();
     if (target % 2 == 0)
     {
         for (int i = 0; i < t_j; i++)
@@ -68,7 +66,7 @@ void send_A(
     cudaStream_t stream,
     float* matrixA_GPU_a,
     float* matrixA_GPU_b,
-    const DenseMatrix<float>& matrixA_HOST,
+    const float* values,
     int t_i,
     int t_k,
     int col_id,  // col starts index of A - curr_row_id * t_k
@@ -77,8 +75,6 @@ void send_A(
     int target)
 {
     // t_k % 4 == 0
-    const float* values;
-    values = matrixA_HOST.getValues();
     if (target % 2 == 0)
     {
         for (int i = 0; i < t_i; i++)
@@ -117,7 +113,92 @@ void send_A(
     }
 }
 
-void send_row_ptr_and_col_id()
+void send_row_ptr_and_col_id(
+    cudaStream_t stream_rp,
+    cudaStream_t stream_ci,
+    int* row_ptr_GPU_a,
+    int* row_ptr_GPU_b,
+    int* col_idx_GPU_a,
+    int* col_idx_GPU_b,
+    int* num_nnz_a,
+    int* num_nnz_b,
+    const int* row_ptr,
+    const int* col_idx,
+    int t_i,
+    int t_j,
+    int row_id,
+    int col_id,
+    int target)
+{
+}
+
+void send_C(
+    cudaStream_t stream,
+    float* matrixC_GPU_a,
+    float* matrixC_GPU_b,
+    const float* values,
+    const int* row_ptr_a,
+    const int* row_ptr_b,
+    const int* col_idx_a,
+    const int* col_idx_b,
+    int* num_nnz_a,
+    int* num_nnz_b,
+    int target)
+{
+}
+
+void send_result(
+    cudaStream_t stream,
+    float* matrixResult_GPU_a,
+    float* matrixResult_GPU_b,
+    float* result_from_gpu,
+    int* num_nnz_a,
+    int* num_nnz_b,
+    int t_i,
+    int target)
+{
+    if (target % 2 == 0)
+    {
+        int nnz = 0;
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            nnz += num_nnz_a[i];
+        }
+        CUDA_CHECK(
+            cudaMemcpyAsync(
+                result_from_gpu,
+                matrixResult_GPU_a,
+                nnz * sizeof(float),
+                cudaMemcpyDeviceToHost,
+                stream));
+    }
+    else
+    {
+        int nnz = 0;
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            nnz += num_nnz_b[i];
+        }
+        CUDA_CHECK(
+            cudaMemcpyAsync(
+                result_from_gpu,
+                matrixResult_GPU_b,
+                nnz * sizeof(float),
+                cudaMemcpyDeviceToHost,
+                stream));
+    }
+}
+
+void save_result(
+    float* result_from_gpu,
+    float* result_HOST,
+    int* row_ptr_a,
+    int* row_ptr_b,
+    int* col_idx_a,
+    int* col_idx_b,
+    int* num_nnz_a,
+    int* num_nnz_b,
+    int target)
 {
 }
 
@@ -149,7 +230,7 @@ void sml2_our<float>::SDDMM_CSR(
 
     // here we need some magic to define t_j, t_k, t_i and num_iterations
     int t_j = 10;
-    int t_k = 4;
+    int t_k = 4;  // this probably has to be around 16 for p=1% to fit everything on the GPU
     int t_k_by_4 = 1;
     int t_i = 10;
     int num_iterations_t_j = 10;  // n / t_j
@@ -175,6 +256,8 @@ void sml2_our<float>::SDDMM_CSR(
     int* col_idx_GPU_b;
     int* row_ptr_GPU_a;
     int* row_ptr_GPU_b;
+    int* num_nnz_GPU_a;  // number of non-zero elements per row for iteration a
+    int* num_nnz_GPU_b;  // number of non-zero elements per row for iteration b
 
     CUDA_CHECK(
         cudaMalloc(
@@ -195,27 +278,27 @@ void sml2_our<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMalloc(
             &matrixC_GPU_a,
-            10 * p * t_i * t_j * sizeof(float)));
+            80 * 10 * p * t_i * t_j * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixC_GPU_b,
-            10 * p * t_i * t_j * sizeof(float)));
+            80 * 10 * p * t_i * t_j * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU_a,
-            10 * p * t_i * t_j * sizeof(float)));
+            80 * 10 * p * t_i * t_j * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU_b,
-            10 * p * t_i * t_j * sizeof(float)));
+            80 * 10 * p * t_i * t_j * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &col_idx_GPU_a,
-            10 * p * t_i * t_j * sizeof(int)));
+            80 * 10 * p * t_i * t_j * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &col_idx_GPU_b,
-            10 * p * t_i * t_j * sizeof(int)));
+            80 * 10 * p * t_i * t_j * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &row_ptr_GPU_a,
@@ -224,6 +307,14 @@ void sml2_our<float>::SDDMM_CSR(
         cudaMalloc(
             &row_ptr_GPU_b,
             (80 * t_i + 1) * sizeof(int)));
+    CUDA_CHECK(
+        cudaMalloc(
+            &num_nnz_GPU_a,
+            80 * t_i * sizeof(int)));
+    CUDA_CHECK(
+        cudaMalloc(
+            &num_nnz_GPU_b,
+            80 * t_i * sizeof(int)));
 
     cudaStream_t stream_a_send, stream_b_send, stream_receive, stream_compute;
     cudaStream_t stream_c_send, stream_rp_send, stream_ci_send, stream_set_zero;
@@ -240,6 +331,25 @@ void sml2_our<float>::SDDMM_CSR(
     int target_b = 0;
     int target_a = 0;
 
+    // save row_ptr and col_idx on the host
+    int* row_ptr_HOST_a = new int[80 * t_i + 1];
+    int* row_ptr_HOST_b = new int[80 * t_i + 1];
+    int* num_nnz_a = new int[80 * t_i];
+    int* num_nnz_b = new int[80 * t_i];
+    int* col_idx_HOST_a = new int[80 * 10 * p * t_i * t_j];
+    int* col_idx_HOST_b = new int[80 * 10 * p * t_i * t_j];
+
+    // create memory for the result on the host
+    float* result_from_gpu = new float[10 * p * t_i * t_j];
+
+    // local copy of values of all matrices
+    const float* values_A = matrixA_HOST.getValues();
+    const float* values_B = matrixB_transpose_HOST.getValues();
+    const float* values_C = matrixC_HOST.getValues().data();
+    const int* col_idx_C = matrixC_HOST.getColIndices().data();
+    const int* row_ptr_C = matrixC_HOST.getRowArray().data();
+    float* values_result = new float[nnz];
+
     // start the timer
     this->start_run();
 
@@ -249,7 +359,7 @@ void sml2_our<float>::SDDMM_CSR(
         stream_b_send,
         matrixB_transpose_GPU_a,
         matrixB_transpose_GPU_b,
-        matrixB_transpose_HOST,
+        values_B,
         t_j,
         t_k,
         curr_col_id,
@@ -266,7 +376,7 @@ void sml2_our<float>::SDDMM_CSR(
             stream_a_send,
             matrixA_GPU_a,
             matrixA_GPU_b,
-            matrixA_HOST,
+            values_A,
             t_i,
             t_k,
             curr_row_id * t_k,
@@ -284,8 +394,36 @@ void sml2_our<float>::SDDMM_CSR(
         stream_set_zero);
 
     // set initial row_ptr and col_idx
+    send_row_ptr_and_col_id(
+        stream_rp_send,
+        stream_ci_send,
+        row_ptr_GPU_a,
+        row_ptr_GPU_b,
+        col_idx_GPU_a,
+        col_idx_GPU_b,
+        num_nnz_a,
+        num_nnz_b,
+        row_ptr_C,
+        col_idx_C,
+        t_i,
+        t_j,
+        curr_row_id,
+        curr_col_id,
+        target_a);
 
     // set initial matrixC
+    send_C(
+        stream_c_send,
+        matrixC_GPU_a,
+        matrixC_GPU_b,
+        values_C,
+        row_ptr_HOST_a,
+        row_ptr_HOST_b,
+        col_idx_HOST_a,
+        col_idx_HOST_b,
+        num_nnz_a,
+        num_nnz_b,
+        target_a);
 
     for (int i = 0; i < num_iterations_t_k; i = i++)
     {
@@ -305,7 +443,7 @@ void sml2_our<float>::SDDMM_CSR(
                     stream_b_send,
                     matrixB_transpose_GPU_a,
                     matrixB_transpose_GPU_b,
-                    matrixB_transpose_HOST,
+                    values_B,
                     t_j,
                     t_k,
                     curr_col_id,
@@ -357,7 +495,7 @@ void sml2_our<float>::SDDMM_CSR(
                             stream_a_send,
                             matrixA_GPU_a,
                             matrixA_GPU_b,
-                            matrixA_HOST,
+                            values_A,
                             t_i,
                             t_k,
                             curr_row_id * t_k,
@@ -368,12 +506,57 @@ void sml2_our<float>::SDDMM_CSR(
                     }
 
                     // load the next row_ptr and col_idx
+                    send_row_ptr_and_col_id(
+                        stream_rp_send,
+                        stream_ci_send,
+                        row_ptr_GPU_a,
+                        row_ptr_GPU_b,
+                        col_idx_GPU_a,
+                        col_idx_GPU_b,
+                        num_nnz_a,
+                        num_nnz_b,
+                        row_ptr_C,
+                        col_idx_C,
+                        t_i,
+                        t_j,
+                        curr_row_id,
+                        curr_col_id,
+                        target_a);
 
                     // load the next matrixC
+                    send_C(
+                        stream_c_send,
+                        matrixC_GPU_a,
+                        matrixC_GPU_b,
+                        values_C,
+                        row_ptr_HOST_a,
+                        row_ptr_HOST_b,
+                        col_idx_HOST_a,
+                        col_idx_HOST_b,
+                        num_nnz_a,
+                        num_nnz_b,
+                        target_a);
                 }
 
-                // check that the memory transfer from device to host has finished
-                cudaStreamSynchronize(stream_receive);
+                // save the result on the host from the previous iteration (not on first iteration)
+                if (i != 0 || j != 0 || w != 0)
+                {
+                    // check that the memory transfer from device to host has finished
+                    cudaStreamSynchronize(stream_receive);
+                    // save the result on the host
+                    save_result(
+                        result_from_gpu,
+                        values_result,
+                        row_ptr_HOST_a,
+                        row_ptr_HOST_b,
+                        col_idx_HOST_a,
+                        col_idx_HOST_b,
+                        num_nnz_a,
+                        num_nnz_b,
+                        target_a);
+                }
+
+                // not sure if this is needed - probably not
                 if (i % target_a == 0)
                 {
                     cudaMemsetAsync(
@@ -394,30 +577,39 @@ void sml2_our<float>::SDDMM_CSR(
                 // check that computation has finished
                 cudaStreamSynchronize(stream_compute);
                 // start memory transfer from device to host
+                send_result(
+                    stream_receive,
+                    matrixResult_GPU_a,
+                    matrixResult_GPU_b,
+                    result_from_gpu,
+                    num_nnz_a,
+                    num_nnz_b,
+                    t_i,
+                    target_a);
             }
         }
     }
     // wait until the last results are loaded back
+    cudaStreamSynchronize(stream_receive);
+    // save the last result on the host
+    save_result(
+        result_from_gpu,
+        values_result,
+        row_ptr_HOST_a,
+        row_ptr_HOST_b,
+        col_idx_HOST_a,
+        col_idx_HOST_b,
+        num_nnz_a,
+        num_nnz_b,
+        target_a);
 
     // stop the timer
     this->stop_run();
 
-    // // copy result from the GPU to the CPU
-    // float* return_values = new float[nnz];
-    // CUDA_CHECK(
-    //     cudaMemcpy(
-    //         return_values,
-    //         matrixResult_GPU,
-    //         nnz * sizeof(float),
-    //         cudaMemcpyDeviceToHost));
-
-    // // Convert pointer to std::vector
-    // std::vector<float> result_vector(return_values, return_values + nnz);
-
-    // // set the result matrix
-    // matrixResult_sparse_HOST.setValues(result_vector);
-    // matrixResult_sparse_HOST.setColIndices(matrixC_HOST.getColIndices());
-    // matrixResult_sparse_HOST.setRowArray(matrixC_HOST.getRowArray());
+    // set the result matrix
+    matrixResult_sparse_HOST.setValues(std::vector<float>(values_result, values_result + nnz));
+    matrixResult_sparse_HOST.setColIndices(matrixC_HOST.getColIndices());
+    matrixResult_sparse_HOST.setRowArray(matrixC_HOST.getRowArray());
 
     // free memory on the device and destroy the handle
     CUDA_CHECK(
@@ -456,6 +648,25 @@ void sml2_our<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaFree(
             row_ptr_GPU_b));
+    CUDA_CHECK(
+        cudaFree(
+            num_nnz_GPU_a));
+    CUDA_CHECK(
+        cudaFree(
+            num_nnz_GPU_b));
+    delete[] row_ptr_HOST_a;
+    delete[] row_ptr_HOST_b;
+    delete[] col_idx_HOST_a;
+    delete[] col_idx_HOST_b;
+    delete[] values_A;
+    delete[] values_B;
+    delete[] values_C;
+    delete[] col_idx_C;
+    delete[] row_ptr_C;
+    delete[] result_from_gpu;
+    delete[] values_result;
+    delete[] num_nnz_a;
+    delete[] num_nnz_b;
 
     // stop the profiler
     // CUDA_CHECK(cudaProfilerStop());

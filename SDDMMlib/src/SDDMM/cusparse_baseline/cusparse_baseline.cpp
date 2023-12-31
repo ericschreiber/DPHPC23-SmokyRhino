@@ -12,7 +12,9 @@
 
 #include "utils.h"
 
-// TODO: remove the transposition of matrixB_HOST
+// TODO:
+// - remove the transposition of matrixB_HOST
+// - is everything being freed?
 
 void cusparse_baseline<float>::SDDMM_COO(
     const DenseMatrix<float>& matrixA_HOST,
@@ -42,9 +44,6 @@ void cusparse_baseline<float>::SDDMM_COO(
         // allocate memory for the matrices on the GPU
         float* matrixA_GPU_values;
         float* matrixB_transpose_GPU_values;
-        float* matrixC_GPU_values;
-        int* matrixC_GPU_row_indices;
-        int* matrixC_GPU_col_indices;
         float* matrixResult_GPU_values;
         int* matrixResult_GPU_row_indices;
         int* matrixResult_GPU_col_indices;
@@ -53,9 +52,6 @@ void cusparse_baseline<float>::SDDMM_COO(
 
         CUDA_CHECK(cudaMalloc(&matrixA_GPU_values, m * k * sizeof(float)));
         CUDA_CHECK(cudaMalloc(&matrixB_transpose_GPU_values, n * k * sizeof(float)));
-        CUDA_CHECK(cudaMalloc(&matrixC_GPU_values, numElementsC * sizeof(float)));
-        CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_indices, numElementsC * sizeof(float)));
-        CUDA_CHECK(cudaMalloc(&matrixC_GPU_col_indices, numElementsC * sizeof(float)));
         CUDA_CHECK(cudaMalloc(&matrixResult_GPU_values, numElementsC * sizeof(float)));
         CUDA_CHECK(cudaMalloc(&matrixResult_GPU_row_indices, numElementsC * sizeof(float)));
         CUDA_CHECK(cudaMalloc(&matrixResult_GPU_col_indices, numElementsC * sizeof(float)));
@@ -65,9 +61,6 @@ void cusparse_baseline<float>::SDDMM_COO(
         // copy matrices to the GPU
         CUDA_CHECK(cudaMemcpy(matrixA_GPU_values, matrixA_HOST.getValues(), m * k * sizeof(float), cudaMemcpyHostToDevice));
         CUDA_CHECK(cudaMemcpy(matrixB_transpose_GPU_values, matrixBTranspose_HOST.getValues(), n * k * sizeof(float), cudaMemcpyHostToDevice));
-        CUDA_CHECK(cudaMemcpy(matrixC_GPU_values, (matrixC_HOST.getValues()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
-        CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
-        CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
         // zero out the result matrix
         CUDA_CHECK(cudaMemset(matrixResult_GPU_values, 0.0, numElementsC * sizeof(float)));
@@ -90,7 +83,19 @@ void cusparse_baseline<float>::SDDMM_COO(
         std::vector<int> colIndicesCopy = matrixC_HOST_CSR.getColIndices();
         std::vector<int> rowArrayCopy = matrixC_HOST_CSR.getRowArray();
         std::vector<float> valuesCopy = matrixC_HOST_CSR.getValues();
+        // alloc GPU memory for the copies
+        int* colIndicesCopy_GPU;
+        int* rowArrayCopy_GPU;
+        float* valuesCopy_GPU;
+        CUDA_CHECK(cudaMalloc(&colIndicesCopy_GPU, colIndicesCopy.size() * sizeof(int)));
+        CUDA_CHECK(cudaMalloc(&rowArrayCopy_GPU, rowArrayCopy.size() * sizeof(int)));
+        CUDA_CHECK(cudaMalloc(&valuesCopy_GPU, valuesCopy.size() * sizeof(float)));
+        // copy the copies to the GPU
+        CUDA_CHECK(cudaMemcpy(colIndicesCopy_GPU, colIndicesCopy.data(), colIndicesCopy.size() * sizeof(int), cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMemcpy(rowArrayCopy_GPU, rowArrayCopy.data(), rowArrayCopy.size() * sizeof(int), cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMemcpy(valuesCopy_GPU, valuesCopy.data(), valuesCopy.size() * sizeof(float), cudaMemcpyHostToDevice));
 
+        // create the cuda sparse matrix descriptors
         cusparseDnMatDescr_t matrixA_desc;
         cusparseDnMatDescr_t matrixB_desc;
         cusparseCreateDnMat(&matrixA_desc, m, k, k, matrixA_GPU_values, CUDA_R_32F, CUSPARSE_ORDER_ROW);
@@ -101,9 +106,9 @@ void cusparse_baseline<float>::SDDMM_COO(
             m,
             n,
             valuesCopy.size(),
-            colIndicesCopy.data(),
-            rowArrayCopy.data(),
-            valuesCopy.data(),
+            rowArrayCopy_GPU,
+            colIndicesCopy_GPU,
+            valuesCopy_GPU,
             CUSPARSE_INDEX_32I,
             CUSPARSE_INDEX_32I,
             CUSPARSE_INDEX_BASE_ZERO,
@@ -193,9 +198,6 @@ void cusparse_baseline<float>::SDDMM_COO(
         // free memory
         CUDA_CHECK(cudaFree(matrixA_GPU_values));
         CUDA_CHECK(cudaFree(matrixB_transpose_GPU_values));
-        CUDA_CHECK(cudaFree(matrixC_GPU_values));
-        CUDA_CHECK(cudaFree(matrixC_GPU_row_indices));
-        CUDA_CHECK(cudaFree(matrixC_GPU_col_indices));
         CUDA_CHECK(cudaFree(matrixResult_GPU_values));
         CUDA_CHECK(cudaFree(matrixResult_GPU_row_indices));
         CUDA_CHECK(cudaFree(matrixResult_GPU_col_indices));
@@ -204,9 +206,6 @@ void cusparse_baseline<float>::SDDMM_COO(
 
         matrixA_GPU_values = nullptr;
         matrixB_transpose_GPU_values = nullptr;
-        matrixC_GPU_values = nullptr;
-        matrixC_GPU_row_indices = nullptr;
-        matrixC_GPU_col_indices = nullptr;
         matrixResult_GPU_values = nullptr;
         matrixResult_GPU_row_indices = nullptr;
         matrixResult_GPU_col_indices = nullptr;

@@ -445,27 +445,27 @@ void sml2_our<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMalloc(
             &matrixC_GPU_a,
-            80 * 10 * p * t_i * t_j * sizeof(float)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixC_GPU_b,
-            80 * 10 * p * t_i * t_j * sizeof(float)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU_a,
-            80 * 10 * p * t_i * t_j * sizeof(float)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU_b,
-            80 * 10 * p * t_i * t_j * sizeof(float)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &col_idx_GPU_a,
-            80 * 10 * p * t_i * t_j * sizeof(int)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &col_idx_GPU_b,
-            80 * 10 * p * t_i * t_j * sizeof(int)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &row_ptr_GPU_a,
@@ -505,11 +505,11 @@ void sml2_our<float>::SDDMM_CSR(
     int* row_ptr_HOST_b = new int[80 * t_i + 1];
     int* num_nnz_a = new int[80 * t_i];
     int* num_nnz_b = new int[80 * t_i];
-    int* col_idx_HOST_a = new int[80 * 10 * p * t_i * t_j];
-    int* col_idx_HOST_b = new int[80 * 10 * p * t_i * t_j];
+    int* col_idx_HOST_a = new int[int(80 * 10 * p * t_i * t_j)];
+    int* col_idx_HOST_b = new int[int(80 * 10 * p * t_i * t_j)];
 
     // create memory for the result on the host
-    float* result_from_gpu = new float[10 * p * t_i * t_j];
+    float* result_from_gpu = new float[int(10 * p * t_i * t_j)];
 
     // local copy of values of all matrices
     const float* values_A = matrixA_HOST.getValues();

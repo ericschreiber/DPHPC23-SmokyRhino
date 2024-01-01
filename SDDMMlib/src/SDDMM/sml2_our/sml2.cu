@@ -116,20 +116,134 @@ void send_A(
 void send_row_ptr_and_col_id(
     cudaStream_t stream_rp,
     cudaStream_t stream_ci,
+    cudaStream_t stream_nnz,
     int* row_ptr_GPU_a,
     int* row_ptr_GPU_b,
     int* col_idx_GPU_a,
     int* col_idx_GPU_b,
+    int* num_nnz_GPU_a,
+    int* num_nnz_GPU_b,
     int* num_nnz_a,
     int* num_nnz_b,
     const int* row_ptr,
     const int* col_idx,
     int t_i,
     int t_j,
-    int row_id,
-    int col_id,
+    int row_id,  // row starts index of C
+    int col_id,  // col starts index of C
+    int* row_ptr_HOST_a,
+    int* row_ptr_HOST_b,
+    int* col_idx_HOST_a,
+    int* col_idx_HOST_b,
     int target)
 {
+    // t_i % 4 == 0
+    if (target % 2 == 0)
+    {
+        for (int i = 0; i < 80 * t_i + 1; i++)
+        {
+            row_ptr_HOST_a[i] = row_ptr[row_id + i];
+        }
+
+        int sum = 0;
+        num_nnz_a[0] = 0;
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            for (int j = 0; j < t_j; j++)
+            {
+                if (col_idx[row_ptr_HOST_a[i] + j] <= col_id)
+                {
+                    sum++;
+                }
+            }
+            num_nnz_a[i + 1] = sum;
+            row_ptr_HOST_a[i] += sum;
+        }
+        CUDA_CHECK(
+            cudaMemcpyAsync(
+                row_ptr_GPU_a,
+                row_ptr_HOST_a,
+                (80 * t_i + 1) * sizeof(int),
+                cudaMemcpyHostToDevice,
+                stream_rp));
+        CUDA_CHECK(
+            cudaMemcpyAsync(
+                num_nnz_GPU_a,
+                num_nnz_a,
+                (80 * t_i + 1) * sizeof(int),
+                cudaMemcpyHostToDevice,
+                stream_nnz));
+
+        int counter = 0;
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            for (int j = 0; j < row_ptr_HOST_a[i + 1] - row_ptr_HOST_a[i]; j++)
+            {
+                col_idx_HOST_a[counter] = col_idx[row_ptr_HOST_a[i] + j];
+                counter++;
+            }
+        }
+        CUDA_CHECK(
+            cudaMemcpyAsync(
+                col_idx_GPU_a,
+                col_idx_HOST_a,
+                row_ptr_HOST_a[80 * t_i] * sizeof(int),
+                cudaMemcpyHostToDevice,
+                stream_ci));
+    }
+    else
+    {
+        for (int i = 0; i < 80 * t_i + 1; i++)
+        {
+            row_ptr_HOST_b[i] = row_ptr[row_id + i];
+        }
+
+        int sum = 0;
+        num_nnz_b[0] = 0;
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            for (int j = 0; j < t_j; j++)
+            {
+                if (col_idx[row_ptr_HOST_b[i] + j] <= col_id)
+                {
+                    sum++;
+                }
+            }
+            num_nnz_b[i + 1] = sum;
+            row_ptr_HOST_b[i] += sum;
+        }
+        CUDA_CHECK(
+            cudaMemcpyAsync(
+                row_ptr_GPU_b,
+                row_ptr_HOST_b,
+                (80 * t_i + 1) * sizeof(int),
+                cudaMemcpyHostToDevice,
+                stream_rp));
+        CUDA_CHECK(
+            cudaMemcpyAsync(
+                num_nnz_GPU_b,
+                num_nnz_b,
+                (80 * t_i + 1) * sizeof(int),
+                cudaMemcpyHostToDevice,
+                stream_nnz));
+
+        int counter = 0;
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            for (int j = 0; j < row_ptr_HOST_b[i + 1] - row_ptr_HOST_b[i]; j++)
+            {
+                col_idx_HOST_b[counter] = col_idx[row_ptr_HOST_b[i] + j];
+                counter++;
+            }
+        }
+        CUDA_CHECK(
+            cudaMemcpyAsync(
+                col_idx_GPU_b,
+                col_idx_HOST_b,
+                row_ptr_HOST_b[80 * t_i] * sizeof(int),
+                cudaMemcpyHostToDevice,
+                stream_ci));
+    }
 }
 
 void send_C(
@@ -139,12 +253,50 @@ void send_C(
     const float* values,
     const int* row_ptr_a,
     const int* row_ptr_b,
-    const int* col_idx_a,
-    const int* col_idx_b,
     int* num_nnz_a,
     int* num_nnz_b,
+    int t_i,
+    int t_j,
     int target)
 {
+    if (target % 2 == 0)
+    {
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            int nnz = num_nnz_a[i + 1] - num_nnz_a[i];
+            const float* temp[nnz];
+            for (int j = 0; j < nnz; j++)
+            {
+                temp[j] = values + row_ptr_a[i] + j;
+            }
+            CUDA_CHECK(
+                cudaMemcpyAsync(
+                    matrixC_GPU_a + num_nnz_a[i],
+                    temp,
+                    nnz * sizeof(float),
+                    cudaMemcpyHostToDevice,
+                    stream));
+        }
+    }
+    else
+    {
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            int nnz = num_nnz_b[i + 1] - num_nnz_b[i];
+            const float* temp[nnz];
+            for (int j = 0; j < nnz; j++)
+            {
+                temp[j] = values + row_ptr_b[i] + j;
+            }
+            CUDA_CHECK(
+                cudaMemcpyAsync(
+                    matrixC_GPU_b + num_nnz_a[i],
+                    temp,
+                    nnz * sizeof(float),
+                    cudaMemcpyHostToDevice,
+                    stream));
+        }
+    }
 }
 
 void send_result(
@@ -159,11 +311,7 @@ void send_result(
 {
     if (target % 2 == 0)
     {
-        int nnz = 0;
-        for (int i = 0; i < 80 * t_i; i++)
-        {
-            nnz += num_nnz_a[i];
-        }
+        int nnz = num_nnz_a[80 * t_i];
         CUDA_CHECK(
             cudaMemcpyAsync(
                 result_from_gpu,
@@ -174,11 +322,7 @@ void send_result(
     }
     else
     {
-        int nnz = 0;
-        for (int i = 0; i < 80 * t_i; i++)
-        {
-            nnz += num_nnz_b[i];
-        }
+        int nnz = num_nnz_a[80 * t_i];
         CUDA_CHECK(
             cudaMemcpyAsync(
                 result_from_gpu,
@@ -198,8 +342,31 @@ void save_result(
     int* col_idx_b,
     int* num_nnz_a,
     int* num_nnz_b,
+    int t_i,
     int target)
 {
+    if (target % 2 == 0)
+    {
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            int nnz = num_nnz_a[i + 1] - num_nnz_a[i];
+            for (int j = 0; j < nnz; j++)
+            {
+                result_HOST[row_ptr_a[i] + j] = result_from_gpu[num_nnz_a[i] + j];
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < 80 * t_i; i++)
+        {
+            int nnz = num_nnz_b[i + 1] - num_nnz_b[i];
+            for (int j = 0; j < nnz; j++)
+            {
+                result_HOST[row_ptr_b[i] + j] = result_from_gpu[num_nnz_b[i] + j];
+            }
+        }
+    }
 }
 
 void sml2_our<float>::SDDMM_CSR(
@@ -256,8 +423,8 @@ void sml2_our<float>::SDDMM_CSR(
     int* col_idx_GPU_b;
     int* row_ptr_GPU_a;
     int* row_ptr_GPU_b;
-    int* num_nnz_GPU_a;  // number of non-zero elements per row for iteration a
-    int* num_nnz_GPU_b;  // number of non-zero elements per row for iteration b
+    int* num_nnz_GPU_a;  // number of non-zero elements per row for iteration a as an internal row_ptr
+    int* num_nnz_GPU_b;  // number of non-zero elements per row for iteration b as an internal row_ptr
 
     CUDA_CHECK(
         cudaMalloc(
@@ -310,14 +477,15 @@ void sml2_our<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMalloc(
             &num_nnz_GPU_a,
-            80 * t_i * sizeof(int)));
+            (80 * t_i + 1) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &num_nnz_GPU_b,
-            80 * t_i * sizeof(int)));
+            (80 * t_i + 1) * sizeof(int)));
 
     cudaStream_t stream_a_send, stream_b_send, stream_receive, stream_compute;
     cudaStream_t stream_c_send, stream_rp_send, stream_ci_send, stream_set_zero;
+    cudaStream_t stream_nnz;
     cudaStreamCreate(&stream_a_send);
     cudaStreamCreate(&stream_b_send);
     cudaStreamCreate(&stream_receive);
@@ -326,6 +494,7 @@ void sml2_our<float>::SDDMM_CSR(
     cudaStreamCreate(&stream_rp_send);
     cudaStreamCreate(&stream_ci_send);
     cudaStreamCreate(&stream_set_zero);
+    cudaStreamCreate(&stream_nnz);
 
     // ints to differentiate between loading to _a or _b
     int target_b = 0;
@@ -397,10 +566,13 @@ void sml2_our<float>::SDDMM_CSR(
     send_row_ptr_and_col_id(
         stream_rp_send,
         stream_ci_send,
+        stream_nnz,
         row_ptr_GPU_a,
         row_ptr_GPU_b,
         col_idx_GPU_a,
         col_idx_GPU_b,
+        num_nnz_GPU_a,
+        num_nnz_GPU_b,
         num_nnz_a,
         num_nnz_b,
         row_ptr_C,
@@ -409,6 +581,10 @@ void sml2_our<float>::SDDMM_CSR(
         t_j,
         curr_row_id,
         curr_col_id,
+        row_ptr_HOST_a,
+        row_ptr_HOST_b,
+        col_idx_HOST_a,
+        col_idx_HOST_b,
         target_a);
 
     // set initial matrixC
@@ -419,10 +595,10 @@ void sml2_our<float>::SDDMM_CSR(
         values_C,
         row_ptr_HOST_a,
         row_ptr_HOST_b,
-        col_idx_HOST_a,
-        col_idx_HOST_b,
         num_nnz_a,
         num_nnz_b,
+        t_i,
+        t_j,
         target_a);
 
     for (int i = 0; i < num_iterations_t_k; i = i++)
@@ -468,6 +644,25 @@ void sml2_our<float>::SDDMM_CSR(
                 }
 
                 target_a++;
+                // save the result on the host from the previous iteration (not on first iteration)
+                if (i != 0 || j != 0 || w != 0)
+                {
+                    // check that the memory transfer from device to host has finished
+                    cudaStreamSynchronize(stream_receive);
+                    // save the result on the host
+                    save_result(
+                        result_from_gpu,
+                        values_result,
+                        row_ptr_HOST_a,
+                        row_ptr_HOST_b,
+                        col_idx_HOST_a,
+                        col_idx_HOST_b,
+                        num_nnz_a,
+                        num_nnz_b,
+                        t_i,
+                        target_a);
+                }
+
                 // start memory transfer for the next iteration (not on last iteration)
                 if (i != num_iterations_t_k - 1 || j != num_iterations_t_j - 1 || w != num_iterations_t_i - 1)
                 {
@@ -509,10 +704,13 @@ void sml2_our<float>::SDDMM_CSR(
                     send_row_ptr_and_col_id(
                         stream_rp_send,
                         stream_ci_send,
+                        stream_nnz,
                         row_ptr_GPU_a,
                         row_ptr_GPU_b,
                         col_idx_GPU_a,
                         col_idx_GPU_b,
+                        num_nnz_GPU_a,
+                        num_nnz_GPU_b,
                         num_nnz_a,
                         num_nnz_b,
                         row_ptr_C,
@@ -521,6 +719,10 @@ void sml2_our<float>::SDDMM_CSR(
                         t_j,
                         curr_row_id,
                         curr_col_id,
+                        row_ptr_HOST_a,
+                        row_ptr_HOST_b,
+                        col_idx_HOST_a,
+                        col_idx_HOST_b,
                         target_a);
 
                     // load the next matrixC
@@ -531,28 +733,10 @@ void sml2_our<float>::SDDMM_CSR(
                         values_C,
                         row_ptr_HOST_a,
                         row_ptr_HOST_b,
-                        col_idx_HOST_a,
-                        col_idx_HOST_b,
                         num_nnz_a,
                         num_nnz_b,
-                        target_a);
-                }
-
-                // save the result on the host from the previous iteration (not on first iteration)
-                if (i != 0 || j != 0 || w != 0)
-                {
-                    // check that the memory transfer from device to host has finished
-                    cudaStreamSynchronize(stream_receive);
-                    // save the result on the host
-                    save_result(
-                        result_from_gpu,
-                        values_result,
-                        row_ptr_HOST_a,
-                        row_ptr_HOST_b,
-                        col_idx_HOST_a,
-                        col_idx_HOST_b,
-                        num_nnz_a,
-                        num_nnz_b,
+                        t_i,
+                        t_j,
                         target_a);
                 }
 
@@ -591,7 +775,8 @@ void sml2_our<float>::SDDMM_CSR(
     }
     // wait until the last results are loaded back
     cudaStreamSynchronize(stream_receive);
-    // save the last result on the host
+    // save the last result on the hos
+    target_a++;
     save_result(
         result_from_gpu,
         values_result,
@@ -601,6 +786,7 @@ void sml2_our<float>::SDDMM_CSR(
         col_idx_HOST_b,
         num_nnz_a,
         num_nnz_b,
+        t_i,
         target_a);
 
     // stop the timer

@@ -81,17 +81,5 @@ __global__ void blocked_SDDMM_kernel(
 
 void compute_lml2()
 {
-    int max_blocks = 2024;
-    int num_blocks = min(max_blocks, m);
-
-    blocked_SDDMM_kernel<<<num_blocks, 1024>>>(
-        m,
-        n,
-        k,
-        d_A,
-        d_B,
-        d_C,
-        d_rowPtr,
-        d_colIdx,
-        d_result);
+    return;
 }

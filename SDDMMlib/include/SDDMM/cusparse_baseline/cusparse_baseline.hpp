@@ -39,11 +39,11 @@ class cusparse_baseline<float> : public SDDMMlib<float>
             const int num_iterations) const override;
 
     private:
-        void SDDMM_COO(
+        void SDDMM_CSR(
             const DenseMatrix<float>& matrixA_HOST,
             const DenseMatrix<float>& matrixB_HOST,
-            const COOMatrix<float>& matrixC_HOST,
-            COOMatrix<float>& matrixResult_HOST,
+            const CSRMatrix<float>& matrixC_HOST_CSR,
+            CSRMatrix<float>& matrixResult_HOST,
             const int num_iterations) const;
 
         virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE

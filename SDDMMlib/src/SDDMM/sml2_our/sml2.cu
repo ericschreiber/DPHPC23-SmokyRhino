@@ -81,11 +81,16 @@ void send_A(
     {
         for (int i = 0; i < t_i; i++)
         {
-            const float* temp[t_k];
+            float temp[t_k];
             for (int j = 0; j < t_k; j++)
             {
-                temp[j] = values + row_id * k + col_id + i * k + j;
+                temp[j] = values[row_id * k + col_id + i * k + j];
             }
+            for (int j = 0; j < t_k; j++)
+            {
+                std::cout << temp[j] << " ";
+            }
+            std::cout << std::endl;
             CUDA_CHECK(
                 cudaMemcpyAsync(
                     matrixA_GPU_a + i * t_k,
@@ -99,10 +104,10 @@ void send_A(
     {
         for (int i = 0; i < t_i; i++)
         {
-            const float* temp[t_k];
+            float temp[t_k];
             for (int j = 0; j < t_k; j++)
             {
-                temp[j] = values + row_id * k + col_id + i * k + j;
+                temp[j] = values[row_id * k + col_id + i * k + j];
             }
             CUDA_CHECK(
                 cudaMemcpyAsync(
@@ -353,7 +358,7 @@ void save_result(
 {
     if (target % 2 == 0)
     {
-        for (int i = 0; i < 80 * t_i; i++)
+        for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
         {
             int nnz = num_nnz_a[i + 1] - num_nnz_a[i];
             for (int j = 0; j < nnz; j++)
@@ -364,7 +369,7 @@ void save_result(
     }
     else
     {
-        for (int i = 0; i < 80 * t_i; i++)
+        for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
         {
             int nnz = num_nnz_b[i + 1] - num_nnz_b[i];
             for (int j = 0; j < nnz; j++)
@@ -411,7 +416,7 @@ void launch_computation_even(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            compute_lml2(matrixA_GPU_a);
+            compute_lml2<<<1, 1>>>(matrixA_GPU_a);
         }
     }
     else
@@ -430,7 +435,7 @@ void launch_computation_even(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            compute_lml2(matrixA_GPU_b);
+            compute_lml2<<<1, 1>>>(matrixA_GPU_a);
         }
     }
 }
@@ -471,7 +476,7 @@ void launch_computation_odd(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            compute_lml2(matrixA_GPU_a);
+            compute_lml2<<<1, 1>>>(matrixA_GPU_a);
         }
     }
     else
@@ -490,7 +495,7 @@ void launch_computation_odd(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            compute_lml2(matrixA_GPU_b);
+            compute_lml2<<<1, 1>>>(matrixA_GPU_a);
         }
     }
 }
@@ -557,11 +562,11 @@ void sml2_our<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMalloc(
             &matrixA_GPU_a,
-            80 * t_i * t_k * sizeof(float)));
+            1 * t_i * t_k * sizeof(float)));  // 80 * t_i * t_k * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixA_GPU_b,
-            80 * t_i * t_k * sizeof(float)));
+            1 * t_i * t_k * sizeof(float)));  // 80 * t_i * t_k * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixB_transpose_GPU_a,
@@ -573,43 +578,43 @@ void sml2_our<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMalloc(
             &matrixC_GPU_a,
-            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
+            int(1 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixC_GPU_b,
-            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
+            int(1 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU_a,
-            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
+            int(1 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU_b,
-            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
+            int(1 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &col_idx_GPU_a,
-            int(80 * 10 * p * t_i * t_j) * sizeof(int)));
+            int(1 * 10 * p * t_i * t_j) * sizeof(int)));  // int(80 * 10 * p * t_i * t_j) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &col_idx_GPU_b,
-            int(80 * 10 * p * t_i * t_j) * sizeof(int)));
+            int(1 * 10 * p * t_i * t_j) * sizeof(int)));  // int(80 * 10 * p * t_i * t_j) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &row_ptr_GPU_a,
-            (80 * t_i + 1) * sizeof(int)));
+            (1 * t_i + 1) * sizeof(int)));  //(80 * t_i + 1) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &row_ptr_GPU_b,
-            (80 * t_i + 1) * sizeof(int)));
+            (1 * t_i + 1) * sizeof(int)));  //(80 * t_i + 1) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &num_nnz_GPU_a,
-            (80 * t_i + 1) * sizeof(int)));
+            (1 * t_i + 1) * sizeof(int)));  //(80 * t_i + 1) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &num_nnz_GPU_b,
-            (80 * t_i + 1) * sizeof(int)));
+            (1 * t_i + 1) * sizeof(int)));  //(80 * t_i + 1) * sizeof(int)));
 
     cudaStream_t stream_a_send_a, stream_b_send_a, stream_receive_a, stream_compute;
     cudaStream_t stream_a_send_b, stream_b_send_b, stream_receive_b;
@@ -639,15 +644,15 @@ void sml2_our<float>::SDDMM_CSR(
     int target_a = 0;
 
     // save row_ptr and col_idx on the host
-    int* row_ptr_HOST_a = new int[80 * t_i + 1];
-    int* row_ptr_HOST_b = new int[80 * t_i + 1];
-    int* num_nnz_a = new int[80 * t_i];
-    int* num_nnz_b = new int[80 * t_i];
-    int* col_idx_HOST_a = new int[int(80 * 10 * p * t_i * t_j)];
-    int* col_idx_HOST_b = new int[int(80 * 10 * p * t_i * t_j)];
+    int* row_ptr_HOST_a = new int[1 * t_i + 1];                  //[80 * t_i + 1];
+    int* row_ptr_HOST_b = new int[1 * t_i + 1];                  //[80 * t_i + 1];
+    int* num_nnz_a = new int[1 * t_i];                           //[80 * t_i];
+    int* num_nnz_b = new int[1 * t_i];                           //[80 * t_i];
+    int* col_idx_HOST_a = new int[int(1 * 10 * p * t_i * t_j)];  //[int(80 * 10 * p * t_i * t_j)];
+    int* col_idx_HOST_b = new int[int(1 * 10 * p * t_i * t_j)];  //[int(80 * 10 * p * t_i * t_j)];
 
     // create memory for the result on the host
-    float* result_from_gpu = new float[int(10 * p * t_i * t_j)];
+    float* result_from_gpu = new float[int(1 * 10 * p * t_i * t_j)];  //[int(80 * 10 * p * t_i * t_j)];
 
     // local copy of values of all matrices
     const float* values_A = matrixA_HOST.getValues();
@@ -679,7 +684,7 @@ void sml2_our<float>::SDDMM_CSR(
 
     // the correspnding blocks of A
     // m % 80 == 0; for m % 80 != 0 we need to add functionality
-    for (int q = 0; q < 80; q++)
+    for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
     {
         // load 1 block of A
         send_A(
@@ -701,7 +706,7 @@ void sml2_our<float>::SDDMM_CSR(
     cudaMemsetAsync(
         matrixResult_GPU_a,
         0,
-        10 * p * t_i * t_j * sizeof(float),
+        80 * 10 * p * t_i * t_j * sizeof(float),  // 80 * 10 * p * t_i * t_j * sizeof(float),
         stream_set_zero_a);
 
     // set initial row_ptr and col_idx
@@ -747,9 +752,9 @@ void sml2_our<float>::SDDMM_CSR(
         t_j,
         target_a);
 
-    for (int i = 0; i < num_iterations_t_k; i = i++)
+    for (int i = 0; i < num_iterations_t_k; i++)
     {
-        for (int j = 0; j < num_iterations_t_j; j = j++)
+        for (int j = 0; j < num_iterations_t_j; j++)
         {
             for (int w = 0; w < num_iterations_t_i; w++)
             {
@@ -858,7 +863,7 @@ void sml2_our<float>::SDDMM_CSR(
 
                     // load the next 80 blocks of A
                     // m % 80 == 0
-                    for (int q = 0; q < 80; q++)
+                    for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
                     {
                         // load 1 block of A
                         send_A(
@@ -926,7 +931,7 @@ void sml2_our<float>::SDDMM_CSR(
                     cudaMemsetAsync(
                         matrixResult_GPU_b,
                         0,
-                        10 * p * t_i * t_j * sizeof(float),
+                        1 * 10 * p * t_i * t_j * sizeof(float),  // 80 * 10 * p * t_i * t_j * sizeof(float),
                         stream_set_zero_b);
                 }
                 else
@@ -934,7 +939,7 @@ void sml2_our<float>::SDDMM_CSR(
                     cudaMemsetAsync(
                         matrixResult_GPU_a,
                         0,
-                        10 * p * t_i * t_j * sizeof(float),
+                        1 * 10 * p * t_i * t_j * sizeof(float),  // 80 * 10 * p * t_i * t_j * sizeof(float),
                         stream_set_zero_a);
                 }
 
@@ -954,6 +959,7 @@ void sml2_our<float>::SDDMM_CSR(
             }
         }
     }
+    return;
     // wait until the last results are loaded back
     cudaStreamSynchronize(stream_receive_a);
     // save the last result on the hos

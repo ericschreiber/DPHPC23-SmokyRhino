@@ -10,6 +10,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cuh"
 #include "utils.h"
 
 void cusparse_baseline<float>::SDDMM_CSR(
@@ -19,6 +20,69 @@ void cusparse_baseline<float>::SDDMM_CSR(
     CSRMatrix<float>& matrixResult_HOST,
     const int num_iterations) const
 {
+    // Print Matrix A
+    std::cout << "Matrix A: " << std::endl;
+    for (int i = 0; i < matrixA_HOST.getNumRows(); ++i)
+    {
+        for (int j = 0; j < matrixA_HOST.getNumCols(); ++j)
+        {
+            std::cout << matrixA_HOST.getValues()[i * matrixA_HOST.getNumCols() + j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+    // Print Matrix B
+    std::cout << "Matrix B: " << std::endl;
+    for (int i = 0; i < matrixB_HOST.getNumRows(); ++i)
+    {
+        for (int j = 0; j < matrixB_HOST.getNumCols(); ++j)
+        {
+            std::cout << matrixB_HOST.getValues()[i * matrixB_HOST.getNumCols() + j] << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+
+    CSRMatrix<float> test_input = CSRMatrix<float>(matrixC_HOST_CSR.getNumRows(), matrixC_HOST_CSR.getNumCols());
+    ExecutionTimer timer = ExecutionTimer();
+    semi_naive_CSR_SDDMM_GPU<float>* class_to_run = new semi_naive_CSR_SDDMM_GPU<float>(&timer);
+
+    matrixC_HOST_CSR.SDDMM(
+        matrixA_HOST,
+        matrixB_HOST,
+        test_input,
+        1,
+        std::bind(
+            &semi_naive_CSR_SDDMM_GPU<float>::SDDMM,
+            class_to_run,
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3,
+            std::placeholders::_4,
+            std::placeholders::_5));
+    delete class_to_run;
+    class_to_run = nullptr;
+
+    // Print Test Input
+    std::cout << "Test Input colIndices: ";
+    for (int i = 0; i < test_input.getColIndices().size(); ++i)
+    {
+        std::cout << test_input.getColIndices().at(i) << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "Test Input rowArray: ";
+    for (int i = 0; i < test_input.getRowArray().size(); ++i)
+    {
+        std::cout << test_input.getRowArray().at(i) << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "Test Input values: ";
+    for (int i = 0; i < test_input.getValues().size(); ++i)
+    {
+        std::cout << test_input.getValues().at(i) << " ";
+    }
+    std::cout << std::endl;
+
     // Get all the sizes (A=mxk; B=kxn; C=mxn; Result=mxn)
     int m = matrixA_HOST.getNumRows();
     int k = matrixA_HOST.getNumCols();
@@ -205,9 +269,6 @@ void cusparse_baseline<float>::SDDMM(
             num_iterations);
     }
 
-    csrMatrixC = nullptr;
-    csrMatrixResult = nullptr;
-
     return;
 }
 
@@ -223,6 +284,5 @@ void cusparse_baseline<float>::stop_run() const
 }
 
 // Explicit template instantiation
-// template class cusparse_baseline<float>;
 template class cusparse_baseline<double>;
 template class cusparse_baseline<int>;

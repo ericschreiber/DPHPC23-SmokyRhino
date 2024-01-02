@@ -36,6 +36,9 @@ add_executable(test_coo_opt_loop_unrolled_SDDMM_GPU
 add_executable(test_coo_tiling_naive_gpu
                test_coo_tiling_naive_gpu.cpp
 )
+add_executable(test_sml2_our
+               test_sml2_our.cpp
+)
 
 target_link_libraries(test_naive_coo_SDDMM_GPU 
                        MatrixLib
@@ -64,6 +67,10 @@ target_link_libraries(test_merged
 target_link_libraries(test_coo_tiling_naive_gpu
                           MatrixLib
                           SDDMMlib)
+
+target_link_libraries(test_sml2_our
+                            MatrixLib
+                            SDDMMlib)
 
 endif()
 

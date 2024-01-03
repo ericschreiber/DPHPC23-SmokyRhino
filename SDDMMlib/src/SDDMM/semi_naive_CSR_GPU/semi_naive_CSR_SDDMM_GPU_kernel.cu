@@ -28,7 +28,6 @@ __global__ void blocked_SDDMM_kernel(
     int k,
     float* d_A,
     float* d_B,
-    float* d_C,
     int* d_rowPtr,
     int* d_colIdx,
     float* d_result)
@@ -73,7 +72,7 @@ __global__ void blocked_SDDMM_kernel(
             // after we got the final sum, we now do the multiplication with the sample matrix and write the result
             if (thread_id == 0)
             {
-                d_result[j] = block_sum * d_C[j];
+                d_result[j] = block_sum;
             }
         }
     }
@@ -85,7 +84,6 @@ void compute_blockwise(
     int k,
     float* d_A,
     float* d_B,
-    float* d_C,
     int* d_rowPtr,
     int* d_colIdx,
     float* d_result)
@@ -99,7 +97,6 @@ void compute_blockwise(
         k,
         d_A,
         d_B,
-        d_C,
         d_rowPtr,
         d_colIdx,
         d_result);

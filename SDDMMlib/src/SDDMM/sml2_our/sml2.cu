@@ -86,13 +86,13 @@ void send_A(
             {
                 temp[j] = values[row_id * k + col_id + i * k + j];
             }
-            std::cout << " " << std::endl;
-            std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | i=" << i << " | target=" << target << std::endl;
-            for (int j = 0; j < t_k; j++)
-            {
-                std::cout << temp[j] << " ";
-            }
-            std::cout << std::endl;
+            // std::cout << " " << std::endl;
+            // std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | i=" << i << " | target=" << target << std::endl;
+            // for (int j = 0; j < t_k; j++)
+            // {
+            //     std::cout << temp[j] << " ";
+            // }
+            // std::cout << std::endl;
             CUDA_CHECK(
                 cudaMemcpyAsync(
                     matrixA_GPU_a + i * t_k,
@@ -111,13 +111,13 @@ void send_A(
             {
                 temp[j] = values[row_id * k + col_id + i * k + j];
             }
-            std::cout << " " << std::endl;
-            std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | i=" << i << " | target=" << target << std::endl;
-            for (int j = 0; j < t_k; j++)
-            {
-                std::cout << temp[j] << " ";
-            }
-            std::cout << std::endl;
+            // std::cout << " " << std::endl;
+            // std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | i=" << i << " | target=" << target << std::endl;
+            // for (int j = 0; j < t_k; j++)
+            // {
+            //     std::cout << temp[j] << " ";
+            // }
+            // std::cout << std::endl;
             CUDA_CHECK(
                 cudaMemcpyAsync(
                     matrixA_GPU_b + i * t_k,
@@ -407,6 +407,8 @@ void launch_computation_even(
     cudaStream_t stream_nnz_b,
     float* matrixA_GPU_a,
     float* matrixA_GPU_b,
+    float* matrixB_GPU_a,
+    float* matrixB_GPU_b,
     int target_a)
 {
     if (target_a % 2 == 0)
@@ -425,6 +427,7 @@ void launch_computation_even(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
+            std::cout << "even target_a=" << target_a << std::endl;
             compute_lml2<<<1, 1>>>(matrixA_GPU_a);
         }
     }
@@ -444,7 +447,7 @@ void launch_computation_even(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            compute_lml2<<<1, 1>>>(matrixA_GPU_a);
+            compute_lml2<<<1, 1>>>(matrixA_GPU_b);
         }
     }
 }
@@ -467,6 +470,8 @@ void launch_computation_odd(
     cudaStream_t stream_nnz_b,
     float* matrixA_GPU_a,
     float* matrixA_GPU_b,
+    float* matrixB_GPU_a,
+    float* matrixB_GPU_b,
     int target_a)
 {
     if (target_a % 2 == 0)
@@ -504,7 +509,7 @@ void launch_computation_odd(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            compute_lml2<<<1, 1>>>(matrixA_GPU_a);
+            compute_lml2<<<1, 1>>>(matrixA_GPU_b);
         }
     }
 }
@@ -672,6 +677,7 @@ void sml2_our<float>::SDDMM_CSR(
     float* values_result = new float[nnz];
 
     std::cout << "setup finished" << std::endl;
+    int remove_this_counter = 0;
 
     // start the timer
     this->start_run();
@@ -770,6 +776,8 @@ void sml2_our<float>::SDDMM_CSR(
                 // std::cout << "even | i=" << i << " | j=" << j << " | w=" << w << " | target_b=" << target_b << " | target_a=" << target_a << std::endl;
                 if (target_b % 2 == 0)
                 {
+                    remove_this_counter++;
+                    std::cout << "remove_this_counter=" << remove_this_counter << " | target_a=" << target_a << " | target_b=" << target_b << std::endl;
                     launch_computation_even(
                         stream_a_send_a,
                         stream_rp_send_a,
@@ -788,10 +796,14 @@ void sml2_our<float>::SDDMM_CSR(
                         stream_nnz_b,
                         matrixA_GPU_a,
                         matrixA_GPU_b,
+                        matrixB_transpose_GPU_a,
+                        matrixB_transpose_GPU_b,
                         target_a);
                 }
                 else
                 {
+                    remove_this_counter++;
+                    std::cout << "remove_this_counter=" << remove_this_counter << " | target_a=" << target_a << " | target_b=" << target_b << std::endl;
                     launch_computation_odd(
                         stream_a_send_b,
                         stream_rp_send_b,
@@ -810,6 +822,8 @@ void sml2_our<float>::SDDMM_CSR(
                         stream_nnz_a,
                         matrixA_GPU_a,
                         matrixA_GPU_b,
+                        matrixB_transpose_GPU_a,
+                        matrixB_transpose_GPU_b,
                         target_a);
                 }
 
@@ -855,10 +869,10 @@ void sml2_our<float>::SDDMM_CSR(
                         }
                     }
 
-                    //  B can be loaded throughout all loop iterations so it only has to be started once
-                    target_b++;
-                    if (j == 0 && i != num_iterations_t_k - 1)
+                    if (w == num_iterations_t_i - 1)
                     {
+                        //  B can be loaded throughout all loop iterations so it only has to be started once
+                        target_b++;
                         // this could also be split over num_iterations_t_j iterations
                         send_B(
                             stream_b_send_a,
@@ -972,10 +986,11 @@ void sml2_our<float>::SDDMM_CSR(
             }
         }
     }
+    cudaStreamSynchronize(stream_compute);
     return;
     // wait until the last results are loaded back
-    cudaStreamSynchronize(stream_receive_a);
-    // save the last result on the hos
+
+    // save the last result on the host
     target_a++;
     save_result(
         result_from_gpu,

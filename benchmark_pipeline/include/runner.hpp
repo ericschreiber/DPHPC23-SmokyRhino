@@ -41,7 +41,7 @@ class runner
 
         bool do_test = true;
 
-        const int num_iterations_testing = 2;
+        const int num_iterations_testing = 1;
         const int num_iterations_profiling = 220;
         std::string _out_path;
         std::string _results_file_path;

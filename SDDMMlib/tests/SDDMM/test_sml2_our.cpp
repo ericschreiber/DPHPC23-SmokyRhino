@@ -90,10 +90,42 @@ void t1()
     run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
 }
 
+void t2()
+{
+    CSRMatrix<float> sample_Matrix(
+        DenseMatrix(
+            std::vector<std::vector<float>>{
+                {1, 0, 0, 4},
+                {5, 6, 0, 0},
+                {0, 0, 0, 0},
+                {13, 14, 15, 16}}));
+    DenseMatrix<float> matrixA(
+        std::vector<std::vector<float>>{
+            {1, 2, 3, 4, 5, 6, 7, 8},
+            {9, 10, 11, 12, 13, 14, 15, 16},
+            {17, 18, 19, 20, 21, 22, 23, 24},
+            {25, 26, 27, 28, 29, 30, 31, 32}});
+    DenseMatrix<float> matrixB(
+        std::vector<std::vector<float>>{
+            {1, 9, 17, 25},
+            {2, 10, 18, 26},
+            {3, 11, 19, 27},
+            {4, 12, 20, 28},
+            {5, 13, 21, 29},
+            {6, 14, 22, 30},
+            {7, 15, 23, 31},
+            {8, 16, 24, 32}});
+    CSRMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
+    CSRMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+
+    run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
+}
+
 int main()
 {
     printf("Running tests...\n");
-    t1();
+    // t1();
+    t2();
 
     // TODO: more tests!
     return 0;

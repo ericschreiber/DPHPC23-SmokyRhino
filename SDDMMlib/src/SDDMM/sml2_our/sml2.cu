@@ -156,27 +156,51 @@ void send_row_ptr_and_col_id(
     int* col_idx_HOST_b,
     int target)
 {
+    // std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | target=" << target << std::endl;
     if (target % 2 == 0)
     {
-        for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        for (int i = 0; i < 1 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
         {
             row_ptr_HOST_a[i] = row_ptr[row_id + i];
         }
 
+        int start = 0;
         int sum = 0;
         num_nnz_a[0] = 0;
         for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
         {
-            for (int j = 0; j < t_j; j++)
+            start = 0;
+            for (int j = 0; j < row_ptr_HOST_a[i + 1] - row_ptr_HOST_a[i]; j++)
             {
-                if (col_idx[row_ptr_HOST_a[i] + j] <= col_id)
+                if (col_idx[row_ptr_HOST_a[i] + j] < col_id)
+                {
+                    start++;
+                }
+                else if (col_idx[row_ptr_HOST_a[i] + j] < col_id + t_j)
                 {
                     sum++;
                 }
             }
             num_nnz_a[i + 1] = sum;
-            row_ptr_HOST_a[i] += sum;
+            row_ptr_HOST_a[i] += start;
         }
+
+        // // print row_ptr_HOST_a
+        // std::cout << "row_ptr_HOST_a" << std::endl;
+        // for (int i = 0; i < 1 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        // {
+        //     std::cout << row_ptr_HOST_a[i] << " ";
+        // }
+        // std::cout << std::endl;
+        // // print num_nnz_a
+        // std::cout << "num_nnz_a" << std::endl;
+        // for (int i = 0; i < 1 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
+        // {
+        //     std::cout << num_nnz_a[i] << " ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << std::endl;
+
         CUDA_CHECK(
             cudaMemcpyAsync(
                 row_ptr_GPU_a,
@@ -211,25 +235,48 @@ void send_row_ptr_and_col_id(
     }
     else
     {
-        for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        for (int i = 0; i < 1 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
         {
             row_ptr_HOST_b[i] = row_ptr[row_id + i];
         }
 
+        int start = 0;
         int sum = 0;
         num_nnz_b[0] = 0;
         for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
         {
-            for (int j = 0; j < t_j; j++)
+            start = 0;
+            for (int j = 0; j < row_ptr_HOST_b[i + 1] - row_ptr_HOST_b[i]; j++)
             {
-                if (col_idx[row_ptr_HOST_b[i] + j] <= col_id)
+                if (col_idx[row_ptr_HOST_b[i] + j] < col_id)
+                {
+                    start++;
+                }
+                else if (col_idx[row_ptr_HOST_b[i] + j] < col_id + t_j)
                 {
                     sum++;
                 }
             }
             num_nnz_b[i + 1] = sum;
-            row_ptr_HOST_b[i] += sum;
+            row_ptr_HOST_b[i] += start;
         }
+
+        // // print row_ptr_HOST_b
+        // std::cout << "row_ptr_HOST_b" << std::endl;
+        // for (int i = 0; i < 1 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        // {
+        //     std::cout << row_ptr_HOST_b[i] << " ";
+        // }
+        // std::cout << std::endl;
+        // // print num_nnz_b
+        // std::cout << "num_nnz_b" << std::endl;
+        // for (int i = 0; i < 1 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
+        // {
+        //     std::cout << num_nnz_b[i] << " ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << std::endl;
+
         CUDA_CHECK(
             cudaMemcpyAsync(
                 row_ptr_GPU_b,
@@ -429,10 +476,10 @@ void launch_computation_even(
         cudaStreamSynchronize(stream_b_send_b);
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
-            std::cout << "even | on _a | target_a = " << target_a << std::endl;
-            // Call the kernel to execute the acutal SDDMM
-            // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
-            // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
+            // std::cout << "even | on _a | target_a = " << target_a << std::endl;
+            //  Call the kernel to execute the acutal SDDMM
+            //  compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
+            //  compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
             compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_a, target_a);
         }
     }
@@ -450,10 +497,10 @@ void launch_computation_even(
         cudaStreamSynchronize(stream_b_send_b);
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
-            std::cout << "even | on _b | target_a = " << target_a << std::endl;
-            // Call the kernel to execute the acutal SDDMM
-            // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
-            // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
+            // std::cout << "even | on _b | target_a = " << target_a << std::endl;
+            //  Call the kernel to execute the acutal SDDMM
+            //  compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
+            //  compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
             compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_b, target_a);
         }
     }
@@ -495,10 +542,10 @@ void launch_computation_odd(
         cudaStreamSynchronize(stream_b_send_b);
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
-            std::cout << "odd | on _a | target_a = " << target_a << std::endl;
-            // Call the kernel to execute the acutal SDDMM
-            // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
-            // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
+            // std::cout << "odd | on _a | target_a = " << target_a << std::endl;
+            //  Call the kernel to execute the acutal SDDMM
+            //  compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
+            //  compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
             compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_a, target_a);
         }
     }
@@ -516,10 +563,10 @@ void launch_computation_odd(
         cudaStreamSynchronize(stream_b_send_b);
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
-            std::cout << "odd | on _b | target_a = " << target_a << std::endl;
-            // Call the kernel to execute the acutal SDDMM
-            // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
-            // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
+            // std::cout << "odd | on _b | target_a = " << target_a << std::endl;
+            //  Call the kernel to execute the acutal SDDMM
+            //  compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
+            //  compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
             compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_b, target_a);
         }
     }
@@ -559,10 +606,12 @@ void sml2_our<float>::SDDMM_CSR(
     int num_iterations_t_j = 2;  // n / t_j
     int num_iterations_t_k = 2;  // k / t_k
     int num_iterations_t_i = 2;  // m / t_i
-    int curr_col_id = 0;
-    int curr_row_id = 0;
-    int curr_t_i_id = 0;
-    float p = 1;  // density of matrixC
+    int curr_col_id = 0;         // of B_T
+    int curr_row_id = 0;         // of B_T
+    int curr_t_i_id = 0;         // of A
+    int curr_row_id_C = 0;       // of C
+    int curr_col_id_C = 0;       // of C
+    float p = 1;                 // density of matrixC
 
     // std::cout << "t_j=" << t_j << " | t_k=" << t_k << " | t_i=" << t_i << std::endl;
 
@@ -747,13 +796,14 @@ void sml2_our<float>::SDDMM_CSR(
         col_idx_C,
         t_i,
         t_j,
-        curr_row_id,
-        curr_col_id,
+        curr_row_id_C,
+        curr_col_id_C,
         row_ptr_HOST_a,
         row_ptr_HOST_b,
         col_idx_HOST_a,
         col_idx_HOST_b,
         target_a);
+    curr_row_id_C += t_i;
 
     // // set initial matrixC
     // send_C(
@@ -857,17 +907,20 @@ void sml2_our<float>::SDDMM_CSR(
                     if (w == num_iterations_t_i - 1)
                     {
                         curr_t_i_id = 0;
+                        curr_row_id_C = 0;
                         if (j == num_iterations_t_j - 1)
                         {
                             // std::cout << "curr_row_id=" << curr_row_id << " | curr_col_id=" << curr_col_id << std::endl;
                             curr_col_id += t_k;
                             curr_row_id = 0;
+                            curr_col_id_C = 0;
                             // std::cout << "curr_row_id=" << curr_row_id << " | curr_col_id=" << curr_col_id << std::endl;
                         }
                         else
                         {
                             // std::cout << "curr_row_id=" << curr_row_id << " | curr_col_id=" << curr_col_id << std::endl;
                             curr_row_id += t_j;
+                            curr_col_id_C += t_j;
                             // std::cout << "curr_row_id=" << curr_row_id << " | curr_col_id=" << curr_col_id << std::endl;
                         }
                     }
@@ -932,13 +985,14 @@ void sml2_our<float>::SDDMM_CSR(
                         col_idx_C,
                         t_i,
                         t_j,
-                        curr_row_id,
-                        curr_col_id,
+                        curr_row_id_C,
+                        curr_col_id_C,
                         row_ptr_HOST_a,
                         row_ptr_HOST_b,
                         col_idx_HOST_a,
                         col_idx_HOST_b,
                         target_a);
+                    curr_row_id_C += t_i;
 
                     // // load the next matrixC
                     // send_C(

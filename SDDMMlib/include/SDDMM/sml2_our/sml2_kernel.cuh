@@ -3,7 +3,9 @@
 #define SML2_KERNEL_CUH
 
 __global__ void compute_lml2(
-    float* array,
-    int s);
+    int* row_ptr,
+    int* col_idx,
+    int t_i,
+    float* result);
 
 #endif  // SML2_KERNEL_CUH

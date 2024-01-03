@@ -457,8 +457,10 @@ void save_result(
             int nnz = num_nnz_a[i + 1] - num_nnz_a[i];
             for (int j = 0; j < nnz; j++)
             {
-                result_HOST[row_ptr_a[i] + j] = result_from_gpu[num_nnz_a[i] + j];
+                result_HOST[row_ptr_a[i] + j] += result_from_gpu[num_nnz_a[i] + j] + 1;
+                // std::cout << result_from_gpu[num_nnz_a[i] + j] << " ";
             }
+            // std::cout << std::endl;
         }
     }
     else
@@ -468,8 +470,10 @@ void save_result(
             int nnz = num_nnz_b[i + 1] - num_nnz_b[i];
             for (int j = 0; j < nnz; j++)
             {
-                result_HOST[row_ptr_b[i] + j] = result_from_gpu[num_nnz_b[i] + j];
+                result_HOST[row_ptr_b[i] + j] += result_from_gpu[num_nnz_b[i] + j] + 1;
+                // std::cout << result_from_gpu[num_nnz_b[i] + j] << " ";
             }
+            // std::cout << std::endl;
         }
     }
 }
@@ -1131,8 +1135,19 @@ void sml2_our<float>::SDDMM_CSR(
         }
     }
     cudaStreamSynchronize(stream_compute);
-    return;
     // wait until the last results are loaded back
+    send_result(
+        stream_receive_a,
+        stream_receive_b,
+        matrixResult_GPU_a,
+        matrixResult_GPU_b,
+        result_from_gpu,
+        num_nnz_a,
+        num_nnz_b,
+        nnz_HOST_a,
+        nnz_HOST_b,
+        t_i,
+        target_a);
 
     // save the last result on the host
     target_a++;
@@ -1220,21 +1235,38 @@ void sml2_our<float>::SDDMM_CSR(
     cudaStreamDestroy(stream_nnz_b);
     // cudaStreamDestroy(stream_c_send_a);
     // cudaStreamDestroy(stream_c_send_b);
-    delete[] row_ptr_HOST_a;
-    delete[] row_ptr_HOST_b;
-    delete[] col_idx_HOST_a;
-    delete[] col_idx_HOST_b;
-    delete[] values_A;
-    delete[] values_B;
-    // delete[] values_C;
-    delete[] col_idx_C;
-    delete[] row_ptr_C;
-    delete[] result_from_gpu;
-    delete[] values_result;
-    delete[] num_nnz_a;
-    delete[] num_nnz_b;
-    delete[] nnz_HOST_a;
-    delete[] nnz_HOST_b;
+
+    // if this is not commented out, the program crashes
+    // delete[] row_ptr_HOST_a;
+    // delete[] row_ptr_HOST_b;
+    // delete[] col_idx_HOST_a;
+    // delete[] col_idx_HOST_b;
+    // delete[] values_A;
+    // delete[] values_B;
+    // // delete[] values_C;
+    // delete[] col_idx_C;
+    // delete[] row_ptr_C;
+    // delete[] result_from_gpu;
+    // delete[] values_result;
+    // delete[] num_nnz_a;
+    // delete[] num_nnz_b;
+    // delete[] nnz_HOST_a;
+    // delete[] nnz_HOST_b;
+    // row_ptr_HOST_a = nullptr;
+    // row_ptr_HOST_b = nullptr;
+    // col_idx_HOST_a = nullptr;
+    // col_idx_HOST_b = nullptr;
+    // values_A = nullptr;
+    // values_B = nullptr;
+    // // values_C = nullptr;
+    // col_idx_C = nullptr;
+    // row_ptr_C = nullptr;
+    // result_from_gpu = nullptr;
+    // values_result = nullptr;
+    // num_nnz_a = nullptr;
+    // num_nnz_b = nullptr;
+    // nnz_HOST_a = nullptr;
+    // nnz_HOST_b = nullptr;
 
     // stop the profiler
     // CUDA_CHECK(cudaProfilerStop());

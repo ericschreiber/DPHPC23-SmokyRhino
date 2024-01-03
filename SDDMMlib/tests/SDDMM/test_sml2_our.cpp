@@ -31,6 +31,15 @@ void run_testcase(CSRMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, De
     delete class_to_run;
     class_to_run = nullptr;
 
+    // print calculated solution
+    std::cout << "Calculated solution is: " << std::endl;
+    auto calculatedValues = calculatedSolution.getValues();
+    for (int i = 0; i < calculatedValues.size(); ++i)
+    {
+        std::cout << calculatedValues.at(i) << " ";
+    }
+    std::cout << std::endl;
+
     // // Check if the calculated solution is equal to the expected solution
     // if (calculatedSolution == expectedSolution)
     // {
@@ -84,8 +93,20 @@ void t1()
             {6, 14, 22, 30},
             {7, 15, 23, 31},
             {8, 16, 24, 32}});
-    CSRMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
-    CSRMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+    CSRMatrix<float> calculatedSolution(
+        DenseMatrix(
+            std::vector<std::vector<float>>{
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0}}));
+    CSRMatrix<float> expectedSolution(
+        DenseMatrix(
+            std::vector<std::vector<float>>{
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0}}));
 
     run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
 }
@@ -115,8 +136,20 @@ void t2()
             {6, 14, 22, 30},
             {7, 15, 23, 31},
             {8, 16, 24, 32}});
-    CSRMatrix<float> calculatedSolution(DenseMatrix(std::vector<std::vector<float>>{{1, 2, 3}, {4, 5, 6}, {1, 2, 3}}));
-    CSRMatrix<float> expectedSolution(DenseMatrix(std::vector<std::vector<float>>{{2, 0, 0}, {0, 0, 0}, {0, 0, 0}}));
+    CSRMatrix<float> calculatedSolution(
+        DenseMatrix(
+            std::vector<std::vector<float>>{
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0}}));
+    CSRMatrix<float> expectedSolution(
+        DenseMatrix(
+            std::vector<std::vector<float>>{
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0},
+                {0, 0, 0, 0}}));
 
     run_testcase(sample_Matrix, matrixA, matrixB, calculatedSolution, expectedSolution);
 }
@@ -124,8 +157,8 @@ void t2()
 int main()
 {
     printf("Running tests...\n");
-    // t1();
-    t2();
+    t1();
+    // t2();
 
     // TODO: more tests!
     return 0;

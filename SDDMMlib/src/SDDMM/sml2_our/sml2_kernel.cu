@@ -19,7 +19,7 @@ __global__ void compute_lml2(int* row_ptr, int* col_idx, int t_i, float* result)
     // for (int i = 0; i < row_ptr[t_i]; i++)
     // {
     //     result[i] = col_idx[i];
-    //     // printf("%d\n", col_idx[i]);
+    //     printf("from GPU: %d\n", col_idx[i]);
     // }
     // for (int i = 0; i < t_i + 1; i++)
     // {

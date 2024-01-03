@@ -264,59 +264,59 @@ void send_row_ptr_and_col_id(
     }
 }
 
-void send_C(
-    cudaStream_t stream_a,
-    cudaStream_t stream_b,
-    float* matrixC_GPU_a,
-    float* matrixC_GPU_b,
-    const float* values,
-    const int* row_ptr_a,
-    const int* row_ptr_b,
-    int* num_nnz_a,
-    int* num_nnz_b,
-    int t_i,
-    int t_j,
-    int target)
-{
-    if (target % 2 == 0)
-    {
-        for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
-        {
-            int nnz = num_nnz_a[i + 1] - num_nnz_a[i];
-            const float* temp[nnz];
-            for (int j = 0; j < nnz; j++)
-            {
-                temp[j] = values + row_ptr_a[i] + j;
-            }
-            CUDA_CHECK(
-                cudaMemcpyAsync(
-                    matrixC_GPU_a + num_nnz_a[i],
-                    temp,
-                    nnz * sizeof(float),
-                    cudaMemcpyHostToDevice,
-                    stream_a));
-        }
-    }
-    else
-    {
-        for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
-        {
-            int nnz = num_nnz_b[i + 1] - num_nnz_b[i];
-            const float* temp[nnz];
-            for (int j = 0; j < nnz; j++)
-            {
-                temp[j] = values + row_ptr_b[i] + j;
-            }
-            CUDA_CHECK(
-                cudaMemcpyAsync(
-                    matrixC_GPU_b + num_nnz_a[i],
-                    temp,
-                    nnz * sizeof(float),
-                    cudaMemcpyHostToDevice,
-                    stream_b));
-        }
-    }
-}
+// void send_C(
+//     cudaStream_t stream_a,
+//     cudaStream_t stream_b,
+//     float* matrixC_GPU_a,
+//     float* matrixC_GPU_b,
+//     const float* values,
+//     const int* row_ptr_a,
+//     const int* row_ptr_b,
+//     int* num_nnz_a,
+//     int* num_nnz_b,
+//     int t_i,
+//     int t_j,
+//     int target)
+// {
+//     if (target % 2 == 0)
+//     {
+//         for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
+//         {
+//             int nnz = num_nnz_a[i + 1] - num_nnz_a[i];
+//             const float* temp[nnz];
+//             for (int j = 0; j < nnz; j++)
+//             {
+//                 temp[j] = values + row_ptr_a[i] + j;
+//             }
+//             CUDA_CHECK(
+//                 cudaMemcpyAsync(
+//                     matrixC_GPU_a + num_nnz_a[i],
+//                     temp,
+//                     nnz * sizeof(float),
+//                     cudaMemcpyHostToDevice,
+//                     stream_a));
+//         }
+//     }
+//     else
+//     {
+//         for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
+//         {
+//             int nnz = num_nnz_b[i + 1] - num_nnz_b[i];
+//             const float* temp[nnz];
+//             for (int j = 0; j < nnz; j++)
+//             {
+//                 temp[j] = values + row_ptr_b[i] + j;
+//             }
+//             CUDA_CHECK(
+//                 cudaMemcpyAsync(
+//                     matrixC_GPU_b + num_nnz_a[i],
+//                     temp,
+//                     nnz * sizeof(float),
+//                     cudaMemcpyHostToDevice,
+//                     stream_b));
+//         }
+//     }
+// }
 
 void send_result(
     cudaStream_t stream_a,
@@ -393,7 +393,7 @@ void launch_computation_even(
     cudaStream_t stream_a_send_a,
     cudaStream_t stream_rp_send_a,
     cudaStream_t stream_ci_send_a,
-    cudaStream_t stream_c_send_a,
+    // cudaStream_t stream_c_send_a,
     cudaStream_t stream_set_zero_a,
     cudaStream_t stream_nnz_a,
     cudaStream_t stream_b_send_a,
@@ -402,7 +402,7 @@ void launch_computation_even(
     cudaStream_t stream_a_send_b,
     cudaStream_t stream_rp_send_b,
     cudaStream_t stream_ci_send_b,
-    cudaStream_t stream_c_send_b,
+    // cudaStream_t stream_c_send_b,
     cudaStream_t stream_set_zero_b,
     cudaStream_t stream_nnz_b,
     float* matrixA_GPU_a,
@@ -417,7 +417,7 @@ void launch_computation_even(
         cudaStreamSynchronize(stream_a_send_a);
         cudaStreamSynchronize(stream_rp_send_a);
         cudaStreamSynchronize(stream_ci_send_a);
-        cudaStreamSynchronize(stream_c_send_a);
+        // cudaStreamSynchronize(stream_c_send_a);
         cudaStreamSynchronize(stream_set_zero_a);
         cudaStreamSynchronize(stream_nnz_a);
 
@@ -427,8 +427,8 @@ void launch_computation_even(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            // compute_lml2<<<1, 1>>>(matrixA_GPU_a);
-            compute_lml2<<<1, 1>>>(matrixB_GPU_a);
+            // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
+            // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
         }
     }
     else
@@ -437,7 +437,7 @@ void launch_computation_even(
         cudaStreamSynchronize(stream_a_send_b);
         cudaStreamSynchronize(stream_rp_send_b);
         cudaStreamSynchronize(stream_ci_send_b);
-        cudaStreamSynchronize(stream_c_send_b);
+        // cudaStreamSynchronize(stream_c_send_b);
         cudaStreamSynchronize(stream_set_zero_b);
         cudaStreamSynchronize(stream_nnz_b);
 
@@ -447,8 +447,8 @@ void launch_computation_even(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            // compute_lml2<<<1, 1>>>(matrixA_GPU_b);
-            compute_lml2<<<1, 1>>>(matrixB_GPU_a);
+            // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
+            // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
         }
     }
 }
@@ -457,7 +457,7 @@ void launch_computation_odd(
     cudaStream_t stream_a_send_a,
     cudaStream_t stream_rp_send_a,
     cudaStream_t stream_ci_send_a,
-    cudaStream_t stream_c_send_a,
+    // cudaStream_t stream_c_send_a,
     cudaStream_t stream_set_zero_a,
     cudaStream_t stream_nnz_a,
     cudaStream_t stream_b_send_a,
@@ -466,7 +466,7 @@ void launch_computation_odd(
     cudaStream_t stream_a_send_b,
     cudaStream_t stream_rp_send_b,
     cudaStream_t stream_ci_send_b,
-    cudaStream_t stream_c_send_b,
+    // cudaStream_t stream_c_send_b,
     cudaStream_t stream_set_zero_b,
     cudaStream_t stream_nnz_b,
     float* matrixA_GPU_a,
@@ -481,7 +481,7 @@ void launch_computation_odd(
         cudaStreamSynchronize(stream_a_send_a);
         cudaStreamSynchronize(stream_rp_send_a);
         cudaStreamSynchronize(stream_ci_send_a);
-        cudaStreamSynchronize(stream_c_send_a);
+        // cudaStreamSynchronize(stream_c_send_a);
         cudaStreamSynchronize(stream_set_zero_a);
         cudaStreamSynchronize(stream_nnz_a);
 
@@ -491,8 +491,8 @@ void launch_computation_odd(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            // compute_lml2<<<1, 1>>>(matrixA_GPU_a);
-            compute_lml2<<<1, 1>>>(matrixB_GPU_b);
+            // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
+            // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
         }
     }
     else
@@ -501,7 +501,7 @@ void launch_computation_odd(
         cudaStreamSynchronize(stream_a_send_b);
         cudaStreamSynchronize(stream_rp_send_b);
         cudaStreamSynchronize(stream_ci_send_b);
-        cudaStreamSynchronize(stream_c_send_b);
+        // cudaStreamSynchronize(stream_c_send_b);
         cudaStreamSynchronize(stream_set_zero_b);
         cudaStreamSynchronize(stream_nnz_b);
 
@@ -511,8 +511,8 @@ void launch_computation_odd(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            // compute_lml2<<<1, 1>>>(matrixA_GPU_b);
-            compute_lml2<<<1, 1>>>(matrixB_GPU_b);
+            // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
+            // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
         }
     }
 }
@@ -565,8 +565,8 @@ void sml2_our<float>::SDDMM_CSR(
     float* matrixA_GPU_b;
     float* matrixB_transpose_GPU_a;
     float* matrixB_transpose_GPU_b;
-    float* matrixC_GPU_a;
-    float* matrixC_GPU_b;
+    // float* matrixC_GPU_a;
+    // float* matrixC_GPU_b;
     float* matrixResult_GPU_a;
     float* matrixResult_GPU_b;
     int* col_idx_GPU_a;
@@ -592,14 +592,14 @@ void sml2_our<float>::SDDMM_CSR(
         cudaMalloc(
             &matrixB_transpose_GPU_b,
             t_j * t_k * sizeof(float)));
-    CUDA_CHECK(
-        cudaMalloc(
-            &matrixC_GPU_a,
-            int(1 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
-    CUDA_CHECK(
-        cudaMalloc(
-            &matrixC_GPU_b,
-            int(1 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
+    // CUDA_CHECK(
+    //     cudaMalloc(
+    //         &matrixC_GPU_a,
+    //         int(1 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
+    // CUDA_CHECK(
+    //     cudaMalloc(
+    //         &matrixC_GPU_b,
+    //         int(1 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU_a,
@@ -635,14 +635,14 @@ void sml2_our<float>::SDDMM_CSR(
 
     cudaStream_t stream_a_send_a, stream_b_send_a, stream_receive_a, stream_compute;
     cudaStream_t stream_a_send_b, stream_b_send_b, stream_receive_b;
-    cudaStream_t stream_c_send_a, stream_rp_send_a, stream_ci_send_a, stream_set_zero_a;
-    cudaStream_t stream_c_send_b, stream_rp_send_b, stream_ci_send_b, stream_set_zero_b;
+    cudaStream_t stream_rp_send_a, stream_ci_send_a, stream_set_zero_a;
+    cudaStream_t stream_rp_send_b, stream_ci_send_b, stream_set_zero_b;
     cudaStream_t stream_nnz_a, stream_nnz_b;
+    // cudaStream_t stream_c_send_a, stream_c_send_b;
     cudaStreamCreate(&stream_a_send_a);
     cudaStreamCreate(&stream_b_send_a);
     cudaStreamCreate(&stream_receive_a);
     cudaStreamCreate(&stream_compute);
-    cudaStreamCreate(&stream_c_send_a);
     cudaStreamCreate(&stream_rp_send_a);
     cudaStreamCreate(&stream_ci_send_a);
     cudaStreamCreate(&stream_set_zero_a);
@@ -650,11 +650,12 @@ void sml2_our<float>::SDDMM_CSR(
     cudaStreamCreate(&stream_a_send_b);
     cudaStreamCreate(&stream_b_send_b);
     cudaStreamCreate(&stream_receive_b);
-    cudaStreamCreate(&stream_c_send_b);
     cudaStreamCreate(&stream_rp_send_b);
     cudaStreamCreate(&stream_ci_send_b);
     cudaStreamCreate(&stream_set_zero_b);
     cudaStreamCreate(&stream_nnz_b);
+    // cudaStreamCreate(&stream_c_send_a);
+    // cudaStreamCreate(&stream_c_send_b);
 
     // ints to differentiate between loading to _a or _b
     int target_b = 0;
@@ -755,20 +756,20 @@ void sml2_our<float>::SDDMM_CSR(
         col_idx_HOST_b,
         target_a);
 
-    // set initial matrixC
-    send_C(
-        stream_c_send_a,
-        stream_c_send_b,
-        matrixC_GPU_a,
-        matrixC_GPU_b,
-        values_C,
-        row_ptr_HOST_a,
-        row_ptr_HOST_b,
-        num_nnz_a,
-        num_nnz_b,
-        t_i,
-        t_j,
-        target_a);
+    // // set initial matrixC
+    // send_C(
+    //     stream_c_send_a,
+    //     stream_c_send_b,
+    //     matrixC_GPU_a,
+    //     matrixC_GPU_b,
+    //     values_C,
+    //     row_ptr_HOST_a,
+    //     row_ptr_HOST_b,
+    //     num_nnz_a,
+    //     num_nnz_b,
+    //     t_i,
+    //     t_j,
+    //     target_a);
 
     for (int i = 0; i < num_iterations_t_k; i++)
     {
@@ -785,7 +786,7 @@ void sml2_our<float>::SDDMM_CSR(
                         stream_a_send_a,
                         stream_rp_send_a,
                         stream_ci_send_a,
-                        stream_c_send_a,
+                        // stream_c_send_a,
                         stream_set_zero_a,
                         stream_nnz_a,
                         stream_b_send_a,
@@ -794,7 +795,7 @@ void sml2_our<float>::SDDMM_CSR(
                         stream_a_send_b,
                         stream_rp_send_b,
                         stream_ci_send_b,
-                        stream_c_send_b,
+                        // stream_c_send_b,
                         stream_set_zero_b,
                         stream_nnz_b,
                         matrixA_GPU_a,
@@ -811,7 +812,7 @@ void sml2_our<float>::SDDMM_CSR(
                         stream_a_send_b,
                         stream_rp_send_b,
                         stream_ci_send_b,
-                        stream_c_send_b,
+                        // stream_c_send_b,
                         stream_set_zero_b,
                         stream_nnz_b,
                         stream_b_send_a,
@@ -820,7 +821,7 @@ void sml2_our<float>::SDDMM_CSR(
                         stream_a_send_a,
                         stream_rp_send_a,
                         stream_ci_send_a,
-                        stream_c_send_a,
+                        // stream_c_send_a,
                         stream_set_zero_a,
                         stream_nnz_a,
                         matrixA_GPU_a,
@@ -940,20 +941,20 @@ void sml2_our<float>::SDDMM_CSR(
                         col_idx_HOST_b,
                         target_a);
 
-                    // load the next matrixC
-                    send_C(
-                        stream_c_send_a,
-                        stream_c_send_b,
-                        matrixC_GPU_a,
-                        matrixC_GPU_b,
-                        values_C,
-                        row_ptr_HOST_a,
-                        row_ptr_HOST_b,
-                        num_nnz_a,
-                        num_nnz_b,
-                        t_i,
-                        t_j,
-                        target_a);
+                    // // load the next matrixC
+                    // send_C(
+                    //     stream_c_send_a,
+                    //     stream_c_send_b,
+                    //     matrixC_GPU_a,
+                    //     matrixC_GPU_b,
+                    //     values_C,
+                    //     row_ptr_HOST_a,
+                    //     row_ptr_HOST_b,
+                    //     num_nnz_a,
+                    //     num_nnz_b,
+                    //     t_i,
+                    //     t_j,
+                    //     target_a);
                 }
 
                 // not sure if this is needed - probably not
@@ -1029,12 +1030,12 @@ void sml2_our<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaFree(
             matrixB_transpose_GPU_b));
-    CUDA_CHECK(
-        cudaFree(
-            matrixC_GPU_a));
-    CUDA_CHECK(
-        cudaFree(
-            matrixC_GPU_b));
+    // CUDA_CHECK(
+    //     cudaFree(
+    //         matrixC_GPU_a));
+    // CUDA_CHECK(
+    //     cudaFree(
+    //         matrixC_GPU_b));
     CUDA_CHECK(
         cudaFree(
             matrixResult_GPU_a));
@@ -1063,7 +1064,7 @@ void sml2_our<float>::SDDMM_CSR(
     cudaStreamDestroy(stream_b_send_a);
     cudaStreamDestroy(stream_receive_a);
     cudaStreamDestroy(stream_compute);
-    cudaStreamDestroy(stream_c_send_a);
+
     cudaStreamDestroy(stream_rp_send_a);
     cudaStreamDestroy(stream_ci_send_a);
     cudaStreamDestroy(stream_set_zero_a);
@@ -1071,11 +1072,13 @@ void sml2_our<float>::SDDMM_CSR(
     cudaStreamDestroy(stream_a_send_b);
     cudaStreamDestroy(stream_b_send_b);
     cudaStreamDestroy(stream_receive_b);
-    cudaStreamDestroy(stream_c_send_b);
+
     cudaStreamDestroy(stream_rp_send_b);
     cudaStreamDestroy(stream_ci_send_b);
     cudaStreamDestroy(stream_set_zero_b);
     cudaStreamDestroy(stream_nnz_b);
+    // cudaStreamDestroy(stream_c_send_a);
+    // cudaStreamDestroy(stream_c_send_b);
     delete[] row_ptr_HOST_a;
     delete[] row_ptr_HOST_b;
     delete[] col_idx_HOST_a;

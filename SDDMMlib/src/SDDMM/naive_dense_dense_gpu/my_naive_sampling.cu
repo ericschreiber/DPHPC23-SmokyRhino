@@ -26,7 +26,8 @@ __global__ void naivesampling(
 
     if (idx < size)
     {
-        B[idx] = B[idx] * A[idx];
+        // We only want 0 or 1 as it is a sampling
+        B[idx] = (fabs(A[idx]) > 0.0005f) ? B[idx] : 0.0f;
     }
 }
 

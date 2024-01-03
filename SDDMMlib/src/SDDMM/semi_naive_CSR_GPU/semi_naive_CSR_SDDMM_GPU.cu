@@ -40,7 +40,6 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     // allocate memory for the matrices on the GPU
     float* matrixA_GPU;
     float* matrixB_transpose_GPU;
-    float* matrixC_GPU;
     float* matrixResult_GPU;
     int* col_idx_GPU;
     int* row_ptr_GPU;
@@ -52,10 +51,6 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
         cudaMalloc(
             &matrixB_transpose_GPU,
             n * k * sizeof(float)));
-    CUDA_CHECK(
-        cudaMalloc(
-            &matrixC_GPU,
-            nnz * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU,
@@ -84,12 +79,6 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
             cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
-            matrixC_GPU,
-            (matrixC_HOST.getValues()).data(),
-            nnz * sizeof(float),
-            cudaMemcpyHostToDevice));
-    CUDA_CHECK(
-        cudaMemcpy(
             col_idx_GPU,
             (matrixC_HOST.getColIndices()).data(),
             nnz * sizeof(int),
@@ -113,7 +102,6 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
             k,
             matrixA_GPU,
             matrixB_transpose_GPU,
-            matrixC_GPU,
             row_ptr_GPU,
             col_idx_GPU,
             matrixResult_GPU);
@@ -146,9 +134,6 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaFree(
             matrixB_transpose_GPU));
-    CUDA_CHECK(
-        cudaFree(
-            matrixC_GPU));
     CUDA_CHECK(
         cudaFree(
             matrixResult_GPU));

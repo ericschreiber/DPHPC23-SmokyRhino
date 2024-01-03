@@ -164,6 +164,7 @@ void send_row_ptr_and_col_id(
             row_ptr_HOST_a[i] = row_ptr[row_id + i];
         }
 
+        int counter = 0;
         int start = 0;
         int sum = 0;
         num_nnz_a[0] = 0;
@@ -179,6 +180,8 @@ void send_row_ptr_and_col_id(
                 else if (col_idx[row_ptr_HOST_a[i] + j] < col_id + t_j)
                 {
                     sum++;
+                    col_idx_HOST_a[counter] = col_idx[row_ptr_HOST_a[i] + j];
+                    counter++;
                 }
             }
             num_nnz_a[i + 1] = sum;
@@ -199,6 +202,12 @@ void send_row_ptr_and_col_id(
         //     std::cout << num_nnz_a[i] << " ";
         // }
         // std::cout << std::endl;
+        // std::cout << "col_idx_HOST_a" << std::endl;
+        // for (int i = 0; i < counter; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        // {
+        //     std::cout << col_idx_HOST_a[i] << " ";
+        // }
+        // std::cout << std::endl;
         // std::cout << std::endl;
 
         CUDA_CHECK(
@@ -215,16 +224,6 @@ void send_row_ptr_and_col_id(
                 (1 * t_i + 1) * sizeof(int),  //(80 * t_i + 1) * sizeof(int),
                 cudaMemcpyHostToDevice,
                 stream_nnz_a));
-
-        int counter = 0;
-        for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
-        {
-            for (int j = 0; j < row_ptr_HOST_a[i + 1] - row_ptr_HOST_a[i]; j++)
-            {
-                col_idx_HOST_a[counter] = col_idx[row_ptr_HOST_a[i] + j];
-                counter++;
-            }
-        }
         CUDA_CHECK(
             cudaMemcpyAsync(
                 col_idx_GPU_a,
@@ -240,6 +239,7 @@ void send_row_ptr_and_col_id(
             row_ptr_HOST_b[i] = row_ptr[row_id + i];
         }
 
+        int counter = 0;
         int start = 0;
         int sum = 0;
         num_nnz_b[0] = 0;
@@ -255,6 +255,8 @@ void send_row_ptr_and_col_id(
                 else if (col_idx[row_ptr_HOST_b[i] + j] < col_id + t_j)
                 {
                     sum++;
+                    col_idx_HOST_b[counter] = col_idx[row_ptr_HOST_b[i] + j];
+                    counter++;
                 }
             }
             num_nnz_b[i + 1] = sum;
@@ -275,6 +277,12 @@ void send_row_ptr_and_col_id(
         //     std::cout << num_nnz_b[i] << " ";
         // }
         // std::cout << std::endl;
+        // std::cout << "col_idx_HOST_b" << std::endl;
+        // for (int i = 0; i < counter; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        // {
+        //     std::cout << col_idx_HOST_b[i] << " ";
+        // }
+        // std::cout << std::endl;
         // std::cout << std::endl;
 
         CUDA_CHECK(
@@ -291,16 +299,6 @@ void send_row_ptr_and_col_id(
                 (1 * t_i + 1) * sizeof(int),  //(80 * t_i + 1) * sizeof(int),
                 cudaMemcpyHostToDevice,
                 stream_nnz_b));
-
-        int counter = 0;
-        for (int i = 0; i < 1 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
-        {
-            for (int j = 0; j < row_ptr_HOST_b[i + 1] - row_ptr_HOST_b[i]; j++)
-            {
-                col_idx_HOST_b[counter] = col_idx[row_ptr_HOST_b[i] + j];
-                counter++;
-            }
-        }
         CUDA_CHECK(
             cudaMemcpyAsync(
                 col_idx_GPU_b,

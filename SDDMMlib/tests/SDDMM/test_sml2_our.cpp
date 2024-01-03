@@ -124,8 +124,8 @@ void t2()
 int main()
 {
     printf("Running tests...\n");
-    // t1();
-    t2();
+    t1();
+    // t2();
 
     // TODO: more tests!
     return 0;

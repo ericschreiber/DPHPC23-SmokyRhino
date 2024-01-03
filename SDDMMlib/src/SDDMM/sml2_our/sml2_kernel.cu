@@ -7,7 +7,7 @@
 
 #include "utils.h"
 
-__global__ void compute_lml2(float* array)
+__global__ void compute_lml2(float* array, int s)
 {
     // used for A and B
     // const float4* new_array = reinterpret_cast<const float4*>(array);
@@ -15,4 +15,8 @@ __global__ void compute_lml2(float* array)
     // {
     //     printf("%f %f %f %f\n", new_array[i].x, new_array[i].y, new_array[i].z, new_array[i].w);
     // }
+    for (int i = 0; i < 4; i++)
+    {
+        array[i] = i + 4 * s;
+    }
 }

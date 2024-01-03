@@ -71,8 +71,8 @@ void send_A(
     const float* values,
     int t_i,
     int t_k,
-    int col_id,  // col starts index of A - curr_row_id * t_k
-    int row_id,  // row starts index of A - curr_t_i_id * t_i
+    int col_id,  // col starts index of A - curr_col_id
+    int row_id,  // row starts index of A - curr_t_i_id
     int k,
     int target)
 {
@@ -86,6 +86,8 @@ void send_A(
             {
                 temp[j] = values[row_id * k + col_id + i * k + j];
             }
+            std::cout << " " << std::endl;
+            std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | i=" << i << " | target=" << target << std::endl;
             for (int j = 0; j < t_k; j++)
             {
                 std::cout << temp[j] << " ";
@@ -109,6 +111,13 @@ void send_A(
             {
                 temp[j] = values[row_id * k + col_id + i * k + j];
             }
+            std::cout << " " << std::endl;
+            std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | i=" << i << " | target=" << target << std::endl;
+            for (int j = 0; j < t_k; j++)
+            {
+                std::cout << temp[j] << " ";
+            }
+            std::cout << std::endl;
             CUDA_CHECK(
                 cudaMemcpyAsync(
                     matrixA_GPU_b + i * t_k,
@@ -695,7 +704,7 @@ void sml2_our<float>::SDDMM_CSR(
             values_A,
             t_i,
             t_k,
-            curr_row_id * t_k,
+            curr_col_id,
             curr_t_i_id * t_i,
             k,
             target_a);
@@ -758,7 +767,7 @@ void sml2_our<float>::SDDMM_CSR(
         {
             for (int w = 0; w < num_iterations_t_i; w++)
             {
-                std::cout << "even | i=" << i << " | j=" << j << " | w=" << w << " | target_b=" << target_b << " | target_a=" << target_a << std::endl;
+                // std::cout << "even | i=" << i << " | j=" << j << " | w=" << w << " | target_b=" << target_b << " | target_a=" << target_a << std::endl;
                 if (target_b % 2 == 0)
                 {
                     launch_computation_even(
@@ -833,12 +842,16 @@ void sml2_our<float>::SDDMM_CSR(
                         curr_t_i_id = 0;
                         if (j == num_iterations_t_j - 1)
                         {
-                            curr_col_id = 0;
-                            curr_row_id += t_k;
+                            // std::cout << "curr_row_id=" << curr_row_id << " | curr_col_id=" << curr_col_id << std::endl;
+                            curr_col_id += t_k;
+                            curr_row_id = 0;
+                            // std::cout << "curr_row_id=" << curr_row_id << " | curr_col_id=" << curr_col_id << std::endl;
                         }
                         else
                         {
-                            curr_col_id += t_j;
+                            // std::cout << "curr_row_id=" << curr_row_id << " | curr_col_id=" << curr_col_id << std::endl;
+                            curr_row_id += t_j;
+                            // std::cout << "curr_row_id=" << curr_row_id << " | curr_col_id=" << curr_col_id << std::endl;
                         }
                     }
 
@@ -874,7 +887,7 @@ void sml2_our<float>::SDDMM_CSR(
                             values_A,
                             t_i,
                             t_k,
-                            curr_row_id * t_k,
+                            curr_col_id,
                             curr_t_i_id * t_i,
                             k,
                             target_a);

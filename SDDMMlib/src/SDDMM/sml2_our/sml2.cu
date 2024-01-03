@@ -675,7 +675,7 @@ void sml2_our<float>::SDDMM_CSR(
     // local copy of values of all matrices
     const float* values_A = matrixA_HOST.getValues();
     const float* values_B = matrixB_transpose_HOST.getValues();
-    const float* values_C = matrixC_HOST.getValues().data();
+    // const float* values_C = matrixC_HOST.getValues().data();
     const int* col_idx_C = matrixC_HOST.getColIndices().data();
     const int* row_ptr_C = matrixC_HOST.getRowArray().data();
     float* values_result = new float[nnz];
@@ -1085,7 +1085,7 @@ void sml2_our<float>::SDDMM_CSR(
     delete[] col_idx_HOST_b;
     delete[] values_A;
     delete[] values_B;
-    delete[] values_C;
+    // delete[] values_C;
     delete[] col_idx_C;
     delete[] row_ptr_C;
     delete[] result_from_gpu;

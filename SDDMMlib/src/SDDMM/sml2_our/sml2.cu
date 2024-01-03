@@ -19,8 +19,8 @@ void send_B(
     const float* values,
     int t_j,
     int t_k,
-    int col_id,  // col starts index of B
-    int row_id,  // row starts index of B
+    int row_id,  // of B_T
+    int col_id,  // of B_T
     int k,
     int target)
 {
@@ -29,10 +29,10 @@ void send_B(
     {
         for (int i = 0; i < t_j; i++)
         {
-            const float* temp[t_k];
+            float temp[t_k];
             for (int j = 0; j < t_k; j++)
             {
-                temp[j] = values + col_id * k + row_id + i * k + j;
+                temp[j] = values[row_id * k + col_id + i * k + j];
             }
             CUDA_CHECK(
                 cudaMemcpyAsync(
@@ -47,10 +47,10 @@ void send_B(
     {
         for (int i = 0; i < t_j; i++)
         {
-            const float* temp[t_k];
+            float temp[t_k];
             for (int j = 0; j < t_k; j++)
             {
-                temp[j] = values + col_id * k + row_id + i * k + j;
+                temp[j] = values[row_id * k + col_id + i * k + j];
             }
             CUDA_CHECK(
                 cudaMemcpyAsync(
@@ -427,8 +427,8 @@ void launch_computation_even(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            std::cout << "even target_a=" << target_a << std::endl;
-            compute_lml2<<<1, 1>>>(matrixA_GPU_a);
+            // compute_lml2<<<1, 1>>>(matrixA_GPU_a);
+            compute_lml2<<<1, 1>>>(matrixB_GPU_a);
         }
     }
     else
@@ -447,7 +447,8 @@ void launch_computation_even(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            compute_lml2<<<1, 1>>>(matrixA_GPU_b);
+            // compute_lml2<<<1, 1>>>(matrixA_GPU_b);
+            compute_lml2<<<1, 1>>>(matrixB_GPU_a);
         }
     }
 }
@@ -490,7 +491,8 @@ void launch_computation_odd(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            compute_lml2<<<1, 1>>>(matrixA_GPU_a);
+            // compute_lml2<<<1, 1>>>(matrixA_GPU_a);
+            compute_lml2<<<1, 1>>>(matrixB_GPU_b);
         }
     }
     else
@@ -509,7 +511,8 @@ void launch_computation_odd(
         for (int q = 0; q < 1; q++)  // for (int q = 0; q < 80; q++)
         {
             // Call the kernel to execute the acutal SDDMM
-            compute_lml2<<<1, 1>>>(matrixA_GPU_b);
+            // compute_lml2<<<1, 1>>>(matrixA_GPU_b);
+            compute_lml2<<<1, 1>>>(matrixB_GPU_b);
         }
     }
 }
@@ -553,7 +556,7 @@ void sml2_our<float>::SDDMM_CSR(
     int curr_t_i_id = 0;
     float p = 1;  // density of matrixC
 
-    std::cout << "t_j=" << t_j << " | t_k=" << t_k << " | t_i=" << t_i << std::endl;
+    // std::cout << "t_j=" << t_j << " | t_k=" << t_k << " | t_i=" << t_i << std::endl;
 
     // allocate memory for the matrices on the GPU
     // _a is for the kernels 0-79, 160-239, ...
@@ -677,7 +680,7 @@ void sml2_our<float>::SDDMM_CSR(
     float* values_result = new float[nnz];
 
     std::cout << "setup finished" << std::endl;
-    int remove_this_counter = 0;
+    // int remove_this_counter = 0;
 
     // start the timer
     this->start_run();
@@ -692,8 +695,8 @@ void sml2_our<float>::SDDMM_CSR(
         values_B,
         t_j,
         t_k,
-        curr_col_id,
         curr_row_id,
+        curr_col_id,
         k,
         target_b);
 
@@ -776,8 +779,8 @@ void sml2_our<float>::SDDMM_CSR(
                 // std::cout << "even | i=" << i << " | j=" << j << " | w=" << w << " | target_b=" << target_b << " | target_a=" << target_a << std::endl;
                 if (target_b % 2 == 0)
                 {
-                    remove_this_counter++;
-                    std::cout << "remove_this_counter=" << remove_this_counter << " | target_a=" << target_a << " | target_b=" << target_b << std::endl;
+                    // remove_this_counter++;
+                    // std::cout << "remove_this_counter=" << remove_this_counter << " | target_a=" << target_a << " | target_b=" << target_b << std::endl;
                     launch_computation_even(
                         stream_a_send_a,
                         stream_rp_send_a,
@@ -802,8 +805,8 @@ void sml2_our<float>::SDDMM_CSR(
                 }
                 else
                 {
-                    remove_this_counter++;
-                    std::cout << "remove_this_counter=" << remove_this_counter << " | target_a=" << target_a << " | target_b=" << target_b << std::endl;
+                    // remove_this_counter++;
+                    // std::cout << "remove_this_counter=" << remove_this_counter << " | target_a=" << target_a << " | target_b=" << target_b << std::endl;
                     launch_computation_odd(
                         stream_a_send_b,
                         stream_rp_send_b,
@@ -874,6 +877,7 @@ void sml2_our<float>::SDDMM_CSR(
                         //  B can be loaded throughout all loop iterations so it only has to be started once
                         target_b++;
                         // this could also be split over num_iterations_t_j iterations
+                        // std::cout << "curr_row_id=" << curr_row_id << " | curr_col_id=" << curr_col_id << std::endl;
                         send_B(
                             stream_b_send_a,
                             stream_b_send_b,
@@ -882,8 +886,8 @@ void sml2_our<float>::SDDMM_CSR(
                             values_B,
                             t_j,
                             t_k,
-                            curr_col_id,
                             curr_row_id,
+                            curr_col_id,
                             k,
                             target_b);
                     }

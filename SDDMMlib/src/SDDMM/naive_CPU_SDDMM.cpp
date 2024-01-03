@@ -51,7 +51,6 @@ void naive_CPU_SDDMM<float>::naive_CPU_SDDMM_CSR(
 
         std::vector<int> RowPtr = z.getRowArray();
         std::vector<int> ColIndices = z.getColIndices();
-        std::vector<float> values = z.getValues();
         std::vector<int> calcRowPtr = {0};
         std::vector<int> calcColIndices;
         std::vector<float> calcValues;
@@ -75,7 +74,7 @@ void naive_CPU_SDDMM<float>::naive_CPU_SDDMM_CSR(
                     XY_element += x.at(row, k) * y.at(k, col);
                 }
                 // Hadamard product
-                h = values[i] * XY_element;
+                h = XY_element;
                 if (h != 0)
                 {
                     calcValues.push_back(h);

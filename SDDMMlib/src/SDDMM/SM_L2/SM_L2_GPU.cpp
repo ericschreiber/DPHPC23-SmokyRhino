@@ -65,7 +65,7 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
     cudaMemcpy(d_H, &(H[0]), S.n_cols * k * sizeof(float), cudaMemcpyHostToDevice);
     // cudaMemcpy(d_H, &(H_t[0]),  S.n_cols * k  * sizeof (float),
     // cudaMemcpyHostToDevice);
-    std::cout << "Done copying to GPU" << std::endl;
+    // std::cout << "Done copying to GPU" << std::endl;
 
     int n_tile = tS.ntile_c;  // S.n_cols/tile_sizeX + 1;
     cudaEvent_t start, stop;
@@ -150,24 +150,24 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     S.cols = matrixC_HOST.getColIndices();
     S.vals = matrixC_HOST.getValues();
 
-    // Print the matrix stats
-    std::cout << "Matrix S" << std::endl;
-    std::cout << "n_rows: " << S.n_rows << std::endl;
-    std::cout << "n_cols: " << S.n_cols << std::endl;
-    std::cout << "nnz: " << S.nnz << std::endl;
-    std::cout << "len rows: " << S.rows.size() << std::endl;
-    std::cout << "len cols: " << S.cols.size() << std::endl;
-    std::cout << "len vals: " << S.vals.size() << std::endl;
-    std::cout << "First 10 elements of the matrix" << std::endl;
-    for (int i = 0; i < 10; i++)
-    {
-        std::cout << "row: " << S.rows[i] << ", col: " << S.cols[i]
-                  << ", val: " << S.vals[i] << std::endl;
-    }
+    // // Print the matrix stats
+    // std::cout << "Matrix S" << std::endl;
+    // std::cout << "n_rows: " << S.n_rows << std::endl;
+    // std::cout << "n_cols: " << S.n_cols << std::endl;
+    // std::cout << "nnz: " << S.nnz << std::endl;
+    // std::cout << "len rows: " << S.rows.size() << std::endl;
+    // std::cout << "len cols: " << S.cols.size() << std::endl;
+    // std::cout << "len vals: " << S.vals.size() << std::endl;
+    // std::cout << "First 10 elements of the matrix" << std::endl;
+    // for (int i = 0; i < 10; i++)
+    // {
+    //     std::cout << "row: " << S.rows[i] << ", col: " << S.cols[i]
+    //               << ", val: " << S.vals[i] << std::endl;
+    // }
 
-    std::cout << "Creating tiled matrix" << std::endl;
-    std::cout << "tile_sizeX: " << tile_sizeX << std::endl;
-    std::cout << "tile_sizeY: " << tile_sizeY << std::endl;
+    // std::cout << "Creating tiled matrix" << std::endl;
+    // std::cout << "tile_sizeX: " << tile_sizeX << std::endl;
+    // std::cout << "tile_sizeY: " << tile_sizeY << std::endl;
 
     TiledMatrix tiledS(S, this->tile_sizeX, this->tile_sizeY, this->actv_row_size, this->BLOCKSIZE);
     tiledS.nnz = 0;
@@ -180,13 +180,13 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     tiledS.max_active_row =
         rewrite_matrix_1D(S, tiledS, row_ptr, this->tile_sizeX, row_holder, this->actv_row_size);
 
-    // // Print the tiled Matrix
-    std::cout << "Tiled Matrix" << std::endl;
-    std::cout << "n_tile_c: " << tiledS.ntile_c << std::endl;
-    std::cout << "n_tile_r: " << tiledS.ntile_r << std::endl;
-    std::cout << "nnz: " << tiledS.nnz << std::endl;
-    std::cout << "max_active_row: " << tiledS.max_active_row << std::endl;
-    std::cout << "max_active_block: " << tiledS.max_active_block << std::endl;
+    // // // Print the tiled Matrix
+    // std::cout << "Tiled Matrix" << std::endl;
+    // std::cout << "n_tile_c: " << tiledS.ntile_c << std::endl;
+    // std::cout << "n_tile_r: " << tiledS.ntile_r << std::endl;
+    // std::cout << "nnz: " << tiledS.nnz << std::endl;
+    // std::cout << "max_active_row: " << tiledS.max_active_row << std::endl;
+    // std::cout << "max_active_block: " << tiledS.max_active_block << std::endl;
     // std::cout << "rows: ";
     // for (int i = 0; i < tiledS.rows.size(); i++)
     // {
@@ -272,6 +272,9 @@ void sm_l2_SDDMM_GPU<float>::SDDMM(
     SparseMatrix<float>& matrixResult_HOST,
     const int num_iterations) const
 {
+    // Print a warning that this function is incorrect but the same as the paper
+    std::cout << "Warning: This function is incorrect but the same as the paper" << std::endl;
+
     const COOMatrix<float>* cooMatrixC = dynamic_cast<const COOMatrix<float>*>(&matrixC_HOST);
     COOMatrix<float>* cooMatrixResult = dynamic_cast<COOMatrix<float>*>(&matrixResult_HOST);
     if (cooMatrixC == nullptr || cooMatrixResult == nullptr)

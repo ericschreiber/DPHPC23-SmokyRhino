@@ -105,17 +105,17 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
     CUDA_CHECK(cudaMemcpy(&(P[0]), val_out, tS.nnz * sizeof(float), cudaMemcpyDeviceToHost));
 
     // freeing device allocation
-    cudaFree(d_row_ptr);
-    cudaFree(d_row_ind);
-    cudaFree(d_col_ind);
-    cudaFree(d_val);
-    cudaFree(val_out);
-    cudaFree(d_active_row);
-    cudaFree(d_passive_row);
-    cudaFree(d_lastIdx_block_tile);
-    cudaFree(d_lastIdx);
-    cudaFree(d_W);
-    cudaFree(d_H);
+    // CUDA_CHECK(cudaFree(d_row_ptr));
+    CUDA_CHECK(cudaFree(d_row_ind));
+    CUDA_CHECK(cudaFree(d_col_ind));
+    CUDA_CHECK(cudaFree(d_val));
+    CUDA_CHECK(cudaFree(val_out));
+    CUDA_CHECK(cudaFree(d_active_row));
+    // CUDA_CHECK(cudaFree(d_passive_row));
+    CUDA_CHECK(cudaFree(d_lastIdx_block_tile));
+    CUDA_CHECK(cudaFree(d_lastIdx));
+    CUDA_CHECK(cudaFree(d_W));
+    CUDA_CHECK(cudaFree(d_H));
 }
 
 void sm_l2_SDDMM_GPU<float>::SDDMM_COO(

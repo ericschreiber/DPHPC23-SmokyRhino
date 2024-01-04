@@ -133,4 +133,6 @@ void compute_sm_l2(
         }
         sum += tS.n_actv_row[tile];
     }
+    CUDA_CHECK(cudaGetLastError());
+    CUDA_CHECK(cudaDeviceSynchronize());
 }

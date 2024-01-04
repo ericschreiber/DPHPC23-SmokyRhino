@@ -239,7 +239,7 @@ bool CSRMatrix<T>::isEqual(const SparseMatrix<T>& other) const
             // Make rel float check
             if (fabs(values[i] - otherValues[i]) / fabs(values[i]) > 0.001)
             {
-                std::cout << "Error: Values are not the same" << std::endl;
+                std::cout << "Error: Values are not the same [ should be | is ]" << std::endl;
                 for (int i = 0; i < values.size(); ++i)
                 {
                     std::cout << values[i] << " " << otherValues[i] << std::endl;

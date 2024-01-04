@@ -17,6 +17,7 @@
 #include "coo_opt_loop_unrolled_gpu/coo_opt_loop_unrolled_SDDMM_GPU.hpp"
 #include "coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.hpp"
 #include "coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM_GPU.hpp"
+#include "cusparse_baseline/cusparse_baseline.hpp"
 #include "merged/merged.hpp"
 #include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
 #include "naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.hpp"
@@ -87,6 +88,11 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     {
         return new sm_l2_SDDMM_GPU<T>();
     }
+    else if (class_name == "cusparse_baseline")
+    {
+        return new cusparse_baseline<T>();
+    }
+
 #endif
 
     else

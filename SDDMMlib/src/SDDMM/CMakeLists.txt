@@ -63,6 +63,8 @@ else()
                 cache_coo_gpu/cache_coo_SDDMM_GPU.cpp
                 cache_coo_gpu/cache_coo_SDDMM.cu
 
+                cusparse_baseline/cusparse_baseline.cpp
+
                 tiled_tiles/tiled_tiles.cpp
                 tiled_tiles/tiled_tiles.cu
 
@@ -86,6 +88,7 @@ else()
                             TimingLib
                             CUDA::cublas
                             CUDA::cudart
-                            CUDA::cuda_driver)
+                            CUDA::cuda_driver
+                            CUDA::cusparse)
 
 endif()

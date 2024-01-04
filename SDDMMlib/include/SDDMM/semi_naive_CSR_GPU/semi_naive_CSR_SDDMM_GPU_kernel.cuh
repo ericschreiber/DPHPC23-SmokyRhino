@@ -8,7 +8,6 @@ void compute_blockwise(
     int k,
     float *d_A,
     float *d_B,
-    float *d_C,
     int *d_rowPtr,
     int *d_colIdx,
     float *d_result);

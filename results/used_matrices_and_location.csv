@@ -22,4 +22,13 @@ sparsity (rounded), size, num nonzeros, link (for downloaded matrices), path (fo
 0.00046, 23670 x 23670, 259648, https://sparse.tamu.edu/Hollinger/g7jac080, path=/scratch/eschreib/matrix_market_matrices/g7jac080/g7jac080_000046_fixed.mtx
 0.0001, 20000 x 20000, 45000, https://sparse.tamu.edu/GHS_indef/qpband, path=/scratch/eschreib/matrix_market_matrices/qpband/qpband_00001_fixed.mtx
 
+####  100k x 100k  ####
+0.001, 97578 x 97578, 9753570, https://sparse.tamu.edu/DNVS/m_t1
+0.0005, 97569 x 97569, 5156379, https://sparse.tamu.edu/PARSEC/Si34H36
+0.000095, 99340 x 99340, 940622, https://sparse.tamu.edu/Sandia/ASIC_100k
+
+#### 200k x 200k  ####
+nothing found for any sparsity (also tried 250k x 250k but also no luck there)
+
+
 ############  GENERATED MATRICES  ############

@@ -15,6 +15,7 @@ ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_coo_opt_loop_unrolled_SDDMM_GPU
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_coo_tiling_naive_gpu
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/semi_naive_CSR_GPU/test_semi_naive_CSR_SDDMM_GPU
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/naive_dense_dense_gpu/test_compile
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_cusparse_baseline
 "
 # ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_csr_via_coo_SDDMM_GPU // is not working
 

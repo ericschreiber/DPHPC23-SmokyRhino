@@ -10,8 +10,8 @@ void test_compile()
 {
     // matrixC
     std::vector<std::vector<float>> matrixC = {
-        {1.1, 2.2, 3.3},
-        {4.4, 5.5, 6.6},
+        {1.1, 0, 0},
+        {4.4, 0, 6.6},
         {7.7, 8.8, 9.9}};
     DenseMatrix<float> matrixC_Dense(matrixC);
     CSRMatrix<float> matrixC_HOST(matrixC_Dense);
@@ -37,9 +37,9 @@ void test_compile()
 
     // expectedSolution
     std::vector<std::vector<float>> solution = {
-        {33.0, 79.2, 138.6},
-        {290.4, 445.5, 633.6},
-        {785.4, 1108.8, 1485.0}};
+        {30.0, 0, 0},
+        {66.0, 0, 96},
+        {102, 126, 150}};
     DenseMatrix<float> expectedSolution_Dense(solution);
     CSRMatrix<float> expectedSolution_HOST(expectedSolution_Dense);
 

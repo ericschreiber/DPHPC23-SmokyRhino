@@ -34,7 +34,9 @@ __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int
     int row;
     int col;
 
-    // for (int i = start_row * t_k_by_4; i < (start_row * t_k_by_4) + 4; i++)
+    // printf("thread %d starting at %d\n", tid, start_row);
+
+    // for (int i = (start_row + tid) * t_k_by_4; i < (start_row + tid) * t_k_by_4 + 2; i++)
     // {
     //     printf("thread %d starting at %d printing A: %f %f %f %f\n", tid, start_row, m_A[i].x, m_A[i].y, m_A[i].z, m_A[i].w);
     // }
@@ -49,9 +51,12 @@ __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int
         temp = 0;
         row = (start_row + tid) * t_k_by_4;
         col = (col_idx[i] - start_col) * t_k_by_4;
-        // for loop over t_k
+        // printf("from GPU %d on thread %d: %d | %d ~ %d\n", start_row, tid, start_row + tid, col_idx[i], col_idx[i] - start_col);
+        //  for loop over t_k
         for (int j = 0; j < t_k_by_4; j++)
         {
+            // printf("thread %d starting at %d printing A: %f %f %f %f\n", tid, start_row, m_A[row].x, m_A[row].y, m_A[row].z, m_A[row].w);
+            // printf("thread %d starting at %d printing B: %f %f %f %f\n", tid, start_row, m_B[col].x, m_B[col].y, m_B[col].z, m_B[col].w);
             temp += m_A[row].x * m_B[col].x;
             temp += m_A[row].y * m_B[col].y;
             temp += m_A[row].z * m_B[col].z;

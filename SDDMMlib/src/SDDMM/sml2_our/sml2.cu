@@ -701,12 +701,12 @@ void sml2_our<float>::SDDMM_CSR(
     // assert(matrixResult_sparse_HOST.getNumCols() == n && "Error: matrixResult has incompatible dimensions n");
 
     // here we need some magic to define t_j, t_k, t_i and num_iterations
-    int t_j = 2;
-    int t_k = 8;  // this probably has to be around 16 for p=1% to fit everything on the GPU
+    int t_j = 4;
+    int t_k = 4;  // this probably has to be around 16 for p=1% to fit everything on the GPU
     int t_i = 1;
-    int t_k_by_4 = 2;            // t_k / 4
-    int num_iterations_t_j = 2;  // n / t_j
-    int num_iterations_t_k = 1;  // k / t_k
+    int t_k_by_4 = 1;            // t_k / 4
+    int num_iterations_t_j = 1;  // n / t_j
+    int num_iterations_t_k = 2;  // k / t_k
     int num_iterations_t_i = 2;  // m / 80 * t_i
     int curr_col_id = 0;         // of B_T
     int curr_row_id = 0;         // of B_T

@@ -16,11 +16,11 @@ __global__ void compute_lml2(float* matrix_A, float* matrixB, int* row_ptr, int*
     //     printf("starting at %d: %f %f %f %f\n", start, new_array[i].x, new_array[i].y, new_array[i].z, new_array[i].w);
     // }
     // printf("%d\n", row_ptr[t_i]);
-    // for (int i = row_ptr[start]; i < row_ptr[start + t_i]; i++)
-    // {
-    //     result[i] = col_idx[i];
-    //     printf("from GPU %d: %d\n", start, col_idx[i]);
-    // }
+    for (int i = row_ptr[start]; i < row_ptr[start + t_i]; i++)
+    {
+        result[i] = col_idx[i];
+        printf("from GPU %d: %d\n", start, col_idx[i]);
+    }
     // for (int i = start; i < start + t_i + 1; i++)
     // {
     //     result[i] = row_ptr[i];

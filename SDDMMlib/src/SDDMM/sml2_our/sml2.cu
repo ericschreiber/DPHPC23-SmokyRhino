@@ -410,10 +410,11 @@ void send_result(
 
         cudaStreamSynchronize(stream_b);  // if nnz is correct this works and this barrier has to be fixed
         // std::cout << "result_from_gpu" << std::endl;
-        // for (int i = 0; i < nnz + 1; i++)
+        // for (int i = 0; i < nnz; i++)
         // {
         //     std::cout << result_from_gpu[i] << " ";
         // }
+        // std::cout << std::endl;
         // std::cout << std::endl;
     }
     else
@@ -434,6 +435,7 @@ void send_result(
         // {
         //     std::cout << result_from_gpu[i] << " ";
         // }
+        // std::cout << std::endl;
         // std::cout << std::endl;
     }
 }

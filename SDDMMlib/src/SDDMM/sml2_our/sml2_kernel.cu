@@ -7,7 +7,7 @@
 
 #include "utils.h"
 
-__global__ void compute_lml2(float* matrix_A, float* matrixB, int* row_ptr, int* col_idx, int t_i, float* result, int start)
+__global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int* col_idx, int t_i, float* result, int start_row, int start_col, int t_k_by_4)
 {
     // used for A and B | B always starts at 0
     // const float4* new_array = reinterpret_cast<const float4*>(matrix_A);
@@ -26,4 +26,42 @@ __global__ void compute_lml2(float* matrix_A, float* matrixB, int* row_ptr, int*
     //     result[i] = row_ptr[i];
     //     printf("from GPU %d: %d\n", start, row_ptr[i]);
     // }
+
+    int tid = threadIdx.x;
+    const float4* m_A = reinterpret_cast<const float4*>(matrix_A);
+    const float4* m_B = reinterpret_cast<const float4*>(matrix_B);
+    float temp;
+    int row;
+    int col;
+
+    for (int i = start_row; i < start_row + 2; i++)
+    {
+        printf("thread %d starting at %d printing A: %f %f %f %f\n", tid, start_row, m_A[i].x, m_A[i].y, m_A[i].z, m_A[i].w);
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        printf("thread %d starting at %d printing B: %f %f %f %f\n", tid, start_row, m_B[i].x, m_B[i].y, m_B[i].z, m_B[i].w);
+    }
+
+    for (int i = row_ptr[start_row + tid]; i < row_ptr[start_row + tid + 1]; i++)  // for t_i > tid this needs a loop
+    {
+        // row_A = start + tid
+        // row_B_T = col_idx[i]
+        temp = 0;
+        row = (start_row + tid) * t_k_by_4;
+        col = (col_idx[i] - start_col) * t_k_by_4;
+        // for loop over t_k
+        for (int j = 0; j < t_k_by_4; j++)
+        {
+            temp += m_A[row].x * m_B[col].x;
+            temp += m_A[row].y * m_B[col].y;
+            temp += m_A[row].z * m_B[col].z;
+            temp += m_A[row].w * m_B[col].w;
+            row++;
+            col++;
+        }
+        result[i] = temp;
+        printf("from GPU %d on thread %d: %d | %d ~ %d | result= %f\n", start_row, tid, start_row + tid, col_idx[i], col_idx[i] - start_col, temp);
+    }
 }

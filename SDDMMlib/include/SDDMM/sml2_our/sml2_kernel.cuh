@@ -9,6 +9,8 @@ __global__ void compute_lml2(
     int* col_idx,
     int t_i,
     float* result,
-    int start);
+    int start_row,
+    int start_col,
+    int t_k_by_4);
 
 #endif  // SML2_KERNEL_CUH

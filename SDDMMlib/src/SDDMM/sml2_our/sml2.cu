@@ -452,6 +452,13 @@ void save_result(
     int t_i,
     int target)
 {
+    std::cout << "result_HOST" << std::endl;
+    for (int i = 0; i < 8; i++)
+    {
+        std::cout << result_HOST[i] << " ";
+    }
+    std::cout << std::endl;
+
     if (target % 2 == 0)
     {
         for (int i = 0; i < 2 * t_i; i++)  // for (int i = 0; i < 80 * t_i; i++)
@@ -459,7 +466,7 @@ void save_result(
             int nnz = num_nnz_a[i + 1] - num_nnz_a[i];
             for (int j = 0; j < nnz; j++)
             {
-                result_HOST[row_ptr_a[i] + j] += result_from_gpu[num_nnz_a[i] + j] + 1;
+                result_HOST[row_ptr_a[i] + j] += result_from_gpu[num_nnz_a[i] + j];
                 // std::cout << result_from_gpu[num_nnz_a[i] + j] << " ";
             }
             // std::cout << std::endl;
@@ -472,7 +479,7 @@ void save_result(
             int nnz = num_nnz_b[i + 1] - num_nnz_b[i];
             for (int j = 0; j < nnz; j++)
             {
-                result_HOST[row_ptr_b[i] + j] += result_from_gpu[num_nnz_b[i] + j] + 1;
+                result_HOST[row_ptr_b[i] + j] += result_from_gpu[num_nnz_b[i] + j];
                 // std::cout << result_from_gpu[num_nnz_b[i] + j] << " ";
             }
             // std::cout << std::endl;
@@ -518,6 +525,9 @@ void launch_computation_even(
     int t_i,
     int t_j,
     int t_k,
+    int start_row,
+    int start_col,
+    int t_k_by_4,
     int target_a)
 {
     if (target_a % 2 == 0)
@@ -539,7 +549,7 @@ void launch_computation_even(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_a, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 1, 0, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_a, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i);
+            compute_lml2<<<1, 2, 0, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_a, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, start_row + q * t_i, start_col, t_k_by_4);
         }
     }
     else
@@ -561,7 +571,7 @@ void launch_computation_even(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_b, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 1, 0, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_a, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i);
+            compute_lml2<<<1, 2, 0, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_a, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, start_row + q * t_i, start_col, t_k_by_4);
         }
     }
 }
@@ -597,6 +607,9 @@ void launch_computation_odd(
     int t_i,
     int t_j,
     int t_k,
+    int start_row,
+    int start_col,
+    int t_k_by_4,
     int target_a)
 {
     if (target_a % 2 == 0)
@@ -618,7 +631,7 @@ void launch_computation_odd(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_a, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 1, 0, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_b, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i);
+            compute_lml2<<<1, 2, 0, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_b, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, start_row + q * t_i, start_col, t_k_by_4);
         }
     }
     else
@@ -640,7 +653,7 @@ void launch_computation_odd(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_b, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 1, 0, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_b, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i);
+            compute_lml2<<<1, 2, 0, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_b, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, start_row + q * t_i, start_col, t_k_by_4);
         }
     }
 }
@@ -676,6 +689,7 @@ void sml2_our<float>::SDDMM_CSR(
     int t_j = 2;
     int t_k = 4;  // this probably has to be around 16 for p=1% to fit everything on the GPU
     int t_i = 2;
+    int t_k_by_4 = 1;            // t_k / 4
     int num_iterations_t_j = 2;  // n / t_j
     int num_iterations_t_k = 2;  // k / t_k
     int num_iterations_t_i = 1;  // m / 80 * t_i
@@ -952,6 +966,9 @@ void sml2_our<float>::SDDMM_CSR(
                         t_i,
                         t_j,
                         t_k,
+                        (curr_t_i_id - 2) * t_i,  //(curr_t_i_id - 80) * t_i,
+                        curr_row_id,
+                        t_k_by_4,
                         target_a);
                 }
                 else
@@ -989,6 +1006,9 @@ void sml2_our<float>::SDDMM_CSR(
                         t_i,
                         t_j,
                         t_k,
+                        (curr_t_i_id - 2) * t_i,  //(curr_t_i_id - 80) * t_i,
+                        curr_row_id,
+                        t_k_by_4,
                         target_a);
                 }
 

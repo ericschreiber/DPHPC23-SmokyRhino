@@ -478,6 +478,13 @@ void save_result(
             // std::cout << std::endl;
         }
     }
+
+    // std::cout << "result_HOST" << std::endl;
+    // for (int i = 0; i < 8; i++)  // for (int i = 0; i < 80 * t_i; i++)
+    // {
+    //     std::cout << result_HOST[i] << " ";
+    // }
+    // std::cout << std::endl;
 }
 
 void launch_computation_even(
@@ -812,6 +819,7 @@ void sml2_our<float>::SDDMM_CSR(
     const int* col_idx_C = matrixC_HOST.getColIndices().data();
     const int* row_ptr_C = matrixC_HOST.getRowArray().data();
     float* values_result = new float[nnz];
+    memset(values_result, 0, nnz * sizeof(float));
 
     std::cout << "setup finished" << std::endl;
     // int remove_this_counter = 0;

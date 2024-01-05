@@ -24,57 +24,124 @@ void send_B(
     int k,
     int target)
 {
-    // t_k % 4 == 0
+    // std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | target=" << target << " | k=" << k << std::endl;
+    //  t_k % 4 == 0
     if (target % 2 == 0)
     {
-        for (int i = 0; i < t_j; i++)
+        if (col_id + t_k > k)
         {
-            float temp[t_k];
-            for (int j = 0; j < t_k; j++)
+            for (int i = 0; i < t_j; i++)
             {
-                temp[j] = values[row_id * k + col_id + i * k + j];
+                float temp[t_k];
+                for (int j = 0; j < k - col_id; j++)
+                {
+                    temp[j] = values[row_id * k + col_id + i * k + j];
+                }
+                for (int j = k - col_id; j < t_k; j++)
+                {
+                    temp[j] = 0;
+                }
+
+                // std::cout << "temp" << std::endl;
+                // for (int j = 0; j < t_k; j++)
+                // {
+                //     std::cout << temp[j] << " ";
+                // }
+                // std::cout << std::endl;
+
+                CUDA_CHECK(
+                    cudaMemcpyAsync(
+                        matrixB_transpose_GPU_a + i * t_k,
+                        temp,
+                        t_k * sizeof(float),
+                        cudaMemcpyHostToDevice,
+                        stream_a));
             }
+        }
+        else
+        {
+            for (int i = 0; i < t_j; i++)
+            {
+                float temp[t_k];
+                for (int j = 0; j < t_k; j++)
+                {
+                    temp[j] = values[row_id * k + col_id + i * k + j];
+                }
 
-            // std::cout << "temp" << std::endl;
-            // for (int j = 0; j < t_k; j++)
-            // {
-            //     std::cout << temp[j] << " ";
-            // }
-            // std::cout << std::endl;
+                // std::cout << "temp" << std::endl;
+                // for (int j = 0; j < t_k; j++)
+                // {
+                //     std::cout << temp[j] << " ";
+                // }
+                // std::cout << std::endl;
 
-            CUDA_CHECK(
-                cudaMemcpyAsync(
-                    matrixB_transpose_GPU_a + i * t_k,
-                    temp,
-                    t_k * sizeof(float),
-                    cudaMemcpyHostToDevice,
-                    stream_a));
+                CUDA_CHECK(
+                    cudaMemcpyAsync(
+                        matrixB_transpose_GPU_a + i * t_k,
+                        temp,
+                        t_k * sizeof(float),
+                        cudaMemcpyHostToDevice,
+                        stream_a));
+            }
         }
     }
     else
     {
-        for (int i = 0; i < t_j; i++)
+        if (col_id + t_k > k)
         {
-            float temp[t_k];
-            for (int j = 0; j < t_k; j++)
+            for (int i = 0; i < t_j; i++)
             {
-                temp[j] = values[row_id * k + col_id + i * k + j];
+                float temp[t_k];
+                for (int j = 0; j < k - col_id; j++)
+                {
+                    temp[j] = values[row_id * k + col_id + i * k + j];
+                }
+                for (int j = k - col_id; j < t_k; j++)
+                {
+                    temp[j] = 0;
+                }
+
+                // std::cout << "temp" << std::endl;
+                // for (int j = 0; j < t_k; j++)
+                // {
+                //     std::cout << temp[j] << " ";
+                // }
+                // std::cout << std::endl;
+
+                CUDA_CHECK(
+                    cudaMemcpyAsync(
+                        matrixB_transpose_GPU_b + i * t_k,
+                        temp,
+                        t_k * sizeof(float),
+                        cudaMemcpyHostToDevice,
+                        stream_b));
             }
+        }
+        else
+        {
+            for (int i = 0; i < t_j; i++)
+            {
+                float temp[t_k];
+                for (int j = 0; j < t_k; j++)
+                {
+                    temp[j] = values[row_id * k + col_id + i * k + j];
+                }
 
-            // std::cout << "temp" << std::endl;
-            // for (int j = 0; j < t_k; j++)
-            // {
-            //     std::cout << temp[j] << " ";
-            // }
-            // std::cout << std::endl;
+                // std::cout << "temp" << std::endl;
+                // for (int j = 0; j < t_k; j++)
+                // {
+                //     std::cout << temp[j] << " ";
+                // }
+                // std::cout << std::endl;
 
-            CUDA_CHECK(
-                cudaMemcpyAsync(
-                    matrixB_transpose_GPU_b + i * t_k,
-                    temp,
-                    t_k * sizeof(float),
-                    cudaMemcpyHostToDevice,
-                    stream_b));
+                CUDA_CHECK(
+                    cudaMemcpyAsync(
+                        matrixB_transpose_GPU_b + i * t_k,
+                        temp,
+                        t_k * sizeof(float),
+                        cudaMemcpyHostToDevice,
+                        stream_b));
+            }
         }
     }
 }
@@ -96,58 +163,120 @@ void send_A(
     // t_k % 4 == 0
     if (target % 2 == 0)
     {
-        for (int i = 0; i < t_i; i++)
+        if (col_id + t_k > k)
         {
-            float temp[t_k];
-            for (int j = 0; j < t_k; j++)
+            for (int i = 0; i < t_i; i++)
             {
-                temp[j] = values[row_id * k + col_id + i * k + j];
+                float temp[t_k];
+                for (int j = 0; j < k - col_id; j++)
+                {
+                    temp[j] = values[row_id * k + col_id + i * k + j];
+                }
+                for (int j = k - col_id; j < t_k; j++)
+                {
+                    temp[j] = 0;
+                }
+
+                // std::cout << "temp" << std::endl;
+                // for (int j = 0; j < t_k; j++)
+                // {
+                //     std::cout << temp[j] << " ";
+                // }
+                // std::cout << std::endl;
+
+                CUDA_CHECK(
+                    cudaMemcpyAsync(
+                        matrixA_GPU_a + row_GPU * t_k + i * t_k,
+                        temp,
+                        t_k * sizeof(float),
+                        cudaMemcpyHostToDevice,
+                        stream_a));
             }
+        }
+        else
+        {
+            for (int i = 0; i < t_i; i++)
+            {
+                float temp[t_k];
+                for (int j = 0; j < t_k; j++)
+                {
+                    temp[j] = values[row_id * k + col_id + i * k + j];
+                }
 
-            // std::cout << " " << std::endl;
-            // std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | i=" << i << " | target=" << target << std::endl;
-            // for (int j = 0; j < t_k; j++)
-            // {
-            //     std::cout << temp[j] << " ";
-            // }
-            // std::cout << std::endl;
-            // std::cout << "row_GPU: " << row_GPU << std::endl;
+                // std::cout << "temp" << std::endl;
+                // for (int j = 0; j < t_k; j++)
+                // {
+                //     std::cout << temp[j] << " ";
+                // }
+                // std::cout << std::endl;
 
-            CUDA_CHECK(
-                cudaMemcpyAsync(
-                    matrixA_GPU_a + row_GPU * t_k + i * t_k,
-                    temp,
-                    t_k * sizeof(float),
-                    cudaMemcpyHostToDevice,
-                    stream_a));
+                CUDA_CHECK(
+                    cudaMemcpyAsync(
+                        matrixA_GPU_a + row_GPU * t_k + i * t_k,
+                        temp,
+                        t_k * sizeof(float),
+                        cudaMemcpyHostToDevice,
+                        stream_a));
+            }
         }
     }
     else
     {
-        for (int i = 0; i < t_i; i++)
+        if (col_id + t_k > k)
         {
-            float temp[t_k];
-            for (int j = 0; j < t_k; j++)
+            for (int i = 0; i < t_i; i++)
             {
-                temp[j] = values[row_id * k + col_id + i * k + j];
+                float temp[t_k];
+                for (int j = 0; j < k - col_id; j++)
+                {
+                    temp[j] = values[row_id * k + col_id + i * k + j];
+                }
+                for (int j = k - col_id; j < t_k; j++)
+                {
+                    temp[j] = 0;
+                }
+
+                // std::cout << "temp" << std::endl;
+                // for (int j = 0; j < t_k; j++)
+                // {
+                //     std::cout << temp[j] << " ";
+                // }
+                // std::cout << std::endl;
+
+                CUDA_CHECK(
+                    cudaMemcpyAsync(
+                        matrixA_GPU_b + row_GPU * t_k + i * t_k,
+                        temp,
+                        t_k * sizeof(float),
+                        cudaMemcpyHostToDevice,
+                        stream_b));
             }
+        }
+        else
+        {
+            for (int i = 0; i < t_i; i++)
+            {
+                float temp[t_k];
+                for (int j = 0; j < t_k; j++)
+                {
+                    temp[j] = values[row_id * k + col_id + i * k + j];
+                }
 
-            // std::cout << " " << std::endl;
-            // std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | i=" << i << " | target=" << target << std::endl;
-            // for (int j = 0; j < t_k; j++)
-            // {
-            //     std::cout << temp[j] << " ";
-            // }
-            // std::cout << std::endl;
-            // std::cout << "row_GPU: " << row_GPU << std::endl;
+                // std::cout << "temp" << std::endl;
+                // for (int j = 0; j < t_k; j++)
+                // {
+                //     std::cout << temp[j] << " ";
+                // }
+                // std::cout << std::endl;
 
-            CUDA_CHECK(
-                cudaMemcpyAsync(
-                    matrixA_GPU_b + row_GPU * t_k + i * t_k,
-                    temp,
-                    t_k * sizeof(float),
-                    cudaMemcpyHostToDevice,
-                    stream_b));
+                CUDA_CHECK(
+                    cudaMemcpyAsync(
+                        matrixA_GPU_b + row_GPU * t_k + i * t_k,
+                        temp,
+                        t_k * sizeof(float),
+                        cudaMemcpyHostToDevice,
+                        stream_b));
+            }
         }
     }
 }
@@ -184,6 +313,8 @@ void send_row_ptr_and_col_id(
     int* col_idx_HOST_b,
     int target)
 {
+    // might want to use a adaptive t_i for the last iteration
+
     // std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | target=" << target << " | m=" << m << std::endl;
     if (target % 2 == 0)
     {
@@ -729,7 +860,7 @@ void sml2_our<float>::SDDMM_CSR(
     int t_i = 2;
     int t_k_by_4 = 2;            // t_k / 4
     int num_iterations_t_j = 2;  // n / t_j
-    int num_iterations_t_k = 1;  // k / t_k
+    int num_iterations_t_k = 2;  // k / t_k
     int num_iterations_t_i = 3;  // m / 80 * t_i
     int curr_col_id = 0;         // of B_T
     int curr_row_id = 0;         // of B_T

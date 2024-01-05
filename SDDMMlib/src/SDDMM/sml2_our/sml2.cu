@@ -175,6 +175,7 @@ void send_row_ptr_and_col_id(
     const int* col_idx,
     int t_i,
     int t_j,
+    int m,
     int row_id,  // row starts index of C
     int col_id,  // col starts index of C
     int* row_ptr_HOST_a,
@@ -183,19 +184,29 @@ void send_row_ptr_and_col_id(
     int* col_idx_HOST_b,
     int target)
 {
-    // std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | target=" << target << std::endl;
+    std::cout << "row_id=" << row_id << " | col_id=" << col_id << " | target=" << target << " | m=" << m << std::endl;
     if (target % 2 == 0)
     {
-        // std::cout << "row_ptr" << std::endl;
-        // for (int i = 0; i < 8; i++)
-        // {
-        //     std::cout << row_ptr[i] << " ";
-        // }
-        // std::cout << std::endl;
+        std::cout << "row_ptr" << std::endl;
+        for (int i = 0; i < 8; i++)
+        {
+            std::cout << row_ptr[i] << " ";
+        }
+        std::cout << std::endl;
 
         for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
         {
             row_ptr_HOST_a[i] = row_ptr[row_id + i];
+        }
+
+        // solution for m not being divisible by 80 * t_i
+        // this can be further optimized by using different functions in the last iteration
+        if (row_id + (2 * t_i) > m)  // if (row_id + (80 * t_i) > m)
+        {
+            for (int i = m - row_id + 1; i < 2 * t_i + 1; i++)  // for (int i = m - row_id + 1; i < 80 * t_i + 1; i++)
+            {
+                row_ptr_HOST_a[i] = row_ptr_HOST_a[i - 1];
+            }
         }
 
         int counter = 0;
@@ -223,27 +234,27 @@ void send_row_ptr_and_col_id(
             row_ptr_HOST_a[i] += start;
         }
 
-        // // print row_ptr_HOST_a
-        // std::cout << "row_ptr_HOST_a" << std::endl;
-        // for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i; i++)
-        // {
-        //     std::cout << row_ptr_HOST_a[i] << " ";
-        // }
-        // std::cout << std::endl;
-        // // print num_nnz_a
-        // std::cout << "num_nnz_a" << std::endl;
-        // for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
-        // {
-        //     std::cout << num_nnz_a[i] << " ";
-        // }
-        // std::cout << std::endl;
-        // std::cout << "col_idx_HOST_a" << std::endl;
-        // for (int i = 0; i < counter; i++)  // for (int i = 0; i < 80 * t_i; i++)
-        // {
-        //     std::cout << col_idx_HOST_a[i] << " ";
-        // }
-        // std::cout << std::endl;
-        // std::cout << std::endl;
+        // print row_ptr_HOST_a
+        std::cout << "row_ptr_HOST_a" << std::endl;
+        for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        {
+            std::cout << row_ptr_HOST_a[i] << " ";
+        }
+        std::cout << std::endl;
+        // print num_nnz_a
+        std::cout << "num_nnz_a" << std::endl;
+        for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
+        {
+            std::cout << num_nnz_a[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "col_idx_HOST_a" << std::endl;
+        for (int i = 0; i < counter; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        {
+            std::cout << col_idx_HOST_a[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << std::endl;
 
         CUDA_CHECK(
             cudaMemcpyAsync(
@@ -276,16 +287,26 @@ void send_row_ptr_and_col_id(
     }
     else
     {
-        // std::cout << "row_ptr" << std::endl;
-        // for (int i = 0; i < 8; i++)
-        // {
-        //     std::cout << row_ptr[i] << " ";
-        // }
-        // std::cout << std::endl;
+        std::cout << "row_ptr" << std::endl;
+        for (int i = 0; i < 8; i++)
+        {
+            std::cout << row_ptr[i] << " ";
+        }
+        std::cout << std::endl;
 
         for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
         {
             row_ptr_HOST_b[i] = row_ptr[row_id + i];
+        }
+
+        // solution for m not being divisible by 80 * t_i
+        // this can be further optimized by using different functions in the last iteration
+        if (row_id + (2 * t_i) > m)  // if (row_id + (80 * t_i) > m)
+        {
+            for (int i = m - row_id + 1; i < 2 * t_i + 1; i++)  // for (int i = m - row_id + 1; i < 80 * t_i + 1; i++)
+            {
+                row_ptr_HOST_b[i] = row_ptr_HOST_b[i - 1];
+            }
         }
 
         int counter = 0;
@@ -313,27 +334,27 @@ void send_row_ptr_and_col_id(
             row_ptr_HOST_b[i] += start;
         }
 
-        // // print row_ptr_HOST_b
-        // std::cout << "row_ptr_HOST_b" << std::endl;
-        // for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i; i++)
-        // {
-        //     std::cout << row_ptr_HOST_b[i] << " ";
-        // }
-        // std::cout << std::endl;
-        // // print num_nnz_b
-        // std::cout << "num_nnz_b" << std::endl;
-        // for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
-        // {
-        //     std::cout << num_nnz_b[i] << " ";
-        // }
-        // std::cout << std::endl;
-        // std::cout << "col_idx_HOST_b" << std::endl;
-        // for (int i = 0; i < counter; i++)  // for (int i = 0; i < 80 * t_i; i++)
-        // {
-        //     std::cout << col_idx_HOST_b[i] << " ";
-        // }
-        // std::cout << std::endl;
-        // std::cout << std::endl;
+        // print row_ptr_HOST_b
+        std::cout << "row_ptr_HOST_b" << std::endl;
+        for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        {
+            std::cout << row_ptr_HOST_b[i] << " ";
+        }
+        std::cout << std::endl;
+        // print num_nnz_b
+        std::cout << "num_nnz_b" << std::endl;
+        for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
+        {
+            std::cout << num_nnz_b[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "col_idx_HOST_b" << std::endl;
+        for (int i = 0; i < counter; i++)  // for (int i = 0; i < 80 * t_i; i++)
+        {
+            std::cout << col_idx_HOST_b[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << std::endl;
 
         CUDA_CHECK(
             cudaMemcpyAsync(
@@ -725,11 +746,11 @@ void sml2_our<float>::SDDMM_CSR(
     // here we need some magic to define t_j, t_k, t_i and num_iterations
     int t_j = 2;
     int t_k = 4;  // this probably has to be around 16 for p=1% to fit everything on the GPU
-    int t_i = 2;
+    int t_i = 1;
     int t_k_by_4 = 1;            // t_k / 4
     int num_iterations_t_j = 2;  // n / t_j
     int num_iterations_t_k = 2;  // k / t_k
-    int num_iterations_t_i = 1;  // m / 80 * t_i
+    int num_iterations_t_i = 3;  // m / 80 * t_i
     int curr_col_id = 0;         // of B_T
     int curr_row_id = 0;         // of B_T
     int curr_t_i_id = 0;         // of A
@@ -947,6 +968,7 @@ void sml2_our<float>::SDDMM_CSR(
         col_idx_C,
         t_i,
         t_j,
+        m,
         curr_row_id_C * 2,  // curr_row_id_C * 80,
         curr_col_id_C,
         row_ptr_HOST_a,
@@ -1171,6 +1193,7 @@ void sml2_our<float>::SDDMM_CSR(
                         col_idx_C,
                         t_i,
                         t_j,
+                        m,
                         curr_row_id_C * 2,  // curr_row_id_C * 80,
                         curr_col_id_C,
                         row_ptr_HOST_a,

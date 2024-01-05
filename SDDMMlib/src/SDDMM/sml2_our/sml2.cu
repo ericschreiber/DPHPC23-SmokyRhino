@@ -199,16 +199,6 @@ void send_row_ptr_and_col_id(
             row_ptr_HOST_a[i] = row_ptr[row_id + i];
         }
 
-        // solution for m not being divisible by 80 * t_i
-        // this can be further optimized by using different functions in the last iteration
-        if (row_id + (2 * t_i) > m)  // if (row_id + (80 * t_i) > m)
-        {
-            for (int i = m - row_id + 1; i < 2 * t_i + 1; i++)  // for (int i = m - row_id + 1; i < 80 * t_i + 1; i++)
-            {
-                row_ptr_HOST_a[i] = row_ptr_HOST_a[i - 1];
-            }
-        }
-
         int counter = 0;
         int start = 0;
         int sum = 0;
@@ -297,16 +287,6 @@ void send_row_ptr_and_col_id(
         for (int i = 0; i < 2 * t_i + 1; i++)  // for (int i = 0; i < 80 * t_i + 1; i++)
         {
             row_ptr_HOST_b[i] = row_ptr[row_id + i];
-        }
-
-        // solution for m not being divisible by 80 * t_i
-        // this can be further optimized by using different functions in the last iteration
-        if (row_id + (2 * t_i) > m)  // if (row_id + (80 * t_i) > m)
-        {
-            for (int i = m - row_id + 1; i < 2 * t_i + 1; i++)  // for (int i = m - row_id + 1; i < 80 * t_i + 1; i++)
-            {
-                row_ptr_HOST_b[i] = row_ptr_HOST_b[i - 1];
-            }
         }
 
         int counter = 0;
@@ -750,7 +730,7 @@ void sml2_our<float>::SDDMM_CSR(
     int t_k_by_4 = 2;            // t_k / 4
     int num_iterations_t_j = 2;  // n / t_j
     int num_iterations_t_k = 1;  // k / t_k
-    int num_iterations_t_i = 2;  // m / 80 * t_i
+    int num_iterations_t_i = 3;  // m / 80 * t_i
     int curr_col_id = 0;         // of B_T
     int curr_row_id = 0;         // of B_T
     int curr_t_i_id = 0;         // of A
@@ -895,10 +875,26 @@ void sml2_our<float>::SDDMM_CSR(
     const float* values_B = matrixB_transpose_HOST.getValues();
     // const float* values_C = matrixC_HOST.getValues().data();
     const int* col_idx_C = matrixC_HOST.getColIndices().data();
-    const int* row_ptr_C = matrixC_HOST.getRowArray().data();
+    // const int* row_ptr_C = matrixC_HOST.getRowArray().data();
     float* values_result = new float[nnz];
     memset(values_result, 0, nnz * sizeof(float));
     int row_GPU = 0;
+
+    // build padded row_ptr to cheese m % (80 * t_i) != 0
+    std::vector<int> row_ptr = matrixC_HOST.getRowArray();
+    int last = row_ptr[row_ptr.size() - 1];
+    for (int i = 0; i < ((2 * t_i) - (m % (2 * t_i))); i++)  // for (int i = 0; i < ((80 * t_i) - (m % (80 * t_i))); i++)
+    {
+        row_ptr.push_back(last);
+    }
+    const int* row_ptr_C = row_ptr.data();
+
+    // // std::cout << "row_ptr_C" << std::endl;
+    // for (int i = 0; i < 15; i++)
+    // {
+    //     std::cout << row_ptr_C[i] << " ";
+    // }
+    // std::cout << std::endl;
 
     std::cout << "setup finished" << std::endl;
     // int remove_this_counter = 0;

@@ -94,6 +94,7 @@ void send_A(
             //     std::cout << temp[j] << " ";
             // }
             // std::cout << std::endl;
+            // std::cout << "row_GPU: " << row_GPU << std::endl;
             CUDA_CHECK(
                 cudaMemcpyAsync(
                     matrixA_GPU_a + row_GPU * t_k + i * t_k,
@@ -119,6 +120,7 @@ void send_A(
             //     std::cout << temp[j] << " ";
             // }
             // std::cout << std::endl;
+            // std::cout << "row_GPU: " << row_GPU << std::endl;
             CUDA_CHECK(
                 cudaMemcpyAsync(
                     matrixA_GPU_b + row_GPU * t_k + i * t_k,
@@ -564,7 +566,7 @@ void launch_computation_even(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_a, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 1, 0, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_a, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i, start_col, t_k_by_4);
+            compute_lml2<<<1, 2, 0, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_a, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i, start_col, t_k_by_4);
         }
     }
     else
@@ -586,7 +588,7 @@ void launch_computation_even(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_b, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 1, 0, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_a, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i, start_col, t_k_by_4);
+            compute_lml2<<<1, 2, 0, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_a, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i, start_col, t_k_by_4);
         }
     }
 }
@@ -646,7 +648,7 @@ void launch_computation_odd(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_a, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 1, 0, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_b, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i, start_col, t_k_by_4);
+            compute_lml2<<<1, 2, 0, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_b, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i, start_col, t_k_by_4);
         }
     }
     else
@@ -668,7 +670,7 @@ void launch_computation_odd(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_b, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 1, 0, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_b, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i, start_col, t_k_by_4);
+            compute_lml2<<<1, 2, 0, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_b, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i, start_col, t_k_by_4);
         }
     }
 }
@@ -703,11 +705,11 @@ void sml2_our<float>::SDDMM_CSR(
     // here we need some magic to define t_j, t_k, t_i and num_iterations
     int t_j = 4;
     int t_k = 4;  // this probably has to be around 16 for p=1% to fit everything on the GPU
-    int t_i = 1;
+    int t_i = 2;
     int t_k_by_4 = 1;            // t_k / 4
     int num_iterations_t_j = 1;  // n / t_j
     int num_iterations_t_k = 2;  // k / t_k
-    int num_iterations_t_i = 2;  // m / 80 * t_i
+    int num_iterations_t_i = 1;  // m / 80 * t_i
     int curr_col_id = 0;         // of B_T
     int curr_row_id = 0;         // of B_T
     int curr_t_i_id = 0;         // of A
@@ -887,7 +889,7 @@ void sml2_our<float>::SDDMM_CSR(
             t_k,
             curr_col_id,
             curr_t_i_id * t_i,
-            row_GPU,
+            row_GPU * t_i,
             k,
             target_a);
         row_GPU++;
@@ -1111,7 +1113,7 @@ void sml2_our<float>::SDDMM_CSR(
                             t_k,
                             curr_col_id,
                             curr_t_i_id * t_i,
-                            row_GPU,
+                            row_GPU * t_i,
                             k,
                             target_a);
                         row_GPU++;

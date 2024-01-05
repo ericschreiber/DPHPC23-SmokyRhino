@@ -11,9 +11,13 @@ __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int
 {
     // used for A and B | B always starts at 0
     // const float4* new_array = reinterpret_cast<const float4*>(matrix_A);
-    // for (int i = start; i < start + 2; i++)
+    // if (threadIdx.x == 0)
     // {
-    //     printf("starting at %d: %f %f %f %f\n", start, new_array[i].x, new_array[i].y, new_array[i].z, new_array[i].w);
+    //     printf("Matrix_A \n");
+    //     for (int i = 0; i < 8; i++)
+    //     {
+    //         printf("starting at %d: %f %f %f %f\n", start_row, new_array[i].x, new_array[i].y, new_array[i].z, new_array[i].w);
+    //     }
     // }
     // printf("%d\n", row_ptr[t_i]);
     // for (int i = row_ptr[start]; i < row_ptr[start + t_i]; i++)

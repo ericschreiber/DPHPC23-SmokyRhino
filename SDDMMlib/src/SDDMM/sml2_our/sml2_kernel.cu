@@ -38,6 +38,8 @@ __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int
     int row;
     int col;
 
+    // shared memory still missing
+
     // printf("thread %d starting at %d\n", tid, start_row);
 
     // for (int i = (start_row + tid) * t_k_by_4; i < (start_row + tid) * t_k_by_4 + 2; i++)

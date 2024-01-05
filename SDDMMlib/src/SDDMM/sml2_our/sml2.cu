@@ -743,7 +743,7 @@ void sml2_our<float>::SDDMM_CSR(
     cudaFuncSetAttribute(compute_lml2, cudaFuncAttributeMaxDynamicSharedMemorySize, 98304);
 
     // set max number of cudastreams in the system
-    // setenv(“CUDA_DEVICE_MAX_CONNECTIONS”, “32”, 1);
+    setenv("CUDA_DEVICE_MAX_CONNECTIONS", "32", 1);
 
     // allocate memory for the matrices on the GPU
     // _a is for the kernels 0-79, 160-239, ...

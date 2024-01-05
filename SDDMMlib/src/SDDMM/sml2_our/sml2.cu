@@ -718,7 +718,7 @@ void launch_computation_even(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_a, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 2, 98304, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_a, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i, start_col, t_k_by_4);
+            compute_lml2<<<1, 1024, 98304, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_a, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i, start_col, t_k_by_4);
         }
     }
     else
@@ -740,7 +740,7 @@ void launch_computation_even(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_a); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_b, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 2, 98304, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_a, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i, start_col, t_k_by_4);
+            compute_lml2<<<1, 1024, 98304, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_a, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i, start_col, t_k_by_4);
         }
     }
 }
@@ -800,7 +800,7 @@ void launch_computation_odd(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_a); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_a, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 2, 98304, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_b, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i, start_col, t_k_by_4);
+            compute_lml2<<<1, 1024, 98304, stream_compute>>>(matrixA_GPU_a, matrixB_GPU_b, num_nnz_GPU_a, col_idx_GPU_a, t_i, matrixResult_GPU_a, q * t_i, start_col, t_k_by_4);
         }
     }
     else
@@ -822,7 +822,7 @@ void launch_computation_odd(
             // compute_lml2<<<1, 1>>>(matrixA_GPU_b); // used A
             // compute_lml2<<<1, 1>>>(matrixB_GPU_b); // used B
             // compute_lml2<<<1, 1, 0, stream_compute>>>(matrixResult_GPU_b, target_a); // writeback for correct nnz
-            compute_lml2<<<1, 2, 98304, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_b, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i, start_col, t_k_by_4);
+            compute_lml2<<<1, 1024, 98304, stream_compute>>>(matrixA_GPU_b, matrixB_GPU_b, num_nnz_GPU_b, col_idx_GPU_b, t_i, matrixResult_GPU_b, q * t_i, start_col, t_k_by_4);
         }
     }
 }
@@ -856,10 +856,10 @@ void sml2_our<float>::SDDMM_CSR(
 
     // here we need some magic to define t_j, t_k, t_i and num_iterations
     int t_j = 2;
-    int t_k = 8;  // this probably has to be around 16 for p=1% to fit everything on the GPU
+    int t_k = 20;  // this probably has to be around 16 for p=1% to fit everything on the GPU
     int t_i = 2;
-    int t_k_by_4 = 2;            // t_k / 4
-    int num_iterations_t_j = 2;  // n / t_j
+    int t_k_by_4 = 5;            // t_k / 4
+    int num_iterations_t_j = 4;  // n / t_j
     int num_iterations_t_k = 2;  // k / t_k
     int num_iterations_t_i = 3;  // m / 80 * t_i
     int curr_col_id = 0;         // of B_T
@@ -867,7 +867,11 @@ void sml2_our<float>::SDDMM_CSR(
     int curr_t_i_id = 0;         // of A
     int curr_row_id_C = 0;       // of C
     int curr_col_id_C = 0;       // of C
-    float p = 1;                 // density of matrixC
+    int number_of_non_zero_elements = matrixC_HOST.getNumValues();
+    float p = float(number_of_non_zero_elements) / float(m * n);  // density of matrixC
+
+    // std::cout << "number_of_non_zero_elements=" << number_of_non_zero_elements << std::endl;
+    // std::cout << "p=" << p << std::endl;
 
     // std::cout << "t_j=" << t_j << " | t_k=" << t_k << " | t_i=" << t_i << std::endl;
 
@@ -900,11 +904,11 @@ void sml2_our<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMalloc(
             &matrixA_GPU_a,
-            2 * t_i * t_k * sizeof(float)));  // 80 * t_i * t_k * sizeof(float)));
+            80 * t_i * t_k * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixA_GPU_b,
-            2 * t_i * t_k * sizeof(float)));  // 80 * t_i * t_k * sizeof(float)));
+            80 * t_i * t_k * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixB_transpose_GPU_a,
@@ -924,43 +928,43 @@ void sml2_our<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU_a,
-            int(2 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU_b,
-            int(2 * 10 * p * t_i * t_j) * sizeof(float)));  // int(80 * 10 * p * t_i * t_j) * sizeof(float)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &col_idx_GPU_a,
-            int(2 * 10 * p * t_i * t_j) * sizeof(int)));  // int(80 * 10 * p * t_i * t_j) * sizeof(int)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &col_idx_GPU_b,
-            int(2 * 10 * p * t_i * t_j) * sizeof(int)));  // int(80 * 10 * p * t_i * t_j) * sizeof(int)));
+            int(80 * 10 * p * t_i * t_j) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &row_ptr_GPU_a,
-            (2 * t_i + 1) * sizeof(int)));  //(80 * t_i + 1) * sizeof(int)));
+            (80 * t_i + 1) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &row_ptr_GPU_b,
-            (2 * t_i + 1) * sizeof(int)));  //(80 * t_i + 1) * sizeof(int)));
+            (80 * t_i + 1) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &num_nnz_GPU_a,
-            (2 * t_i + 1) * sizeof(int)));  //(80 * t_i + 1) * sizeof(int)));
+            (80 * t_i + 1) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &num_nnz_GPU_b,
-            (2 * t_i + 1) * sizeof(int)));  //(80 * t_i + 1) * sizeof(int)));
+            (80 * t_i + 1) * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &nnz_GPU_a,
-            2 * sizeof(int)));  // 80 * sizeof(int)));
+            80 * sizeof(int)));
     CUDA_CHECK(
         cudaMalloc(
             &nnz_GPU_b,
-            2 * sizeof(int)));  // 80 * sizeof(int)));
+            80 * sizeof(int)));
 
     cudaStream_t stream_a_send_a, stream_b_send_a, stream_receive_a, stream_compute;
     cudaStream_t stream_a_send_b, stream_b_send_b, stream_receive_b;
@@ -989,18 +993,17 @@ void sml2_our<float>::SDDMM_CSR(
     int target_a = 0;
 
     // save row_ptr and col_idx on the host
-    int* row_ptr_HOST_a = new int[2 * t_i + 1];                  //[80 * t_i + 1];
-    int* row_ptr_HOST_b = new int[2 * t_i + 1];                  //[80 * t_i + 1];
-    int* num_nnz_a = new int[2 * t_i + 1];                       //[80 * t_i];
-    int* num_nnz_b = new int[2 * t_i + 1];                       //[80 * t_i];
-    int* col_idx_HOST_a = new int[int(2 * 10 * p * t_i * t_j)];  //[int(80 * 10 * p * t_i * t_j)];
-    int* col_idx_HOST_b = new int[int(2 * 10 * p * t_i * t_j)];  //[int(80 * 10 * p * t_i * t_j)];
-    int* nnz_HOST_a = new int[2];                                //[80];
-    int* nnz_HOST_b = new int[2];                                //[80];
+    int* row_ptr_HOST_a = new int[80 * t_i + 1];
+    int* row_ptr_HOST_b = new int[80 * t_i + 1];
+    int* num_nnz_a = new int[80 * t_i + 1];
+    int* num_nnz_b = new int[80 * t_i + 1];
+    int* col_idx_HOST_a = new int[int(80 * 10 * p * t_i * t_j)];
+    int* col_idx_HOST_b = new int[int(80 * 10 * p * t_i * t_j)];
+    int* nnz_HOST_a = new int[80];
+    int* nnz_HOST_b = new int[80];
 
     // create memory for the result on the host
-    float* result_from_gpu = new float[int(2 * 10 * p * t_i * t_j)];  //[int(80 * 10 * p * t_i * t_j)];
-
+    float* result_from_gpu = new float[int(80 * 10 * p * t_i * t_j)];
     // local copy of values of all matrices
     const float* values_A = matrixA_HOST.getValues();
     const float* values_B = matrixB_transpose_HOST.getValues();
@@ -1014,7 +1017,7 @@ void sml2_our<float>::SDDMM_CSR(
     // build padded row_ptr to cheese m % (80 * t_i) != 0
     std::vector<int> row_ptr = matrixC_HOST.getRowArray();
     int last = row_ptr[row_ptr.size() - 1];
-    for (int i = 0; i < ((2 * t_i) - (m % (2 * t_i))); i++)  // for (int i = 0; i < ((80 * t_i) - (m % (80 * t_i))); i++)
+    for (int i = 0; i < ((80 * t_i) - (m % (80 * t_i))); i++)
     {
         row_ptr.push_back(last);
     }

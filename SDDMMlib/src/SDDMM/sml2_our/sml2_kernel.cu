@@ -41,7 +41,7 @@ __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int
     // shared memory has to be extern to use max shared memory
     extern __shared__ float4 shared_A[];
     int bound = t_k_by_4 * t_i * 2;  // 2 is for the number od used SMs
-    for (int i = tid; i < bound; i += blockDim.x)
+    for (int i = tid; i < bound; i += 1024)
     {
         shared_A[i] = m_A[i];
     }
@@ -69,30 +69,32 @@ __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int
     // {
     //     printf("thread %d starting at %d printing B: %f %f %f %f\n", tid, start_row, m_B[i].x, m_B[i].y, m_B[i].z, m_B[i].w);
     // }
-
-    for (int i = row_ptr[start_row + tid]; i < row_ptr[start_row + tid + 1]; i++)  // for t_i > tid this needs a loop
+    for (int q = tid; q < t_i; q += 1024)
     {
-        temp = 0;
-        row = (start_row + tid) * t_k_by_4;
-        col = (col_idx[i] - start_col) * t_k_by_4;
-        // printf("from GPU %d on thread %d: %d | %d ~ %d\n", start_row, tid, start_row + tid, col_idx[i], col_idx[i] - start_col);
-        //  for loop over t_k
-        for (int j = 0; j < t_k_by_4; j++)
+        for (int i = row_ptr[start_row + q]; i < row_ptr[start_row + q + 1]; i++)
         {
-            // if (tid == 1)
-            // {
-            //     printf("thread %d starting at %d printing A: %f %f %f %f\n", tid, start_row, m_A[row].x, m_A[row].y, m_A[row].z, m_A[row].w);
-            //     printf("thread %d starting at %d printing A: %f %f %f %f\n", tid, start_row, shared_A[row].x, shared_A[row].y, shared_A[row].z, shared_A[row].w);
-            //     printf("thread %d starting at %d printing B: %f %f %f %f\n", tid, start_row, m_B[col].x, m_B[col].y, m_B[col].z, m_B[col].w);
-            // }
-            temp += shared_A[row].x * m_B[col].x;
-            temp += shared_A[row].y * m_B[col].y;
-            temp += shared_A[row].z * m_B[col].z;
-            temp += shared_A[row].w * m_B[col].w;
-            row++;
-            col++;
+            temp = 0;
+            row = (start_row + q) * t_k_by_4;
+            col = (col_idx[i] - start_col) * t_k_by_4;
+            // printf("from GPU %d on thread %d: %d | %d ~ %d\n", start_row, q, start_row + q, col_idx[i], col_idx[i] - start_col);
+            //  for loop over t_k
+            for (int j = 0; j < t_k_by_4; j++)
+            {
+                // if (q == 1)
+                // {
+                //     printf("thread %d starting at %d printing A: %f %f %f %f\n", q, start_row, m_A[row].x, m_A[row].y, m_A[row].z, m_A[row].w);
+                //     printf("thread %d starting at %d printing A: %f %f %f %f\n", q, start_row, shared_A[row].x, shared_A[row].y, shared_A[row].z, shared_A[row].w);
+                //     printf("thread %d starting at %d printing B: %f %f %f %f\n", q, start_row, m_B[col].x, m_B[col].y, m_B[col].z, m_B[col].w);
+                // }
+                temp += shared_A[row].x * m_B[col].x;
+                temp += shared_A[row].y * m_B[col].y;
+                temp += shared_A[row].z * m_B[col].z;
+                temp += shared_A[row].w * m_B[col].w;
+                row++;
+                col++;
+            }
+            result[i] = temp;
+            // printf("from GPU %d on thread %d: %d | %d ~ %d | result= %f\n", start_row, q, start_row + q, col_idx[i], col_idx[i] - start_col, temp);
         }
-        result[i] = temp;
-        // printf("from GPU %d on thread %d: %d | %d ~ %d | result= %f\n", start_row, tid, start_row + tid, col_idx[i], col_idx[i] - start_col, temp);
     }
 }

@@ -10,10 +10,10 @@
 __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int* col_idx, int t_i, float* result, int start_row, int start_col, int t_k_by_4)
 {
     // used for A and B | B always starts at 0
-    // const float4* new_array = reinterpret_cast<const float4*>(matrix_A);
+    // const float4* new_array = reinterpret_cast<const float4*>(matrix_B);
     // if (threadIdx.x == 0)
     // {
-    //     printf("Matrix_A \n");
+    //     printf("Matrix_B \n");
     //     for (int i = 0; i < 8; i++)
     //     {
     //         printf("starting at %d: %f %f %f %f\n", start_row, new_array[i].x, new_array[i].y, new_array[i].z, new_array[i].w);
@@ -38,7 +38,25 @@ __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int
     int row;
     int col;
 
-    // shared memory still missing
+    // shared memory has to be extern to use max shared memory
+    extern __shared__ float4 shared_A[];
+    int bound = t_k_by_4 * t_i * 2;  // 2 is for the number od used SMs
+    for (int i = tid; i < bound; i += blockDim.x)
+    {
+        shared_A[i] = m_A[i];
+    }
+
+    __syncthreads();
+
+    // if (tid == 1)
+    // {
+    //     for (int i = 0; i < 8; i++)
+    //     {
+    //         printf("%i\n", bound);
+    //         printf("%i %f %f %f %f\n", start_row, shared_A[i].x, shared_A[i].y, shared_A[i].z, shared_A[i].w);
+    //         printf("%i %f %f %f %f\n\n", start_row, m_A[i].x, m_A[i].y, m_A[i].z, m_A[i].w);
+    //     }
+    // }
 
     // printf("thread %d starting at %d\n", tid, start_row);
 
@@ -61,12 +79,16 @@ __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int
         //  for loop over t_k
         for (int j = 0; j < t_k_by_4; j++)
         {
-            // printf("thread %d starting at %d printing A: %f %f %f %f\n", tid, start_row, m_A[row].x, m_A[row].y, m_A[row].z, m_A[row].w);
-            // printf("thread %d starting at %d printing B: %f %f %f %f\n", tid, start_row, m_B[col].x, m_B[col].y, m_B[col].z, m_B[col].w);
-            temp += m_A[row].x * m_B[col].x;
-            temp += m_A[row].y * m_B[col].y;
-            temp += m_A[row].z * m_B[col].z;
-            temp += m_A[row].w * m_B[col].w;
+            // if (tid == 1)
+            // {
+            //     printf("thread %d starting at %d printing A: %f %f %f %f\n", tid, start_row, m_A[row].x, m_A[row].y, m_A[row].z, m_A[row].w);
+            //     printf("thread %d starting at %d printing A: %f %f %f %f\n", tid, start_row, shared_A[row].x, shared_A[row].y, shared_A[row].z, shared_A[row].w);
+            //     printf("thread %d starting at %d printing B: %f %f %f %f\n", tid, start_row, m_B[col].x, m_B[col].y, m_B[col].z, m_B[col].w);
+            // }
+            temp += shared_A[row].x * m_B[col].x;
+            temp += shared_A[row].y * m_B[col].y;
+            temp += shared_A[row].z * m_B[col].z;
+            temp += shared_A[row].w * m_B[col].w;
             row++;
             col++;
         }

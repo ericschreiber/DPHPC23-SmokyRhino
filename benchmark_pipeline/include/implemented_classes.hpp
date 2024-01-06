@@ -21,6 +21,7 @@
 #include "naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.hpp"
 #include "naive_dense_dense_gpu/naive_SDDMM_GPU.cuh"
 #include "semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cuh"
+#include "sml2_our/sml2.cuh"
 #endif
 
 // Get the class with the given name
@@ -81,6 +82,10 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     else if (class_name == "merged")
     {
         return new merged<T>();
+    }
+    else if (class_name == "sml2_our")
+    {
+        return new sml2_our<T>();
     }
 #endif
 

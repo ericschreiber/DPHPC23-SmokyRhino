@@ -869,12 +869,12 @@ void sml2_our<float>::SDDMM_CSR(
 
     // here we need some magic to define t_j, t_k, t_i and num_iterations
     int t_j = 2;
-    int t_k = 4;  // this probably has to be around 16 for p=1% to fit everything on the GPU
+    int t_k = 4;  // this probably has to be around 16 for p=1% to fit everything on the GPU ~ !!!t_k % 4 == 0!!!
     int t_i = 1;
-    int t_k_by_4 = 1;            // t_k / 4
-    int num_iterations_t_j = 3;  // n / t_j
-    int num_iterations_t_k = 3;  // k / t_k
-    int num_iterations_t_i = 1;  // m / 80 * t_i
+    int t_k_by_4 = 1;            // t_k / 4 ~ !!!this has to be the correct number!!!
+    int num_iterations_t_j = 3;  // ceil(n / t_j)
+    int num_iterations_t_k = 3;  // ceil(k / t_k)
+    int num_iterations_t_i = 1;  // ceil(m / 80 * t_i) ~ !!!this has to be the correct number!!!
     int curr_col_id = 0;         // of B_T
     int curr_row_id = 0;         // of B_T
     int curr_t_i_id = 0;         // of A

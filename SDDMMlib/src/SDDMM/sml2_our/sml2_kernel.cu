@@ -40,7 +40,7 @@ __global__ void compute_lml2(float* matrix_A, float* matrix_B, int* row_ptr, int
 
     // shared memory has to be extern to use max shared memory
     extern __shared__ float4 shared_A[];
-    int bound = (t_k_by_4 * t_i * 80) < m ? (t_k_by_4 * t_i * 80) : m;
+    int bound = (t_k_by_4 * t_i * 80) < (m * t_k_by_4) ? (t_k_by_4 * t_i * 80) : (m * t_k_by_4);
     for (int i = tid; i < bound; i += 1024)
     {
         shared_A[i] = m_A[i];

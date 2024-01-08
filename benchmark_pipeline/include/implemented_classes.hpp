@@ -12,6 +12,7 @@
 
 // Put your cuda classes here. They wont be compiled if the flag USE_CUDA is not set to 1
 #if USE_CUDA
+#include "SM_L2/SM_L2_GPU.hpp"
 #include "cache_coo_gpu/cache_coo_SDDMM_GPU.hpp"
 #include "coo_opt_loop_unrolled_gpu/coo_opt_loop_unrolled_SDDMM_GPU.hpp"
 #include "coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.hpp"
@@ -82,6 +83,10 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     else if (class_name == "merged")
     {
         return new merged<T>();
+    }
+    else if (class_name == "sml2_paper")
+    {
+        return new sm_l2_SDDMM_GPU<T>();
     }
     else if (class_name == "cusparse_baseline")
     {

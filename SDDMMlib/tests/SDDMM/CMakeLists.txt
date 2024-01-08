@@ -39,6 +39,9 @@ add_executable(test_coo_tiling_naive_gpu
 add_executable(test_cusparse_baseline
                test_cusparse_baseline.cpp
 )
+add_executable(test_SM_L2
+               test_SM_L2.cpp
+)
 
 target_link_libraries(test_naive_coo_SDDMM_GPU 
                        MatrixLib
@@ -70,6 +73,10 @@ target_link_libraries(test_coo_tiling_naive_gpu
 
 target_link_libraries(test_cusparse_baseline
                             MatrixLib
+                          SDDMMlib)
+                          
+target_link_libraries(test_SM_L2
+                          MatrixLib
                             SDDMMlib)
 
 endif()

@@ -12,6 +12,7 @@
 
 // Put your cuda classes here. They wont be compiled if the flag USE_CUDA is not set to 1
 #if USE_CUDA
+#include "better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU.cuh"
 #include "cache_coo_gpu/cache_coo_SDDMM_GPU.hpp"
 #include "coo_opt_loop_unrolled_gpu/coo_opt_loop_unrolled_SDDMM_GPU.hpp"
 #include "coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.hpp"
@@ -20,7 +21,6 @@
 #include "naive_coo_gpu/naive_coo_SDDMM_GPU.hpp"
 #include "naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.hpp"
 #include "naive_dense_dense_gpu/naive_SDDMM_GPU.cuh"
-#include "semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cuh"
 #endif
 
 // Get the class with the given name
@@ -50,9 +50,9 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     {
         return new naive_SDDMM_GPU<T>();
     }
-    else if (class_name == "semi_naive_CSR_SDDMM_GPU")
+    else if (class_name == "better_naive_CSR_SDDMM_GPU")
     {
-        return new semi_naive_CSR_SDDMM_GPU<T>();
+        return new better_naive_CSR_SDDMM_GPU<T>();
     }
     else if (class_name == "naive_coo_SDDMM_GPU")
     {

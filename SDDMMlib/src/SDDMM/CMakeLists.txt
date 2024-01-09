@@ -51,8 +51,8 @@ else()
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
                 
-                semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cu
-                semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU_kernel.cu
+                better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU.cu
+                better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU_kernel.cu
 
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
                 naive_coo_gpu/naive_coo_SDDMM.cu

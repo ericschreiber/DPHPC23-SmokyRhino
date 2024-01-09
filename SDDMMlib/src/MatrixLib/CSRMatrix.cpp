@@ -244,7 +244,7 @@ bool CSRMatrix<T>::isEqual(const SparseMatrix<T>& other) const
                 {
                     std::cout << values[i] << " " << otherValues[i] << std::endl;
                     bool a = !(fabs(values[i] - otherValues[i]) / fabs(values[i]) > 0.001);
-                    std::cout << "was test passed: " << a << std::endl;
+                    // std::cout << "was test passed: " << a << std::endl;
                 }
                 return false;
             }

@@ -42,7 +42,7 @@ class runner
         bool do_test = true;
 
         const int num_iterations_testing = 1;
-        const int num_iterations_profiling = 220;
+        const int num_iterations_profiling = 1;
         std::string _out_path;
         std::string _results_file_path;
         // A list of tuples to be run. Each tuple contains:

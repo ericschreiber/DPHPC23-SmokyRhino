@@ -1,0 +1,2 @@
+function, SparseFormat, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/first/sparse/matrix, result
+better_naive_CSR_SDDMM_GPU,/scratch/eschreib/matrices/Dataset001_testing/A/n_50_m_50_sparsity_1,/scratch/eschreib/matrices/Dataset001_testing/B/n_50_m_50_sparsity_1,/scratch/eschreib/matrices/Dataset001_testing/n_50_m_50_sparsity_02,28672.000393,

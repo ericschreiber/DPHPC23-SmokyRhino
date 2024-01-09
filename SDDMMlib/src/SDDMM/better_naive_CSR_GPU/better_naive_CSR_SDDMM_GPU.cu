@@ -1,17 +1,17 @@
-// semi_naive_CSR_SDDMM_GPU.cpp
+// better_naive_CSR_SDDMM_GPU.cpp
 
 #include <cuda_profiler_api.h>
 #include <cuda_runtime.h>
 
+#include <better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU.cuh>
+#include <better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU_kernel.cuh>
 #include <iostream>
-#include <semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cuh>
-#include <semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU_kernel.cuh>
 #include <type_traits>
 #include <typeinfo>
 
 #include "utils.h"
 
-void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
+void better_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const CSRMatrix<float>& matrixC_HOST,
@@ -36,6 +36,14 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     assert(matrixC_HOST.getNumCols() == n && "Error: matrixC has incompatible dimensions n");
     assert(matrixResult_sparse_HOST.getNumRows() == m && "Error: matrixResult has incompatible dimensions m");
     assert(matrixResult_sparse_HOST.getNumCols() == n && "Error: matrixResult has incompatible dimensions n");
+
+    int L2_size = 6291456;
+    int lines_per_block = L2_size / (16 * 80 * k);
+
+    assert(lines_per_block > 0 && "Error: k is too big, we cannot calculate with such big k.");
+
+    int warps_per_line = 32 / lines_per_block;
+    assert(warps_per_line <= 32 && "Error: That's more warps per line, than we can do.");
 
     // allocate memory for the matrices on the GPU
     float* matrixA_GPU;
@@ -97,6 +105,8 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
 
         // Call the kernel to execute the acutal SDDMM
         compute_blockwise(
+            lines_per_block,
+            warps_per_line,
             m,
             n,
             k,
@@ -150,7 +160,7 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     return;
 }
 
-void semi_naive_CSR_SDDMM_GPU<float>::SDDMM(
+void better_naive_CSR_SDDMM_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
@@ -175,28 +185,28 @@ void semi_naive_CSR_SDDMM_GPU<float>::SDDMM(
 }
 
 template <typename T>
-void semi_naive_CSR_SDDMM_GPU<T>::SDDMM(
+void better_naive_CSR_SDDMM_GPU<T>::SDDMM(
     const DenseMatrix<T>& matrixA_HOST,
     const DenseMatrix<T>& matrixB_HOST,
     const SparseMatrix<T>& matrixC_HOST,
     SparseMatrix<T>& matrixResult_HOST,
     const int num_iterations) const
 {
-    assert(false && "Error: semi_naive_CSR_SDDMM_GPU::SDDMM() only accepts float as input. Other types are not supported");
+    assert(false && "Error: better_naive_CSR_SDDMM_GPU::SDDMM() only accepts float as input. Other types are not supported");
 }
 
-void semi_naive_CSR_SDDMM_GPU<float>::start_run() const
+void better_naive_CSR_SDDMM_GPU<float>::start_run() const
 {
-    assert(this->_timer != nullptr && "Error: semi_naive_CSR_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
+    assert(this->_timer != nullptr && "Error: better_naive_CSR_SDDMM_GPU::start_run() timer is nullptr. Check that you have set the timer with <SDDMM>.set_timer()");
     this->_timer->start_gpu_run();
 }
 
-void semi_naive_CSR_SDDMM_GPU<float>::stop_run() const
+void better_naive_CSR_SDDMM_GPU<float>::stop_run() const
 {
     this->_timer->stop_gpu_run();
 }
 
 // Explicit template instantiation
-// template class semi_naive_CSR_SDDMM_GPU<float>;
-template class semi_naive_CSR_SDDMM_GPU<double>;
-template class semi_naive_CSR_SDDMM_GPU<int>;
+// template class better_naive_CSR_SDDMM_GPU<float>;
+template class better_naive_CSR_SDDMM_GPU<double>;
+template class better_naive_CSR_SDDMM_GPU<int>;

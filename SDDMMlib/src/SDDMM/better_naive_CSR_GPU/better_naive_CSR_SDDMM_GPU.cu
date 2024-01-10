@@ -120,8 +120,11 @@ void better_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
         this->stop_run();
     }
 
+    // std::cout << "Run complete" << std::endl;
     // copy result from the GPU to the CPU
     float* return_values = new float[nnz];
+    // std::cout << "nnz = " << nnz << std::endl;
+
     CUDA_CHECK(
         cudaMemcpy(
             return_values,

@@ -101,7 +101,9 @@
         "valarray": "cpp",
         "ranges": "cpp",
         "stop_token": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "any": "cpp",
+        "span": "cpp"
     },
     "cmake.sourceDirectory": "${workspaceFolder}",
     "cmake.configureArgs": [

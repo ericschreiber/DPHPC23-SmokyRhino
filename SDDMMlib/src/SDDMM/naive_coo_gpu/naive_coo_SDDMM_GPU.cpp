@@ -34,26 +34,19 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
     // allocate memory for the matrices on the GPU
     float* matrixA_GPU_values;
     float* matrixB_transpose_GPU_values;
-    float* matrixC_GPU_values;
     int* matrixC_GPU_row_indices;
     int* matrixC_GPU_col_indices;
     float* matrixResult_GPU_values;
-    int* matrixResult_GPU_row_indices;
-    int* matrixResult_GPU_col_indices;
 
     CUDA_CHECK(cudaMalloc(&matrixA_GPU_values, m * k * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixB_transpose_GPU_values, n * k * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&matrixC_GPU_values, numElementsC * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_indices, numElementsC * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&matrixC_GPU_col_indices, numElementsC * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_indices, numElementsC * sizeof(int)));
+    CUDA_CHECK(cudaMalloc(&matrixC_GPU_col_indices, numElementsC * sizeof(int)));
     CUDA_CHECK(cudaMalloc(&matrixResult_GPU_values, numElementsC * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&matrixResult_GPU_row_indices, numElementsC * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&matrixResult_GPU_col_indices, numElementsC * sizeof(float)));
 
     // copy matrices to the GPU
     CUDA_CHECK(cudaMemcpy(matrixA_GPU_values, matrixA_HOST.getValues(), m * k * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixB_transpose_GPU_values, matrixBTranspose_HOST.getValues(), n * k * sizeof(float), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(matrixC_GPU_values, (matrixC_HOST.getValues()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
@@ -68,7 +61,6 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
             numElementsC,
             matrixA_GPU_values,
             matrixB_transpose_GPU_values,
-            matrixC_GPU_values,
             matrixC_GPU_row_indices,
             matrixC_GPU_col_indices,
             matrixResult_GPU_values);
@@ -89,21 +81,15 @@ void naive_coo_SDDMM_GPU<float>::SDDMM_COO(
     // free memory
     CUDA_CHECK(cudaFree(matrixA_GPU_values));
     CUDA_CHECK(cudaFree(matrixB_transpose_GPU_values));
-    CUDA_CHECK(cudaFree(matrixC_GPU_values));
     CUDA_CHECK(cudaFree(matrixC_GPU_row_indices));
     CUDA_CHECK(cudaFree(matrixC_GPU_col_indices));
     CUDA_CHECK(cudaFree(matrixResult_GPU_values));
-    CUDA_CHECK(cudaFree(matrixResult_GPU_row_indices));
-    CUDA_CHECK(cudaFree(matrixResult_GPU_col_indices));
 
     matrixA_GPU_values = nullptr;
     matrixB_transpose_GPU_values = nullptr;
-    matrixC_GPU_values = nullptr;
     matrixC_GPU_row_indices = nullptr;
     matrixC_GPU_col_indices = nullptr;
     matrixResult_GPU_values = nullptr;
-    matrixResult_GPU_row_indices = nullptr;
-    matrixResult_GPU_col_indices = nullptr;
 
     return;
 }

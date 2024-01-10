@@ -193,7 +193,7 @@ void COOMatrix<T>::setColIndices(const std::vector<int>& colIndices)
 }
 
 template <typename T>
-void COOMatrix<T>::make_col_major()
+void COOMatrix<T>::make_row_major()
 {
     // Create a vector of indices to be sorted
     std::vector<int> indices(rowIndices.size());
@@ -267,7 +267,7 @@ void COOMatrix<T>::readFromFile(const std::string& filePath)
 
     file.close();
 
-    make_col_major();
+    make_row_major();
 }
 
 template <typename T>

@@ -31,11 +31,37 @@ else()
     # # Set compute architecture to V100 aka 70. This is needed for shared mem support to the limits.
     # # https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
     # # set_property(TARGET SDDMMlib PROPERTY CUDA_ARCHITECTURES 70)
-    target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-gencode arch=compute_70,code=sm_70>)
+    target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:
+        -gencode arch=compute_70,code=sm_70
+        -use_fast_math
+        -w
+        --generate-line-info
+        #--verbose
+        -Xptxas -O3
+        --ptxas-options=-v
+        #-rdc=true
+        --m64
+        --fmad=true
+        >)
     # # limit maxrregcount to 64 to avoid that the compiler uses too many registers if we use 1024 threads per block
     # target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas -maxrregcount=64>)
 
+    add_compile_options("$<$COMPILE_LANGUAGE:CXX>:
+        -std=c++17; 
+        -v; 
+        -Ofast; 
+        -funroll-loop; 
+        -flto; 
+        -finline-functions;
+        -march=native;
+        -mtune=native;
+        -fopenmp
+        >")
+
     target_sources(SDDMMlib PRIVATE
+                SM_L2/SM_L2_GPU.cpp
+                SM_L2/SM_L2.cu
+                
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
                 
@@ -60,6 +86,8 @@ else()
                 cache_coo_gpu/cache_coo_SDDMM_GPU.cpp
                 cache_coo_gpu/cache_coo_SDDMM.cu
 
+                cusparse_baseline/cusparse_baseline.cpp
+
                 tiled_tiles/tiled_tiles.cpp
                 tiled_tiles/tiled_tiles.cu
 
@@ -83,6 +111,7 @@ else()
                             TimingLib
                             CUDA::cublas
                             CUDA::cudart
-                            CUDA::cuda_driver)
+                            CUDA::cuda_driver
+                            CUDA::cusparse)
 
 endif()

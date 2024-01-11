@@ -30,6 +30,13 @@ void better_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     int n = matrixB_transpose_HOST.getNumRows();
     int nnz = matrixC_HOST.getNumValues();
 
+    int k_aligned = k;
+    if (k % 4 != 0)
+    {
+        k_aligned = k + (4 - (k % 4));
+    }
+    assert(k_aligned % 4 == 0 && "Error: k_aligned is not a multiple of 4");
+
     // check the dimensions of the matrices
     assert(matrixB_transpose_HOST.getNumCols() == k && "Error: matrixB_transpose has incompatible dimensions");
     assert(matrixC_HOST.getNumRows() == m && "Error: matrixC has incompatible dimensions m");
@@ -54,11 +61,11 @@ void better_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
     CUDA_CHECK(
         cudaMalloc(
             &matrixA_GPU,
-            m * k * sizeof(float)));
+            m * k_aligned * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixB_transpose_GPU,
-            n * k * sizeof(float)));
+            n * k_aligned * sizeof(float)));
     CUDA_CHECK(
         cudaMalloc(
             &matrixResult_GPU,
@@ -73,18 +80,54 @@ void better_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
             (m + 1) * sizeof(int)));
 
     // copy matrices to the GPU
-    CUDA_CHECK(
-        cudaMemcpy(
-            matrixA_GPU,
-            matrixA_HOST.getValues(),
-            m * k * sizeof(float),
-            cudaMemcpyHostToDevice));
-    CUDA_CHECK(
-        cudaMemcpy(
-            matrixB_transpose_GPU,
-            matrixB_transpose_HOST.getValues(),
-            n * k * sizeof(float),
-            cudaMemcpyHostToDevice));
+    for (int i = 0; i < m; i++)
+    {
+        float temp[k_aligned];
+        for (int j = 0; j < k; j++)
+        {
+            temp[j] = matrixA_HOST.getValues()[i * k + j];
+        }
+        for (int j = k; j < k_aligned; j++)
+        {
+            temp[j] = 0;
+        }
+        CUDA_CHECK(
+            cudaMemcpy(
+                matrixA_GPU + i * k_aligned,
+                temp,
+                k_aligned * sizeof(float),
+                cudaMemcpyHostToDevice));
+    }
+    // CUDA_CHECK(
+    //     cudaMemcpy(
+    //         matrixA_GPU,
+    //         matrixA_HOST.getValues(),
+    //         m * k * sizeof(float),
+    //         cudaMemcpyHostToDevice));
+    for (int i = 0; i < n; i++)
+    {
+        float temp[k_aligned];
+        for (int j = 0; j < k; j++)
+        {
+            temp[j] = matrixB_transpose_HOST.getValues()[i * k + j];
+        }
+        for (int j = k; j < k_aligned; j++)
+        {
+            temp[j] = 0;
+        }
+        CUDA_CHECK(
+            cudaMemcpy(
+                matrixB_transpose_GPU + i * k_aligned,
+                temp,
+                k_aligned * sizeof(float),
+                cudaMemcpyHostToDevice));
+    }
+    // CUDA_CHECK(
+    //     cudaMemcpy(
+    //         matrixB_transpose_GPU,
+    //         matrixB_transpose_HOST.getValues(),
+    //         n * k * sizeof(float),
+    //         cudaMemcpyHostToDevice));
     CUDA_CHECK(
         cudaMemcpy(
             col_idx_GPU,
@@ -110,6 +153,7 @@ void better_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
             m,
             n,
             k,
+            k_aligned,
             matrixA_GPU,
             matrixB_transpose_GPU,
             row_ptr_GPU,

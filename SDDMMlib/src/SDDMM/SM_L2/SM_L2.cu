@@ -58,6 +58,7 @@ __global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__re
             for (int t = laneId * k_slc / 2; t < (laneId + 1) * k_slc / 2; t += 8)
             {
                 float4 rtmp1 = *((float4 *)&sh_r[sh_row * k_slc + t]);
+                // The commented out version would be without the float4 on the dense matrices.
                 // float ctmp1X = v[col * k + t_st + t];
                 // float ctmp1Y = v[col * k + t_st + t + 1];
                 // float ctmp1Z = v[col * k + t_st + t + 2];

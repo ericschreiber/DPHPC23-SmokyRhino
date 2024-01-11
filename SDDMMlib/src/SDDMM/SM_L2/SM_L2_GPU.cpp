@@ -18,9 +18,17 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
     int *d_row_ptr, *d_col_ind, *d_row_ind, *d_tiled_ind, *d_lastIdx,
         *d_active_row, *d_lastIdx_block_tile, *d_passive_row;
 
+    // Copy the dense matrices float4 aligned. E.g. pad them with zeros to be a multiple of 4
+    int k_aligned = k;
+    if (k % 4 != 0)
+    {
+        k_aligned = k + (4 - (k % 4));
+    }
+    assert(k_aligned % 4 == 0 && "Error: k_aligned is not a multiple of 4");
+
     //***********Starting GPU****************
-    CUDA_CHECK(cudaMalloc((void**)&d_W, k * S.n_rows * sizeof(float)));
-    CUDA_CHECK(cudaMalloc((void**)&d_H, k * S.n_cols * sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void**)&d_W, k_aligned * S.n_rows * sizeof(float)));
+    CUDA_CHECK(cudaMalloc((void**)&d_H, k_aligned * S.n_cols * sizeof(float)));
     // CUDA_CHECK(cudaMalloc((void**)&d_row_ptr, (n_rows+1) * sizeof (int)),2);
     CUDA_CHECK(cudaMalloc((void**)&d_row_ind, tS.nnz * sizeof(int)));
     CUDA_CHECK(cudaMalloc((void**)&d_col_ind, tS.nnz * sizeof(int)));
@@ -59,13 +67,50 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
     //     S.n_rows * sizeof (int), cudaMemcpyHostToDevice),4); sum += S.n_rows;
     // }
 
-    cudaMemcpy(d_W, &(W[0]), S.n_rows * k * sizeof(float), cudaMemcpyHostToDevice);
-    // cudaMemcpy(d_W, &(W_t[0]),  S.n_rows * k  * sizeof (float),
-    // cudaMemcpyHostToDevice);
-    cudaMemcpy(d_H, &(H[0]), S.n_cols * k * sizeof(float), cudaMemcpyHostToDevice);
-    // cudaMemcpy(d_H, &(H_t[0]),  S.n_cols * k  * sizeof (float),
-    // cudaMemcpyHostToDevice);
-    // std::cout << "Done copying to GPU" << std::endl;
+    // cudaMemcpy(d_W, &(W[0]), S.n_rows * k * sizeof(float), cudaMemcpyHostToDevice);
+    // // cudaMemcpy(d_W, &(W_t[0]),  S.n_rows * k  * sizeof (float),
+    // // cudaMemcpyHostToDevice);
+    // cudaMemcpy(d_H, &(H[0]), S.n_cols * k * sizeof(float), cudaMemcpyHostToDevice);
+    // // cudaMemcpy(d_H, &(H_t[0]),  S.n_cols * k  * sizeof (float),
+    // // cudaMemcpyHostToDevice);
+    // // std::cout << "Done copying to GPU" << std::endl;
+    // Copy float4 the dense matrices
+    for (int i = 0; i < S.n_rows; i++)
+    {
+        float temp[k_aligned];
+        for (int j = 0; j < k; j++)
+        {
+            temp[j] = W[i * k + j];
+        }
+        for (int j = k; j < k_aligned; j++)
+        {
+            temp[j] = 0;
+        }
+        CUDA_CHECK(
+            cudaMemcpy(
+                d_W + i * k_aligned,
+                temp,
+                k_aligned * sizeof(float),
+                cudaMemcpyHostToDevice));
+    }
+    for (int i = 0; i < S.n_cols; i++)
+    {
+        float temp[k_aligned];
+        for (int j = 0; j < k; j++)
+        {
+            temp[j] = H[i * k + j];
+        }
+        for (int j = k; j < k_aligned; j++)
+        {
+            temp[j] = 0;
+        }
+        CUDA_CHECK(
+            cudaMemcpy(
+                d_H + i * k_aligned,
+                temp,
+                k_aligned * sizeof(float),
+                cudaMemcpyHostToDevice));
+    }
 
     int n_tile = tS.ntile_c;  // S.n_cols/tile_sizeX + 1;
     cudaEvent_t start, stop;
@@ -88,7 +133,8 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
             n_tile,
             S,
             tS,
-            k,
+            // k,
+            k_aligned,
             stream,
             d_row_ind,
             d_col_ind,

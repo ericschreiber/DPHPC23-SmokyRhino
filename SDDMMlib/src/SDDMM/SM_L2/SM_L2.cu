@@ -58,27 +58,27 @@ __global__ void comp_kernel_COO(int const *__restrict__ row_ind, int const *__re
             for (int t = laneId * k_slc / 2; t < (laneId + 1) * k_slc / 2; t += 8)
             {
                 float4 rtmp1 = *((float4 *)&sh_r[sh_row * k_slc + t]);
-                // float4 ctmp1 = *((float4 *)&v[col * k + t_st + t]);
-                float ctmp1X = v[col * k + t_st + t];
-                float ctmp1Y = v[col * k + t_st + t + 1];
-                float ctmp1Z = v[col * k + t_st + t + 2];
-                float ctmp1W = v[col * k + t_st + t + 3];
-                sm1 += rtmp1.x * ctmp1X + rtmp1.y * ctmp1Y + rtmp1.z * ctmp1Z +
-                       rtmp1.w * ctmp1W;
-                // sm1 += rtmp1.x * ctmp1.x + rtmp1.y * ctmp1.y + rtmp1.z * ctmp1.z +
-                //        rtmp1.w * ctmp1.w;
+                // float ctmp1X = v[col * k + t_st + t];
+                // float ctmp1Y = v[col * k + t_st + t + 1];
+                // float ctmp1Z = v[col * k + t_st + t + 2];
+                // float ctmp1W = v[col * k + t_st + t + 3];
+                // sm1 += rtmp1.x * ctmp1X + rtmp1.y * ctmp1Y + rtmp1.z * ctmp1Z +
+                //        rtmp1.w * ctmp1W;
+                float4 ctmp1 = *((float4 *)&v[col * k + t_st + t]);
+                sm1 += rtmp1.x * ctmp1.x + rtmp1.y * ctmp1.y + rtmp1.z * ctmp1.z +
+                       rtmp1.w * ctmp1.w;
                 // printf("calculating sm1: %f * %f + %f * %f + %f * %f + %f * %f\n", rtmp1.x, ctmp1.x, rtmp1.y, ctmp1.y, rtmp1.z, ctmp1.z, rtmp1.w, ctmp1.w);
 
                 float4 rtmp2 = *((float4 *)&sh_r[sh_row * k_slc + t + 4]);
-                ctmp1X = v[col * k + t_st + t + 4];
-                ctmp1Y = v[col * k + t_st + t + 5];
-                ctmp1Z = v[col * k + t_st + t + 6];
-                ctmp1W = v[col * k + t_st + t + 7];
-                sm2 += rtmp2.x * ctmp1X + rtmp2.y * ctmp1Y + rtmp2.z * ctmp1Z +
-                       rtmp2.w * ctmp1W;
-                // float4 ctmp2 = *((float4 *)&v[col * k + t_st + t + 4]);
-                // sm2 += rtmp2.x * ctmp2.x + rtmp2.y * ctmp2.y + rtmp2.z * ctmp2.z +
-                //        rtmp2.w * ctmp2.w;
+                // ctmp1X = v[col * k + t_st + t + 4];
+                // ctmp1Y = v[col * k + t_st + t + 5];
+                // ctmp1Z = v[col * k + t_st + t + 6];
+                // ctmp1W = v[col * k + t_st + t + 7];
+                // sm2 += rtmp2.x * ctmp1X + rtmp2.y * ctmp1Y + rtmp2.z * ctmp1Z +
+                //        rtmp2.w * ctmp1W;
+                float4 ctmp2 = *((float4 *)&v[col * k + t_st + t + 4]);
+                sm2 += rtmp2.x * ctmp2.x + rtmp2.y * ctmp2.y + rtmp2.z * ctmp2.z +
+                       rtmp2.w * ctmp2.w;
                 // printf("calculating sm2: %f * %f + %f * %f + %f * %f + %f * %f\n", rtmp2.x, ctmp2.x, rtmp2.y, ctmp2.y, rtmp2.z, ctmp2.z, rtmp2.w, ctmp2.w);
             }
 

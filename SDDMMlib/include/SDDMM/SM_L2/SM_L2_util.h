@@ -79,7 +79,6 @@ static void make_HTasH(const vector<float> H, vector<float> &H_t, int n_cols, in
 static void make_CSR(vector<int> rows, vector<int> cols, vector<float> vals, long nnz, long n_rows, int *row_ptr, int *row_holder)
 {
     // assuming sorted
-
     // if CSR
     long idx = 0;
     row_ptr[0] = 0;
@@ -98,6 +97,56 @@ static void make_CSR(vector<int> rows, vector<int> cols, vector<float> vals, lon
         r = rows[idx];
     }
     row_ptr[holder + 1] = idx;
+
+    // Correct CSR conversion. But they do something else.
+
+    // // Compute the row pointer array for the sampling matrix
+    // std::vector<int> matrixC_CPU_row_ptr;
+    // int ptr = 0;
+    // matrixC_CPU_row_ptr.push_back(0);
+
+    // int r_temp = rows[0];
+    // int idx = 0;
+    // row_holder[idx] = 0;
+
+    // for (int i = 0; i < n_rows; i++)
+    // {
+    //     if (ptr < nnz && i < rows[ptr])
+    //     {
+    //         matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+    //     }
+    //     else if (ptr >= nnz)
+    //     {
+    //         matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+    //     }
+    //     else
+    //     {
+    //         int counter = 0;
+    //         while (ptr < nnz && i == rows[ptr])
+    //         {
+    //             counter++;
+    //             ptr++;
+    //         }
+    //         matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i] + counter);
+    //     }
+    //     // make the row_holder array (the non empty rows)
+    //     if (r_temp != rows[i])
+    //     {
+    //         row_holder[idx] = i;
+    //         idx++;
+    //         r_temp = rows[i];
+    //     }
+    // }
+
+    // // check that matrixC_CPU_row_ptr is n_rows + 1
+    // if (matrixC_CPU_row_ptr.size() != n_rows + 1)
+    // {
+    //     std::cout << "ERROR: matrixC_CPU_row_ptr.size() != n_rows + 1" << std::endl;
+    //     exit(1);
+    // }
+
+    // // Copy the row_ptr vector to the row_ptr array
+    // std::copy(matrixC_CPU_row_ptr.begin(), matrixC_CPU_row_ptr.end(), row_ptr);
 }
 
 static void make_2DBlocks(int *row_ptr, int *row_ind, int *col_ind, float *val_ind, long nnz, long n_rows, long n_cols)

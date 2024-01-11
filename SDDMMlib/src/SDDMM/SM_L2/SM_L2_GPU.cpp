@@ -98,7 +98,6 @@ void sm_l2_SDDMM_GPU<float>::sddmm_SM_L2_GPU(const Matrix S, TiledMatrix tS, flo
             d_H,
             d_active_row,
             d_lastIdx_block_tile);
-
         this->stop_run();
     }
 
@@ -150,97 +149,19 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     S.cols = matrixC_HOST.getColIndices();
     S.vals = matrixC_HOST.getValues();
 
-    // // Print the matrix stats
-    // std::cout << "Matrix S" << std::endl;
-    // std::cout << "n_rows: " << S.n_rows << std::endl;
-    // std::cout << "n_cols: " << S.n_cols << std::endl;
-    // std::cout << "nnz: " << S.nnz << std::endl;
-    // std::cout << "len rows: " << S.rows.size() << std::endl;
-    // std::cout << "len cols: " << S.cols.size() << std::endl;
-    // std::cout << "len vals: " << S.vals.size() << std::endl;
-    // std::cout << "First 10 elements of the matrix" << std::endl;
-    // for (int i = 0; i < 10; i++)
-    // {
-    //     std::cout << "row: " << S.rows[i] << ", col: " << S.cols[i]
-    //               << ", val: " << S.vals[i] << std::endl;
-    // }
-
-    // std::cout << "Creating tiled matrix" << std::endl;
-    // std::cout << "tile_sizeX: " << tile_sizeX << std::endl;
-    // std::cout << "tile_sizeY: " << tile_sizeY << std::endl;
-
     TiledMatrix tiledS(S, this->tile_sizeX, this->tile_sizeY, this->actv_row_size, this->BLOCKSIZE);
     tiledS.nnz = 0;
 
     // convert the matrix to CSR in their format
     int* row_ptr = new int[S.n_rows + 1];
     int* row_holder = new int[S.n_rows];
+    // Fill arrays with 0
+    std::fill(row_ptr, row_ptr + S.n_rows + 1, 0);
+    std::fill(row_holder, row_holder + S.n_rows, 0);
     make_CSR(S.rows, S.cols, S.vals, S.nnz, S.n_rows, row_ptr, row_holder);
 
     tiledS.max_active_row =
         rewrite_matrix_1D(S, tiledS, row_ptr, this->tile_sizeX, row_holder, this->actv_row_size);
-
-    // // // Print the tiled Matrix
-    // std::cout << "Tiled Matrix" << std::endl;
-    // std::cout << "n_tile_c: " << tiledS.ntile_c << std::endl;
-    // std::cout << "n_tile_r: " << tiledS.ntile_r << std::endl;
-    // std::cout << "nnz: " << tiledS.nnz << std::endl;
-    // std::cout << "max_active_row: " << tiledS.max_active_row << std::endl;
-    // std::cout << "max_active_block: " << tiledS.max_active_block << std::endl;
-    // std::cout << "rows: ";
-    // for (int i = 0; i < tiledS.rows.size(); i++)
-    // {
-    //     std::cout << tiledS.rows[i] << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << "cols: ";
-    // for (int i = 0; i < tiledS.cols.size(); i++)
-    // {
-    //     std::cout << tiledS.cols[i] << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << "vals: ";
-    // for (int i = 0; i < tiledS.vals.size(); i++)
-    // {
-    //     std::cout << tiledS.vals[i] << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << "row_holder: ";
-    // for (int i = 0; i < tiledS.row_holder.size(); i++)
-    // {
-    //     std::cout << tiledS.row_holder[i] << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << "active_row: ";
-    // for (int i = 0; i < tiledS.active_row.size(); i++)
-    // {
-    //     std::cout << tiledS.active_row[i] << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << "lastIdx_block_tile: ";
-    // for (int i = 0; i < tiledS.lastIdx_block_tile.size(); i++)
-    // {
-    //     std::cout << tiledS.lastIdx_block_tile[i] << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << "n_actv_row: ";
-    // for (int i = 0; i < tiledS.n_actv_row.size(); i++)
-    // {
-    //     std::cout << tiledS.n_actv_row[i] << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << "lastIdx_tile: ";
-    // for (int i = 0; i < tiledS.lastIdx_tile.size(); i++)
-    // {
-    //     std::cout << tiledS.lastIdx_tile[i] << " ";
-    // }
-    // std::cout << std::endl;
-    // std::cout << "tiled_ind: ";
-    // for (int i = 0; i < tiledS.tiled_ind.size(); i++)
-    // {
-    //     std::cout << tiledS.tiled_ind[i] << " ";
-    // }
-    // std::cout << std::endl;
 
     // result matrix
     float* P = new float[S.nnz];
@@ -251,6 +172,8 @@ void sm_l2_SDDMM_GPU<float>::SDDMM_COO(
     matrixResult_HOST.setValues(std::vector<float>(P, P + S.nnz));
     std::vector<int> row_indices;
     std::vector<int> col_indices;
+
+    // Copy from CSR to COO
     for (int i = 0; i < S.n_rows; i++)
     {
         for (int j = row_ptr[i]; j < row_ptr[i + 1]; j++)

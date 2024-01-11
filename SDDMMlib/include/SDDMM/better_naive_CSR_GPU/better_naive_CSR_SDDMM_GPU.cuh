@@ -1,6 +1,6 @@
-// semi_naive_CSR_SDDMM_GPU.hpp
-#ifndef SEMI_NAIVE_CSR_SDDMM_GPU_HPP
-#define SEMI_NAIVE_CSR_SDDMM_GPU_HPP
+// better_naive_CSR_SDDMM_GPU.hpp
+#ifndef BETTER_NAIVE_CSR_SDDMM_GPU_HPP
+#define BETTER_NAIVE_CSR_SDDMM_GPU_HPP
 
 #include <cassert>
 #include <type_traits>
@@ -11,11 +11,11 @@
 #include "SparseMatrix.hpp"
 
 template <typename T>
-class semi_naive_CSR_SDDMM_GPU : public SDDMMlib<T>
+class better_naive_CSR_SDDMM_GPU : public SDDMMlib<T>
 {
     public:
-        semi_naive_CSR_SDDMM_GPU() { assert(false && "Error: semi_naive_CSR_SDDMM_GPU<T>::semi_naive_CSR_SDDMM_GPU() is only implemented for float."); }
-        semi_naive_CSR_SDDMM_GPU(ExecutionTimer* timer) { assert(false && "Error: naive_SDDMM<T>::semi_naive_CSR_SDDMM_GPU() is only implemented for float."); }
+        better_naive_CSR_SDDMM_GPU() { assert(false && "Error: better_naive_CSR_SDDMM_GPU<T>::better_naive_CSR_SDDMM_GPU() is only implemented for float."); }
+        better_naive_CSR_SDDMM_GPU(ExecutionTimer* timer) { assert(false && "Error: naive_SDDMM<T>::better_naive_CSR_SDDMM_GPU() is only implemented for float."); }
         virtual void SDDMM(
             const DenseMatrix<T>& matrixA_HOST,
             const DenseMatrix<T>& matrixB_HOST,
@@ -27,11 +27,11 @@ class semi_naive_CSR_SDDMM_GPU : public SDDMMlib<T>
 };
 
 template <>
-class semi_naive_CSR_SDDMM_GPU<float> : public SDDMMlib<float>
+class better_naive_CSR_SDDMM_GPU<float> : public SDDMMlib<float>
 {
     public:
-        semi_naive_CSR_SDDMM_GPU() {}
-        semi_naive_CSR_SDDMM_GPU(ExecutionTimer* timer) { this->_timer = timer; }
+        better_naive_CSR_SDDMM_GPU() {}
+        better_naive_CSR_SDDMM_GPU(ExecutionTimer* timer) { this->_timer = timer; }
         virtual void SDDMM(
             const DenseMatrix<float>& matrixA_HOST,
             const DenseMatrix<float>& matrixB_HOST,
@@ -50,4 +50,4 @@ class semi_naive_CSR_SDDMM_GPU<float> : public SDDMMlib<float>
         virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 };
 
-#endif  // SEMI_NAIVE_CSR_SDDMM_GPU_HPP
+#endif  // BETTER_NAIVE_CSR_SDDMM_GPU_HPP

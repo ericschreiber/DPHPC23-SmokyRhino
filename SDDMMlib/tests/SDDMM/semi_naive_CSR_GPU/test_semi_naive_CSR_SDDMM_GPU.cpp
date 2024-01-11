@@ -4,7 +4,7 @@
 
 #include "CSRMatrix.hpp"
 #include "DenseMatrix.hpp"
-#include "semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cuh"
+#include "better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU.cuh"
 
 void test_simple_near_zeros()
 {
@@ -17,7 +17,7 @@ void test_simple_near_zeros()
 
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
-    semi_naive_CSR_SDDMM_GPU<float>* class_to_run = new semi_naive_CSR_SDDMM_GPU<float>(&timer);
+    better_naive_CSR_SDDMM_GPU<float>* class_to_run = new better_naive_CSR_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
     sample_Matrix.SDDMM(
@@ -26,7 +26,7 @@ void test_simple_near_zeros()
         calculatedSolution,
         num_iterations,
         std::bind(
-            &semi_naive_CSR_SDDMM_GPU<float>::SDDMM,
+            &better_naive_CSR_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
@@ -68,7 +68,7 @@ void test_small()
 
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
-    semi_naive_CSR_SDDMM_GPU<float>* class_to_run = new semi_naive_CSR_SDDMM_GPU<float>(&timer);
+    better_naive_CSR_SDDMM_GPU<float>* class_to_run = new better_naive_CSR_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
     sample_Matrix.SDDMM(
@@ -77,7 +77,7 @@ void test_small()
         calculatedSolution,
         num_iterations,
         std::bind(
-            &semi_naive_CSR_SDDMM_GPU<float>::SDDMM,
+            &better_naive_CSR_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
@@ -119,7 +119,7 @@ void test_small_complex()
 
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
-    semi_naive_CSR_SDDMM_GPU<float>* class_to_run = new semi_naive_CSR_SDDMM_GPU<float>(&timer);
+    better_naive_CSR_SDDMM_GPU<float>* class_to_run = new better_naive_CSR_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
     sample_Matrix.SDDMM(
@@ -128,7 +128,7 @@ void test_small_complex()
         calculatedSolution,
         num_iterations,
         std::bind(
-            &semi_naive_CSR_SDDMM_GPU<float>::SDDMM,
+            &better_naive_CSR_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
@@ -172,7 +172,7 @@ void test_complex_copy_from_coo()
 
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
-    semi_naive_CSR_SDDMM_GPU<float>* class_to_run = new semi_naive_CSR_SDDMM_GPU<float>(&timer);
+    better_naive_CSR_SDDMM_GPU<float>* class_to_run = new better_naive_CSR_SDDMM_GPU<float>(&timer);
 
     // Call multiply and pass the multiplication function from the library
     sample_Matrix.SDDMM(
@@ -181,7 +181,7 @@ void test_complex_copy_from_coo()
         calculatedSolution,
         num_iterations,
         std::bind(
-            &semi_naive_CSR_SDDMM_GPU<float>::SDDMM,
+            &better_naive_CSR_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
@@ -221,9 +221,9 @@ void test_complex_copy_from_coo()
 
 int main()
 {
-    test_simple_near_zeros();
+    // test_simple_near_zeros();
     test_small();
-    test_small_complex();
-    test_complex_copy_from_coo();
+    // test_small_complex();
+    // test_complex_copy_from_coo();
     return 0;
 }

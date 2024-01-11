@@ -10,7 +10,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include "semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cuh"
+#include "better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU.cuh"
 #include "utils.h"
 
 void cusparse_baseline<float>::SDDMM_CSR(

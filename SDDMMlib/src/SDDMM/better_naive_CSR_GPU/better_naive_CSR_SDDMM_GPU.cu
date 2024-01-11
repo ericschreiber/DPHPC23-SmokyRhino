@@ -36,6 +36,7 @@ void better_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
         k_aligned = k + (4 - (k % 4));
     }
     assert(k_aligned % 4 == 0 && "Error: k_aligned is not a multiple of 4");
+    int k_aligned_by_4 = k_aligned >> 2;
 
     // check the dimensions of the matrices
     assert(matrixB_transpose_HOST.getNumCols() == k && "Error: matrixB_transpose has incompatible dimensions");
@@ -151,9 +152,7 @@ void better_naive_CSR_SDDMM_GPU<float>::SDDMM_CSR(
             lines_per_block,
             warps_per_line,
             m,
-            n,
-            k,
-            k_aligned,
+            k_aligned_by_4,
             matrixA_GPU,
             matrixB_transpose_GPU,
             row_ptr_GPU,

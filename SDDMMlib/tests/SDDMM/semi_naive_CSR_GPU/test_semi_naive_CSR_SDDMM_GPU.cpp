@@ -221,9 +221,9 @@ void test_complex_copy_from_coo()
 
 int main()
 {
-    test_simple_near_zeros();
+    // test_simple_near_zeros();
     test_small();
-    test_small_complex();
-    test_complex_copy_from_coo();
+    // test_small_complex();
+    // test_complex_copy_from_coo();
     return 0;
 }

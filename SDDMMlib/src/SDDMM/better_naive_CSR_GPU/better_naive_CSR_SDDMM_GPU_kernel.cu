@@ -435,6 +435,7 @@ void compute_blockwise(
     {
         // int num_blocks = min(160, m);
         // std::cout << "Hit in 1" << std::endl;
+        int num_blocks = min(m / 32, 160);
         one_warp_per_line_SDDMM_kernel<<<160, 1024>>>(
             m,
             n,
@@ -449,8 +450,9 @@ void compute_blockwise(
     {
         if (warps_per_line == 2)
         {
+            int num_blocks = min(m, 160 * 16);
             // std::cout << "Hit in 2" << std::endl;
-            two_warps_per_line_SDDMM_kernel<<<160 * 16, 1024 / 16>>>(
+            two_warps_per_line_SDDMM_kernel<<<num_blocks, 1024 / 16>>>(
                 2,
                 m,
                 n,
@@ -464,7 +466,8 @@ void compute_blockwise(
         else if (warps_per_line > 2 && warps_per_line < 5)
         {
             // std::cout << "Hit in 4" << std::endl;
-            four_warps_per_line_SDDMM_kernel<<<160 * 8, 1024 / 8>>>(
+            int num_blocks = min(m, 160 * 8);
+            four_warps_per_line_SDDMM_kernel<<<num_blocks, 1024 / 8>>>(
                 4,
                 m,
                 n,
@@ -478,7 +481,8 @@ void compute_blockwise(
         else if (warps_per_line > 4 && warps_per_line < 9)
         {
             // std::cout << "Hit in 8" << std::endl;
-            eight_warps_per_line_SDDMM_kernel<<<160 * 4, 1024 / 4>>>(
+            int num_blocks = min(m, 160 * 4);
+            eight_warps_per_line_SDDMM_kernel<<<num_blocks, 1024 / 4>>>(
                 8,
                 m,
                 n,
@@ -492,7 +496,8 @@ void compute_blockwise(
         else if (warps_per_line > 8 && warps_per_line < 17)
         {
             // std::cout << "Hit in 16" << std::endl;
-            sixteen_warps_per_line_SDDMM_kernel<<<160 * 2, 1024 / 2>>>(
+            int num_blocks = min(m, 160 * 2);
+            sixteen_warps_per_line_SDDMM_kernel<<<num_blocks, 1024 / 2>>>(
                 16,
                 m,
                 n,
@@ -506,7 +511,8 @@ void compute_blockwise(
         else
         {
             // std::cout << "Hit in 32" << std::endl;
-            thirtyTwo_warps_per_line_SDDMM_kernel<<<160, 1024>>>(
+            int num_blocks = min(m, 160);
+            thirtyTwo_warps_per_line_SDDMM_kernel<<<num_blocks, 1024>>>(
                 32,
                 m,
                 n,

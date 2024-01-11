@@ -21,6 +21,14 @@ void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM_COO(
     int n = matrixB_HOST.getNumCols();
     int numElementsC = matrixC_HOST.getValues().size();
 
+    // Make the dense matrices aligned to float4
+    int k_aligned = k;
+    if (k % 4 != 0)
+    {
+        k_aligned = k + (4 - (k % 4));
+    }
+    assert(k_aligned % 4 == 0 && "Error: k_aligned is not a multiple of 4");
+
     // check the dimensions of the matrices s.t. we can multiply them
     assert(matrixB_HOST.getNumRows() == k && "Error: matrixB has incompatible dimensions");
     assert(matrixC_HOST.getNumRows() == m && "Error: matrixC has incompatible dimensions m");
@@ -40,8 +48,8 @@ void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM_COO(
     int* matrixResult_GPU_row_indices;
     int* matrixResult_GPU_col_indices;
 
-    CUDA_CHECK(cudaMalloc(&matrixA_GPU_values, m * k * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&matrixB_transpose_GPU_values, n * k * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&matrixA_GPU_values, m * k_aligned * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&matrixB_transpose_GPU_values, n * k_aligned * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_row_indices, numElementsC * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixC_GPU_col_indices, numElementsC * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&matrixResult_GPU_values, numElementsC * sizeof(float)));
@@ -49,8 +57,46 @@ void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM_COO(
     CUDA_CHECK(cudaMalloc(&matrixResult_GPU_col_indices, numElementsC * sizeof(float)));
 
     // copy matrices to the GPU
-    CUDA_CHECK(cudaMemcpy(matrixA_GPU_values, matrixA_HOST.getValues(), m * k * sizeof(float), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(matrixB_transpose_GPU_values, matrixBTranspose_HOST.getValues(), n * k * sizeof(float), cudaMemcpyHostToDevice));
+    // CUDA_CHECK(cudaMemcpy(matrixA_GPU_values, matrixA_HOST.getValues(), m * k * sizeof(float), cudaMemcpyHostToDevice));
+    // CUDA_CHECK(cudaMemcpy(matrixB_transpose_GPU_values, matrixBTranspose_HOST.getValues(), n * k * sizeof(float), cudaMemcpyHostToDevice));
+    // Copy float4 aligned
+    // copy matrices to the GPU
+    for (int i = 0; i < m; i++)
+    {
+        float temp[k_aligned];
+        for (int j = 0; j < k; j++)
+        {
+            temp[j] = matrixA_HOST.getValues()[i * k + j];
+        }
+        for (int j = k; j < k_aligned; j++)
+        {
+            temp[j] = 0;
+        }
+        CUDA_CHECK(
+            cudaMemcpy(
+                matrixA_GPU_values + i * k_aligned,
+                temp,
+                k_aligned * sizeof(float),
+                cudaMemcpyHostToDevice));
+    }
+    for (int i = 0; i < n; i++)
+    {
+        float temp[k_aligned];
+        for (int j = 0; j < k; j++)
+        {
+            temp[j] = matrixBTranspose_HOST.getValues()[i * k + j];
+        }
+        for (int j = k; j < k_aligned; j++)
+        {
+            temp[j] = 0;
+        }
+        CUDA_CHECK(
+            cudaMemcpy(
+                matrixB_transpose_GPU_values + i * k_aligned,
+                temp,
+                k_aligned * sizeof(float),
+                cudaMemcpyHostToDevice));
+    }
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices, (matrixC_HOST.getRowArray()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
     for (int i = 0; i < num_iterations; i++)
@@ -60,7 +106,8 @@ void coo_opt_vectorization_SDDMM_GPU<float>::SDDMM_COO(
         compute_coo_opt_vectorization(
             m,
             n,
-            k,
+            // k,
+            k_aligned,
             numElementsC,
             matrixA_GPU_values,
             matrixB_transpose_GPU_values,

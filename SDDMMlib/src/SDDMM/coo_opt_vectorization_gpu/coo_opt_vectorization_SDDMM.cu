@@ -52,37 +52,29 @@ __device__ float dot_product_float4(
     const float* __restrict__ const matrixA_GPU_values_row,
     const float* __restrict__ const matrixB_transposed_GPU_values_col)
 {
-    // Check if the pointers are aligned to float4
-    int offsetA = 4 - (reinterpret_cast<uintptr_t>(matrixA_GPU_values_row) % 16) / 4;
-
-    float result = 0;
-
-    // Since both points may not be alignable we align one of them and use float4 only for one
-    for (int i = 0; i < offsetA && i < k; i++)
-    {
-        result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
-    }
-
-    const float4* matrixA_GPU_values_row_float4 = reinterpret_cast<const float4*>(matrixA_GPU_values_row + offsetA);
+    const float4* matrixA_GPU_values_row_float4 = reinterpret_cast<const float4*>(matrixA_GPU_values_row);
+    const float4* matrixB_transposed_GPU_values_col_float4 = reinterpret_cast<const float4*>(matrixB_transposed_GPU_values_col);
 
     // calculate SUM_i row[i] * col[i]
+    float4 result = make_float4(0, 0, 0, 0);
     // Start at k and go to 0 to allow for better code for small rows too
-    for (int i = offsetA; i < k - 3; i += 4)
+    for (int i = k - 1; i >= 3; i -= 4)
     {
-        float4 a = matrixA_GPU_values_row_float4[(i - offsetA) >> 2];
-        result += a.x * matrixB_transposed_GPU_values_col[i];
-        result += a.y * matrixB_transposed_GPU_values_col[i + 1];
-        result += a.z * matrixB_transposed_GPU_values_col[i + 2];
-        result += a.w * matrixB_transposed_GPU_values_col[i + 3];
+        float4 a = matrixA_GPU_values_row_float4[i / 4];
+        float4 b = matrixB_transposed_GPU_values_col_float4[i / 4];
+        result.x += a.x * b.x;
+        result.y += a.y * b.y;
+        result.z += a.z * b.z;
+        result.w += a.w * b.w;
     }
 
     // Add the rest if k is not divisible by 4
-    for (int i = max(offsetA, k - (k - offsetA) % 4); i < k; i++)
+    for (int i = 0; i < k % 4; i++)
     {
-        result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
+        result.x += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
     }
 
-    return result;
+    return result.x + result.y + result.z + result.w;
 }
 
 // TODO: Check for alignment

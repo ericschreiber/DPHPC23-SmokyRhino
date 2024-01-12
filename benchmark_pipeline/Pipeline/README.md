@@ -4,7 +4,7 @@
 Have your function included in `/include/implemented_classes.hpp`! Otherwise it cannot be run in the benchmark pipeline.
 
 ## How to run
-0. Create matrices and store in dense format.
+0. Create matrices and store in dense/COO format.
 1. Build the project with cmake into a build folder which is top level to the project.
 2. Run the bash file `benchmark_run.sh` with the following arguments:
     - `./benchmark_run.sh <path/to/config/file> <path/to/out/dir>
@@ -13,8 +13,8 @@ Have your function included in `/include/implemented_classes.hpp`! Otherwise it 
 ## Config file
 The config file consists of lists of tests to be executed. They are written in the format:
 ```
-function_name, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/first/sparse/matrix
-function_name, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/first/sparse/matrix
+function_name, matrix_type, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/first/sparse/matrix
+function_name, matrix_type, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/first/sparse/matrix
 ```
 Comments can be added by starting a line with `#`. A sample config file is provided in `/tests`.
 
@@ -43,6 +43,10 @@ Note that stride has to divide (max_sparsity - min_sparsity)
 Each matrix is being saved to it's own file since I think we will probably generate very large matrices and then I think we do not want to have multiple of those in the same file (but maybe that is not a good idea and needs to be changed). 
 
 Resulting matrices will be saved into the generated_matrices folder. If this folder already contains files these files will not be deleted.
+
+### Generating config files for larger runs
+
+The script `generate_run_configs.sh` & `generate_run_configs_for_downloaded_matrices.sh` will generate config files, matrices, result folders and run scripts for a set of tests. The configurations are set in the files by changing functions, matrices and paths. The difference between the scripts are the former is for generated matrices while the latter for downloaded matrices. 
 
 ## Adding new tests
 New functions must be added in the `/include/implemented_classes.hpp` file. The function must be templated and must have the following signature:

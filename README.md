@@ -10,7 +10,8 @@ Afterwards you can profile your application with the scripts in `profiling` or t
 
 
 ## SDDMMlib
-This library contains implementations for matrices and the sddmm algorithms. To build it go to /SDDMMlib/build and run (with true or false depending on if you want to use cuda). To run in debug mode add `-DCMAKE_BUILD_TYPE=DEBUG` to the cmake command.
+This library contains implementations for matrices and the sddmm algorithms. The source code of the algorithms is under /SDDMMlib/src/SDDMM.
+To build it go to /SDDMMlib/build and run (with true or false depending on if you want to use cuda). To run in debug mode add `-DCMAKE_BUILD_TYPE=DEBUG` to the cmake command.
 ```
 cmake -DUSE_CUDA=<0/1> ..
 cmake --build .

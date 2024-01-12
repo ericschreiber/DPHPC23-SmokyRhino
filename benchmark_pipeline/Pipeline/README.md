@@ -4,7 +4,7 @@
 Have your function included in `/include/implemented_classes.hpp`! Otherwise it cannot be run in the benchmark pipeline.
 
 ## How to run
-0. Create matrices and store in dense/COO format.
+0. Create matrices and store in dense for A & B and COO format for S. The format is decided automatically if you use the scripts to generate the matrices.
 1. Build the project with cmake into a build folder which is top level to the project.
 2. Run the bash file `benchmark_run.sh` with the following arguments:
     - `./benchmark_run.sh <path/to/config/file> <path/to/out/dir>

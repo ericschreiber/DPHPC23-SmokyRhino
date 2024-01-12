@@ -89,6 +89,10 @@ else()
                 cache_coo_gpu/cache_coo_SDDMM_GPU.cpp
                 cache_coo_gpu/cache_coo_SDDMM.cu
 
+                memory_test/test_hub.cpp
+                memory_test/test.cu
+                memory_test/test_shared.cu
+
                 cusparse_baseline/cusparse_baseline.cpp
 
                 tiled_tiles/tiled_tiles.cpp

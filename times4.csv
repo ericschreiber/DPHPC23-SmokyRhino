@@ -1,0 +1,5 @@
+function, SparseFormat, path/to/first/dense/matrix, path/to/second/dense/matrix, path/to/first/sparse/matrix, result
+test_hub_GPU,/scratch/eschreib/matrices/Dataset001_testing/A/n_5000_m_5000_sparsity_1.txt,/scratch/eschreib/matrices/Dataset001_testing/B/n_5000_m_5000_sparsity_1.txt,/scratch/eschreib/matrices/Dataset001_testing/A/n_5000_m_5000_sparsity_1.txt,373120.009899,16383.999959,33792.000264,13311.999850,32767.999917,13311.999850,32767.999917,13311.999850,32767.999917,12288.000435,32767.999917,13311.999850,32767.999917,12319.999747,32767.999917,12288.000435,32767.999917,12288.000435,32767.999917,12288.000435,
+
+
+32767.999917 / 49152.00174 = 0.666666641

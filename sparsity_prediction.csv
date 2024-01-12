@@ -1,0 +1,48 @@
+target:  2.0
+counter:  40
+modulo 32:  8
+fit remoddel:  True
+fit remoddel size:  2048
+fit remoddel dim:  64 x 32
+fit remoddel diff:  8192
+----------------------------
+target:  3.0
+counter:  61
+modulo 32:  29
+fit remoddel:  True
+fit remoddel size:  2048
+fit remoddel dim:  64 x 32
+fit remoddel diff:  8192
+----------------------------
+target:  4.0
+counter:  81
+modulo 32:  17
+fit remoddel:  True
+fit remoddel size:  6144
+fit remoddel dim:  96 x 64
+fit remoddel diff:  0
+----------------------------
+target:  5.0
+counter:  101
+modulo 32:  5
+fit remoddel:  False
+fit remoddel size:  12288
+fit remoddel dim:  128 x 96
+fit remoddel diff:  12288
+----------------------------
+target:  6.0
+counter:  121
+modulo 32:  25
+fit remoddel:  False
+fit remoddel size:  12288
+fit remoddel dim:  128 x 96
+fit remoddel diff:  12288
+----------------------------
+target:  7.0
+counter:  141
+modulo 32:  13
+fit remoddel:  False
+fit remoddel size:  20480
+fit remoddel dim:  160 x 128
+fit remoddel diff:  28672
+----------------------------

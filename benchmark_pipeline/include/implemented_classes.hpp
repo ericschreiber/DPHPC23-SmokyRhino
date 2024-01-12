@@ -12,6 +12,7 @@
 
 // Put your cuda classes here. They wont be compiled if the flag USE_CUDA is not set to 1
 #if USE_CUDA
+#include "memory_test/test_hub.hpp"
 #include "SM_L2/SM_L2_GPU.hpp"
 #include "better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU.cuh"
 #include "cache_coo_gpu/cache_coo_SDDMM_GPU.hpp"
@@ -77,6 +78,10 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     {
         return new coo_opt_vectorization_SDDMM_GPU<T>();
     }
+    else if (class_name == "test_hub_GPU")
+    {
+        return new test_hub_GPU<T>();
+    }
     else if (class_name == "coo_opt_loop_unrolled_SDDMM_GPU")
     {
         return new coo_opt_loop_unrolled_SDDMM_GPU<T>();
@@ -97,7 +102,7 @@ SDDMMlib<T>* get_implemented_SDDMM(std::string class_name)
     {
         return new cusparse_baseline<T>();
     }
-
+  
 #endif
 
     else

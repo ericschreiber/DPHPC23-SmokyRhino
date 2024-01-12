@@ -1,1 +1,0 @@
-merged, COOMatrix, /scratch/eschreib/matrices/Dataset_generated_matrices/10000x10000/n_10000_m_10000_sparsity_1, /scratch/eschreib/matrices/Dataset_generated_matrices/10000x10000/n_10000_m_10000_sparsity_1, /scratch/eschreib/matrices/Dataset_generated_matrices/10000x10000/n_10000_m_10000_sparsity_001.mtx

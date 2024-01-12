@@ -22,30 +22,30 @@
 //
 // *********** ***** ***********
 
-// Calculate the dotproduct but loading 4 values at a time
-__device__ float dot_product_4(
-    const int k,
-    const float* __restrict__ const matrixA_GPU_values_row,
-    const float* __restrict__ const matrixB_transposed_GPU_values_col)
-{
-    // calculate SUM_i row[i] * col[i]
-    float result = 0;
-    // Start at k and go to 0 to allow for better code for small rows too
-    for (int i = k - 1; i >= 3; i -= 4)
-    {
-        result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
-        result += matrixA_GPU_values_row[i - 1] * matrixB_transposed_GPU_values_col[i - 1];
-        result += matrixA_GPU_values_row[i - 2] * matrixB_transposed_GPU_values_col[i - 2];
-        result += matrixA_GPU_values_row[i - 3] * matrixB_transposed_GPU_values_col[i - 3];
-    }
+// // Calculate the dotproduct but loading 4 values at a time
+// __device__ float dot_product_4(
+//     const int k,
+//     const float* __restrict__ const matrixA_GPU_values_row,
+//     const float* __restrict__ const matrixB_transposed_GPU_values_col)
+// {
+//     // calculate SUM_i row[i] * col[i]
+//     float result = 0;
+//     // Start at k and go to 0 to allow for better code for small rows too
+//     for (int i = k - 1; i >= 3; i -= 4)
+//     {
+//         result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
+//         result += matrixA_GPU_values_row[i - 1] * matrixB_transposed_GPU_values_col[i - 1];
+//         result += matrixA_GPU_values_row[i - 2] * matrixB_transposed_GPU_values_col[i - 2];
+//         result += matrixA_GPU_values_row[i - 3] * matrixB_transposed_GPU_values_col[i - 3];
+//     }
 
-    // Add the rest if k is not divisible by 4
-    for (int i = 0; i < k % 4; i++)
-    {
-        result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
-    }
-    return result;
-}
+//     // Add the rest if k is not divisible by 4
+//     for (int i = 0; i < k % 4; i++)
+//     {
+//         result += matrixA_GPU_values_row[i] * matrixB_transposed_GPU_values_col[i];
+//     }
+//     return result;
+// }
 
 __device__ float dot_product_float4(
     const int k,
@@ -77,39 +77,30 @@ __device__ float dot_product_float4(
     return result.x + result.y + result.z + result.w;
 }
 
-__device__ float dot_product_float2(
-    const int k,
-    const float* __restrict__ const matrixA_GPU_values_row,
-    const float* __restrict__ const matrixB_transposed_GPU_values_col)
-{
-    const float2* matrixA_GPU_values_row_float2 = reinterpret_cast<const float2*>(matrixA_GPU_values_row);
-    const float2* matrixB_transposed_GPU_values_col_float2 = reinterpret_cast<const float2*>(matrixB_transposed_GPU_values_col);
+// TODO: Check for alignment
+// __device__ float dot_product_float2(
+//     const int k,
+//     const float* __restrict__ const matrixA_GPU_values_row,
+//     const float* __restrict__ const matrixB_transposed_GPU_values_col)
+// {
+//     const float2* matrixA_GPU_values_row_float2 = reinterpret_cast<const float2*>(matrixA_GPU_values_row);
+//     const float2* matrixB_transposed_GPU_values_col_float2 = reinterpret_cast<const float2*>(matrixB_transposed_GPU_values_col);
 
-    float2 result = make_float2(0, 0);
-    for (int i = k - 1; i >= 1; i -= 2)
-    {
-        float2 a = matrixA_GPU_values_row_float2[i / 2];
-        float2 b = matrixB_transposed_GPU_values_col_float2[i / 2];
-        result.x += a.x * b.x;
-        result.y += a.y * b.y;
-    }
+//     float2 result = make_float2(0, 0);
+//     for (int i = k - 1; i >= 1; i -= 2)
+//     {
+//         float2 a = matrixA_GPU_values_row_float2[i / 2];
+//         float2 b = matrixB_transposed_GPU_values_col_float2[i / 2];
+//         result.x += a.x * b.x;
+//         result.y += a.y * b.y;
+//     }
 
-    if (k % 2 == 1)
-    {
-        result.x += matrixA_GPU_values_row[0] * matrixB_transposed_GPU_values_col[0];
-    }
-    return result.x + result.y;
-}
-
-__device__ float naive_coo_one_val_vectorized(
-    const int k,
-    const float multiplier,
-    const float* __restrict__ const matrixA_GPU_values_row,
-    const float* __restrict__ const matrixB_transposed_GPU_values_col)
-{
-    // calculate mutiplier * SUM_i row[i] * col[i]
-    return multiplier * dot_product_float4(k, matrixA_GPU_values_row, matrixB_transposed_GPU_values_col);
-}
+//     if (k % 2 == 1)
+//     {
+//         result.x += matrixA_GPU_values_row[0] * matrixB_transposed_GPU_values_col[0];
+//     }
+//     return result.x + result.y;
+// }
 
 // Assumes matrixB_transposed_GPU_values is transposed
 __global__ void naive_coo_vectorized(
@@ -117,7 +108,6 @@ __global__ void naive_coo_vectorized(
     const int numElementsC,
     const float* __restrict__ const matrixA_GPU_values,
     const float* __restrict__ const matrixB_transposed_GPU_values,
-    const float* __restrict__ const matrixC_GPU_values,
     const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values)
@@ -128,10 +118,9 @@ __global__ void naive_coo_vectorized(
     {
         int row = matrixC_GPU_row_indices[index];
         int col = matrixC_GPU_col_indices[index];
-        float multiplier = matrixC_GPU_values[index];
 
         // calculate matrixResult_GPU_values[index][col] = naive_coo_one_val(multiplier, matrixA_GPU_values[row][:], matrixB_GPU_values[:][col])
-        matrixResult_GPU_values[index] = naive_coo_one_val_vectorized(k, multiplier, matrixA_GPU_values + (row * k), matrixB_transposed_GPU_values + (col * k));
+        matrixResult_GPU_values[index] = dot_product_float4(k, matrixA_GPU_values + (row * k), matrixB_transposed_GPU_values + (col * k));
     }
 }
 
@@ -142,7 +131,6 @@ void compute_coo_opt_vectorization(
     const int numElementsC,
     const float* __restrict__ const matrixA_GPU_values,
     const float* __restrict__ const matrixB_transposed_GPU_values,
-    const float* __restrict__ const matrixC_GPU_values,
     const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_col_indices,
     float* __restrict__ const matrixResult_GPU_values)
@@ -158,7 +146,6 @@ void compute_coo_opt_vectorization(
         numElementsC,
         matrixA_GPU_values,
         matrixB_transposed_GPU_values,
-        matrixC_GPU_values,
         matrixC_GPU_row_indices,
         matrixC_GPU_col_indices,
         matrixResult_GPU_values);

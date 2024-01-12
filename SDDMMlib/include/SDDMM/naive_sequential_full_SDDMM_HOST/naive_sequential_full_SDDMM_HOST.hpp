@@ -18,7 +18,8 @@ class naive_sequential_full_SDDMM_HOST : public SDDMMlib<T>
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,
             const SparseMatrix<T>& z,
-            SparseMatrix<T>& result) const override;
+            SparseMatrix<T>& result,
+            const int num_iterations) const override;
         virtual void start_run() const override {}  // Would need to be implemented but we don't need it because the class can never be constructed except for float
         virtual void stop_run() const override {}
 };
@@ -34,7 +35,8 @@ class naive_sequential_full_SDDMM_HOST<float> : public SDDMMlib<float>
             const DenseMatrix<float>& x,
             const DenseMatrix<float>& y,
             const SparseMatrix<float>& z,
-            SparseMatrix<float>& result) const override;
+            SparseMatrix<float>& result,
+            const int num_iterations) const override;
         virtual void start_run() const override;  // Start either cpu or gpu run CHOOSE ONE
         virtual void stop_run() const override;   // Stop either cpu or gpu run CHOOSE ONE
 
@@ -43,7 +45,8 @@ class naive_sequential_full_SDDMM_HOST<float> : public SDDMMlib<float>
             const DenseMatrix<float>& x,
             const DenseMatrix<float>& y,
             const CSRMatrix<float>& z,
-            CSRMatrix<float>& result) const;
+            CSRMatrix<float>& result,
+            const int num_iterations) const;
 };
 
 #endif  // NAIVE_SEQUENTIAL_FULL_SDDMM_HOST_HPP

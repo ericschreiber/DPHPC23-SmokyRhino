@@ -19,16 +19,19 @@ class COOMatrix : virtual public SparseMatrix<T>
         COOMatrix();                              // Default constructor
         COOMatrix(int rows, int cols);            // Constructor for an empty COO matrix
         COOMatrix(const DenseMatrix<T>& values);  // Constructor from dense matrix
+        COOMatrix(const COOMatrix& other);        // Copy constructor
         // SDDMM
         virtual void SDDMM(
             const DenseMatrix<T>& x,
             const DenseMatrix<T>& y,
             SparseMatrix<T>& result,
+            const int num_iterations,
             std::function<void(
                 const DenseMatrix<T>& x,
                 const DenseMatrix<T>& y,
                 const SparseMatrix<T>& z,
-                SparseMatrix<T>& result)> SDDMMFunc)
+                SparseMatrix<T>& result,
+                const int num_iterations)> SDDMMFunc)
             const override;
         // getters
         virtual int getNumRows() const override;
@@ -37,8 +40,10 @@ class COOMatrix : virtual public SparseMatrix<T>
         virtual const std::vector<T>& getValues() const override;
         virtual const std::vector<int>& getRowArray() const override;
         virtual const std::vector<int>& getColIndices() const override;
+        virtual T at(int row, int col) const override;  // by its signature this has to be a getter
         // setters
-        virtual T at(int row, int col) const override;  // set on element
+        virtual void setNumRows(int rows);
+        virtual void setNumCols(int cols);
         virtual void setValues(const std::vector<T>& values) override;
         virtual void setRowArray(const std::vector<int>& rowPtr) override;
         virtual void setColIndices(const std::vector<int>& colIndices) override;
@@ -47,9 +52,12 @@ class COOMatrix : virtual public SparseMatrix<T>
         virtual void writeToFile(const std::string& filePath) const override;
         // other
         virtual ~COOMatrix() {}
+        void make_row_major();
+        void make_col_major();  // Per default the matrix is in row major format, this function converts it to row major format
 
     private:
-        std::vector<T> values;
+        std::vector<T>
+            values;
         std::vector<int> rowIndices;
         std::vector<int> colIndices;
         int numRows;

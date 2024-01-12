@@ -1,6 +1,3 @@
-// TODO:
-// test tiling (by changing the shared mem size to smth like sizeof(float)
-
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -11,6 +8,8 @@
 
 void run_testcase(COOMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, DenseMatrix<float> matrixB, COOMatrix<float> calculatedSolution, COOMatrix<float> expectedSolution)
 {
+    const int num_iterations = 1;
+
     // Set a timer
     ExecutionTimer timer = ExecutionTimer();
     cache_coo_SDDMM_GPU<float>* class_to_run = new cache_coo_SDDMM_GPU<float>(&timer);
@@ -20,13 +19,15 @@ void run_testcase(COOMatrix<float> sample_Matrix, DenseMatrix<float> matrixA, De
         matrixA,
         matrixB,
         calculatedSolution,
+        num_iterations,
         std::bind(
             &cache_coo_SDDMM_GPU<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     delete class_to_run;
     class_to_run = nullptr;

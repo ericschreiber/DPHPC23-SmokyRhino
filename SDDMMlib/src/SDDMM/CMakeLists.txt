@@ -28,8 +28,46 @@ else()
 
     # cuda
     set_source_files_properties(*.cu PROPERTIES LANGUAGE CUDA)
+    # # Set compute architecture to V100 aka 70. This is needed for shared mem support to the limits.
+    # # https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
+    # # set_property(TARGET SDDMMlib PROPERTY CUDA_ARCHITECTURES 70)
+    target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:
+        -gencode arch=compute_70,code=sm_70
+        -use_fast_math
+        -w
+        --generate-line-info
+        #--verbose
+        -Xptxas -O3
+        --ptxas-options=-v
+        #-rdc=true
+        --m64
+        --fmad=true
+        >)
+    # # limit maxrregcount to 64 to avoid that the compiler uses too many registers if we use 1024 threads per block
+    # target_compile_options(SDDMMlib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas -maxrregcount=64>)
+
+    add_compile_options("$<$COMPILE_LANGUAGE:CXX>:
+        -std=c++17; 
+        -v; 
+        -Ofast; 
+        -funroll-loop; 
+        -flto; 
+        -finline-functions;
+        -march=native;
+        -mtune=native;
+        -fopenmp
+        >")
 
     target_sources(SDDMMlib PRIVATE
+                SM_L2/SM_L2_GPU.cpp
+                SM_L2/SM_L2.cu
+                
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
+                coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
+                
+                coo_opt_loop_unrolled_gpu/coo_opt_loop_unrolled_SDDMM_GPU.cpp
+                coo_opt_loop_unrolled_gpu/coo_opt_loop_unrolled_SDDMM.cu
+
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
 
@@ -39,6 +77,12 @@ else()
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
                 
+                better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU.cu
+                better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU_kernel.cu
+
+                semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cu
+                semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU_kernel.cu
+
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
                 naive_coo_gpu/naive_coo_SDDMM.cu
 
@@ -48,7 +92,19 @@ else()
                 memory_test/test_hub.cpp
                 memory_test/test.cu
                 memory_test/test_shared.cu
+
+                cusparse_baseline/cusparse_baseline.cpp
+
+                tiled_tiles/tiled_tiles.cpp
+                tiled_tiles/tiled_tiles.cu
+
+                merged/merged.cpp
+                merged/merged.cu
+
+                coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM_GPU.cpp
+                coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM.cu
                 )      
+
 
     # Add our own code
     target_include_directories(SDDMMlib PUBLIC 
@@ -62,6 +118,7 @@ else()
                             TimingLib
                             CUDA::cublas
                             CUDA::cudart
-                            CUDA::cuda_driver)
+                            CUDA::cuda_driver
+                            CUDA::cusparse)
 
 endif()

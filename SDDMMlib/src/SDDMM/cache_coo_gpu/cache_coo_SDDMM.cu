@@ -18,8 +18,8 @@
 #include "cache_coo_gpu/cache_coo_SDDMM.cuh"
 #include "utils.h"
 
-#define THREADS_PER_BLOCK 2
-#define SHARED_MEM_SIZE_BYTES 8                                // this is the size of shared mem on both the A100 and V100 GPUs.
+#define THREADS_PER_BLOCK 1024
+#define SHARED_MEM_SIZE_BYTES 49152                            // size of shared mem on both the A100 and V100 GPUs = 49152 bytes
                                                                // can force tiling (e.g. for testing) by setting this to something small.
 #define SHARED_MEM_SIZE SHARED_MEM_SIZE_BYTES / sizeof(float)  // shared mem size in number of floats
 
@@ -46,7 +46,7 @@ __device__ float dot_product(
     float result = 0;
     for (int i = 0; i < size; i++)
     {
-        result += vector1_beginning[i] * vector2_beginning[i];
+        result += vector1_beginning[i] * vector2_beginning[i];  // indexing 1 with i breaks it, indexing v2 with i is fine
     }
     return result;
 }
@@ -117,20 +117,18 @@ __global__ void cache_coo(
     {
         ////////////////    COMPUTE SIZE OF CURR TILE    ////////////////
         int curr_tile_size = tiles_sizes[tiling_step];
-        // printf("block: %i, curr_tile_size: %i, tiling_step:%i\n", row_index, curr_tile_size, tiling_step);
 
         ////////////////    THREAD 0: COPY TILE INTO SHARED MEM    ////////////////
         // TODO: this can very likely also be parallelized over the threads in the block
         // decalare a ptr to a shared mem region (this needs to be done so that threads other than thread 0 can access the tile later on)
-        extern __shared__ float tile[];
+        __shared__ float tile[SHARED_MEM_SIZE];
         if (threadIdx.x == 0)
         {
             // copy the tile into shared mem (I think this copying happens float by float (bc of pointer arithmetic) but maybe also byte by byte (?))
             for (int i = 0; i < curr_tile_size; i++)
             {
                 // second summand (in parentheses) = offset of the tile that we're working on in this iteration of outer loop
-                tile[i] = *(A_vals_row_start + (tiling_step * SHARED_MEM_SIZE) + i);
-                // printf("block: %i, tile[%d] = %f\n", row_index, i, tile[i]);
+                tile[i] = *(A_vals_row_start + (tiling_step * SHARED_MEM_SIZE) + i);  // bot indexing tile with i and dereferencing the ptr breaks it
             }
         }
         __syncthreads();  // this is a barrier
@@ -218,24 +216,22 @@ void compute(
     const float* __restrict__ const matrixC_GPU_values,
     const int* __restrict__ const matrixC_GPU_row_indices,
     const int* __restrict__ const matrixC_GPU_col_indices,
-    float* __restrict__ const matrixResult_GPU_values)
+    float* __restrict__ const matrixResult_GPU_values,
+    int* prevBlocksWork,
+    int* tiles_sizes)
 {
     int blocks = m;  // one block per row of A
     // allocate array that will be populated by the precomputation kernel
-    int* prevBlocksWork;
     int row_mem_size = k * sizeof(float);                                    // size of a row of A (= non-sparse) in mem
     int tiling_steps = ceil(row_mem_size / (float)(SHARED_MEM_SIZE_BYTES));  // #pieces that we need to chop row of A into (bc it might not fit into shared mem)
-    int* tiles_sizes;
-    CUDA_CHECK(cudaMalloc((void**)&prevBlocksWork, (blocks + 1) * sizeof(int)));  // + 1 needed for the computation (for last block) of nnzs in the main kernel
-    CUDA_CHECK(cudaMalloc((void**)&tiles_sizes, tiling_steps * sizeof(int)));
+
     // run the precomputation kernel
     precomputation<<<1, 1>>>(numElementsC, matrixC_GPU_row_indices, prevBlocksWork, blocks, tiles_sizes, tiling_steps, row_mem_size);
 
     dim3 threadsPerBlock(THREADS_PER_BLOCK);
 
     // call main kernel
-    // TODO: currently I am spawning dynamic shared mem, maybe non dynamic shared mem is better?
-    cache_coo<<<blocks, threadsPerBlock, SHARED_MEM_SIZE>>>(
+    cache_coo<<<blocks, threadsPerBlock>>>(
         k,
         numElementsC,
         matrixA_GPU_values,
@@ -250,8 +246,4 @@ void compute(
     // Aggregate the return value of the kernel
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
-
-    // free the array prevBlocksWork on GPU
-    CUDA_CHECK(cudaFree(prevBlocksWork));
-    CUDA_CHECK(cudaFree(tiles_sizes));
 }

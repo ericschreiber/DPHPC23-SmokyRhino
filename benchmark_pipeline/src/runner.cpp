@@ -4,7 +4,6 @@
 
 #include "COOMatrix.hpp"
 #include "CSRMatrix.hpp"
-#include "DenseMatrix.hpp"
 #include "config_helper.hpp"
 #include "implemented_classes.hpp"
 
@@ -29,11 +28,160 @@ runner<T>::~runner()
 }
 
 template <typename T>
+CSRMatrix<T>* convert_to_CSR(SparseMatrix<T>* matrix)
+{
+    // Convert the matrix to CSR if possible else convert to COO
+    CSRMatrix<T>* csr_matrix = dynamic_cast<CSRMatrix<T>*>(matrix);
+    if (csr_matrix == nullptr)
+    {
+        COOMatrix<T>* coo_matrix = dynamic_cast<COOMatrix<T>*>(matrix);
+        if (coo_matrix == nullptr)
+        {
+            std::cout << "Error: the matrix is not a CSR or COO matrix" << std::endl;
+            return nullptr;
+        }
+        else
+        {
+            csr_matrix = new CSRMatrix<T>(*coo_matrix);
+            delete coo_matrix;
+            coo_matrix = nullptr;
+        }
+    }
+    matrix = nullptr;
+    return csr_matrix;
+}
+
+template <typename T>
+COOMatrix<T>* convert_to_COO(SparseMatrix<T>* matrix)
+{
+    // Convert the matrix to CSR if possible else convert to COO
+    COOMatrix<T>* coo_matrix = dynamic_cast<COOMatrix<T>*>(matrix);
+    if (coo_matrix == nullptr)
+    {
+        CSRMatrix<T>* csr_matrix = dynamic_cast<CSRMatrix<T>*>(matrix);
+        if (csr_matrix == nullptr)
+        {
+            std::cout << "Error: the matrix is not a CSR or COO matrix" << std::endl;
+            return nullptr;
+        }
+        else
+        {
+            coo_matrix = new COOMatrix<T>(*csr_matrix);
+            delete csr_matrix;
+            csr_matrix = nullptr;
+        }
+    }
+    matrix = nullptr;
+    return coo_matrix;
+}
+
+template <typename T>
+bool check_correctness_and_del_matrices(SparseMatrix<T>& trueSolution, SparseMatrix<T>& calculatedSolution)
+{
+    // Convert the matrices to CSR if possible else convert to COO
+    CSRMatrix<T>* trueSolution_csr = convert_to_CSR(&trueSolution);
+    CSRMatrix<T>* calculatedSolution_csr = convert_to_CSR(&calculatedSolution);
+
+    // Check if the two matrices are equal
+    bool correct = *trueSolution_csr == *calculatedSolution_csr;
+
+    delete trueSolution_csr;
+    trueSolution_csr = nullptr;
+    delete calculatedSolution_csr;
+    calculatedSolution_csr = nullptr;
+
+    return correct;
+}
+
+template <typename T>
+SparseMatrix<T>* runner<T>::execute_function(
+    COOMatrix<T>& matrixA_coo_loader,
+    DenseMatrix<T>& matrixB,
+    DenseMatrix<T>& matrixC,
+    SDDMMlib<T>* sddmm_to_run,
+    std::string sparse_matrix_class,
+    int num_iterations)
+{
+    // Create the necessary items
+    SparseMatrix<T>* result = get_implemented_SparseMatrix_from_coo<T>(sparse_matrix_class, matrixA_coo_loader.getNumRows(), matrixA_coo_loader.getNumCols());
+    SparseMatrix<T>* matrixA = get_implemented_SparseMatrix_from_coo<T>(sparse_matrix_class, matrixA_coo_loader);
+
+    // Running the SDDMM
+    matrixA->SDDMM(
+        matrixB,
+        matrixC,
+        *result,
+        num_iterations,
+        std::bind(
+            &SDDMMlib<T>::SDDMM,
+            sddmm_to_run,
+            std::placeholders::_1,
+            std::placeholders::_2,
+            std::placeholders::_3,
+            std::placeholders::_4,
+            std::placeholders::_5));
+
+    delete matrixA;
+    matrixA = nullptr;
+
+    return result;
+}
+
+template <typename T>
+bool runner<T>::test_function(
+    COOMatrix<T>& matrixA_coo_loader,
+    DenseMatrix<T>& matrixB,
+    DenseMatrix<T>& matrixC,
+    std::string sparse_matrix_class,
+    std::string function_class)
+{
+    // Create a CPU timer (we only need this for running it, we don't actually write the measures to the results file)
+    ExecutionTimer timer_for_testing = ExecutionTimer();
+
+    // Get the function class
+    SDDMMlib<T>* sddmm_to_run = get_implemented_SDDMM<T>(function_class);
+    sddmm_to_run->set_timer(&timer_for_testing);
+    SDDMMlib<T>* sddmm_standard = new naive_coo_SDDMM_GPU<T>(&timer_for_testing);
+
+    // Run the function
+    SparseMatrix<T>* result_standard = execute_function(
+        matrixA_coo_loader,
+        matrixB,
+        matrixC,
+        sddmm_standard,
+        "COOMatrix",
+        num_iterations_testing);
+
+    SparseMatrix<T>* result_to_test = execute_function(
+        matrixA_coo_loader,
+        matrixB,
+        matrixC,
+        sddmm_to_run,
+        sparse_matrix_class,
+        num_iterations_testing);
+
+    // Checking if the two versions actually returned correctly
+    bool correct = check_correctness_and_del_matrices(*result_to_test, *result_standard);
+
+    if (!correct)
+    {
+        std::cout << "Error: the two versions did not return the same result" << std::endl;
+    }
+
+    delete sddmm_to_run;
+    sddmm_to_run = nullptr;
+    delete sddmm_standard;
+    sddmm_standard = nullptr;
+
+    return correct;
+}
+
+template <typename T>
 void runner<T>::run()
 {
     init_result_file();
     // Create the matrices
-    DenseMatrix<T> matrixA_dense_loader = DenseMatrix<T>();
+    COOMatrix<T> matrixA_coo_loader = COOMatrix<T>();
     DenseMatrix<T> matrixB = DenseMatrix<T>();
     DenseMatrix<T> matrixC = DenseMatrix<T>();
     // CSRMatrix<T> calculatedSolution;
@@ -49,44 +197,50 @@ void runner<T>::run()
         // Check if the dataset has changed
         if (dataset != dataset_before)
         {
-            matrixA_dense_loader.readFromFile(dataset.SparseMatrix_path);
+            matrixA_coo_loader.readFromFile(dataset.SparseMatrix_path);
             matrixB.readFromFile(dataset.DenseMatrixA_path);
             matrixC.readFromFile(dataset.DenseMatrixB_path);
             dataset_before = dataset;
         }
 
-        SDDMMlib<T>* sddmm_to_run = get_implemented_SDDMM<T>(function_class);
-        SparseMatrix<T>* matrixA = get_implemented_SparseMatrix<T>(sparse_matrix_class, matrixA_dense_loader);
-        SparseMatrix<T>* calculatedSolution = get_implemented_SparseMatrix<T>(sparse_matrix_class, matrixA_dense_loader.getNumRows(), matrixC.getNumCols());
+        // Test the function
+        bool test_passed = true;
+        if (do_test)
+        {
+            test_passed = test_function(matrixA_coo_loader, matrixB, matrixC, sparse_matrix_class, function_class);
+        }
+        if (test_passed)
+        {
+            //  Actually do the profiling
+            // Time the GPU function
+            SDDMMlib<T>* sddmm_to_run = get_implemented_SDDMM<T>(function_class);
+            ExecutionTimer timer = ExecutionTimer();
+            sddmm_to_run->set_timer(&timer);
 
-        // Time the function
-        ExecutionTimer timer = ExecutionTimer();
-        sddmm_to_run->set_timer(&timer);
-
-        // Run the function
-        matrixA->SDDMM(
-            matrixB,
-            matrixC,
-            *calculatedSolution,
-            std::bind(
-                &SDDMMlib<T>::SDDMM,
+            SparseMatrix<T>* result = execute_function(
+                matrixA_coo_loader,
+                matrixB,
+                matrixC,
                 sddmm_to_run,
-                std::placeholders::_1,
-                std::placeholders::_2,
-                std::placeholders::_3,
-                std::placeholders::_4));
+                sparse_matrix_class,
+                num_iterations_profiling);
 
-        auto durations = timer.get_runtimes();
-        // Append the result to the results list
-        _results.push_back(std::make_tuple(function_class, sparse_matrix_class, dataset, durations));
-        write_result();
+            auto durations = timer.get_runtimes();
+            // Append the result to the results list
+            _results.push_back(std::make_tuple(function_class, sparse_matrix_class, dataset, durations));
+            write_result();
 
-        delete sddmm_to_run;
-        sddmm_to_run = nullptr;
-        delete matrixA;
-        matrixA = nullptr;
-        delete calculatedSolution;
-        calculatedSolution = nullptr;
+            delete sddmm_to_run;
+            sddmm_to_run = nullptr;
+            delete result;
+            result = nullptr;
+        }
+        else
+        {
+            std::cout << "Error: the test did not pass" << std::endl;
+            _results.push_back(std::make_tuple("** Function did not pass the test ** " + function_class, sparse_matrix_class, dataset, std::vector<double>()));
+            write_result();
+        }
     }
 }
 

@@ -10,7 +10,8 @@ void naive_sequential_full_SDDMM_HOST<float>::SDDMM(
     const DenseMatrix<float>& x,
     const DenseMatrix<float>& y,
     const SparseMatrix<float>& z,
-    SparseMatrix<float>& result) const
+    SparseMatrix<float>& result,
+    const int num_iterations) const
 {
     // Check if CSRMatrix
     const CSRMatrix<float>* csrMatrix = dynamic_cast<const CSRMatrix<float>*>(&z);
@@ -21,7 +22,7 @@ void naive_sequential_full_SDDMM_HOST<float>::SDDMM(
     }
     else
     {
-        naive_sequential_full_SDDMM_HOST_CSR(x, y, *csrMatrix, *csrResult);
+        naive_sequential_full_SDDMM_HOST_CSR(x, y, *csrMatrix, *csrResult, num_iterations);
     }
 
     csrMatrix = nullptr;
@@ -35,7 +36,8 @@ void naive_sequential_full_SDDMM_HOST<T>::SDDMM(
     const DenseMatrix<T>& x,
     const DenseMatrix<T>& y,
     const SparseMatrix<T>& z,
-    SparseMatrix<T>& result) const
+    SparseMatrix<T>& result,
+    const int num_iterations) const
 {
     assert(false && "Error: naive_sequential_full_SDDMM_HOST::SDDMM() only accepts float as input. Other types are not supported yet");
 }
@@ -44,7 +46,8 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
     const DenseMatrix<float>& x,
     const DenseMatrix<float>& y,
     const CSRMatrix<float>& z,
-    CSRMatrix<float>& result) const
+    CSRMatrix<float>& result,
+    const int num_iterations) const
 {
     // This is a very dumb implementation, because it samples only AFTER the
     // matrix x matrix multiplication
@@ -68,30 +71,33 @@ void naive_sequential_full_SDDMM_HOST<float>::naive_sequential_full_SDDMM_HOST_C
     // already seems to be transposed! I am making the same assumption
     // I also assume we are taking a CRS matrix
 
-    this->start_run();
-
-    for (int i = 0; i < m; i++)
+    for (int profiling_it = 0; profiling_it < num_iterations; profiling_it++)
     {
-        for (int j = 0; j < n; j++)
+        this->start_run();
+
+        for (int i = 0; i < m; i++)
         {
-            for (int l = 0; l < k; l++)
+            for (int j = 0; j < n; j++)
             {
-                auto mul = x.at(i, l) * y_transpose.at(j, l);
-                auto curr_xy_ij = xy.at(i, j);
-                xy.setValue(i, j, mul + curr_xy_ij);
+                for (int l = 0; l < k; l++)
+                {
+                    auto mul = x.at(i, l) * y_transpose.at(j, l);
+                    auto curr_xy_ij = xy.at(i, j);
+                    xy.setValue(i, j, mul + curr_xy_ij);
+                }
             }
         }
-    }
 
-    for (int i = 0; i < m; i++)
-    {
-        for (int j = z.getRowArray()[i]; j < z.getRowArray()[i + 1]; j++)
+        for (int i = 0; i < m; i++)
         {
-            temp_vals[j] = xy.at(i, z.getColIndices()[j]) * z.getValues()[j];
+            for (int j = z.getRowArray()[i]; j < z.getRowArray()[i + 1]; j++)
+            {
+                temp_vals[j] = xy.at(i, z.getColIndices()[j]) * z.getValues()[j];
+            }
         }
-    }
 
-    this->stop_run();
+        this->stop_run();
+    }
 
     result.setValues(temp_vals);
     result.setColIndices(z.getColIndices());

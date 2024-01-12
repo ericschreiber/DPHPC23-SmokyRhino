@@ -1,9 +1,13 @@
 // CSRMatrix.cpp
 #include "CSRMatrix.hpp"
 
+#include <math.h>
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
+
+#include "COOMatrix.hpp"
 
 template <typename T>
 CSRMatrix<T>::CSRMatrix()
@@ -65,6 +69,48 @@ CSRMatrix<T>::CSRMatrix(const DenseMatrix<T>& denseMatrix)
     }
 }
 
+// this constructor is used to convert a COO Sparse Matrix to CSR format
+template <typename T>
+CSRMatrix<T>::CSRMatrix(const COOMatrix<T>& cooMatrix)
+{
+    this->numCols = cooMatrix.getNumCols();
+    this->numRows = cooMatrix.getNumRows();
+
+    this->values = cooMatrix.getValues();
+    this->colIndices = cooMatrix.getColIndices();
+
+    int numElementsC = getNumValues();
+    int numrows = numRows;
+    const std::vector<int> matrixC_CPU_row_indices = cooMatrix.getRowArray();
+
+    // Compute the row pointer array for the sampling matrix
+    std::vector<int> matrixC_CPU_row_ptr;
+    int ptr = 0;
+    matrixC_CPU_row_ptr.push_back(0);
+    for (int i = 0; i < numrows; i++)
+    {
+        if (ptr < numElementsC && i < matrixC_CPU_row_indices[ptr])
+        {
+            matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+        }
+        else if (ptr >= numElementsC)
+        {
+            matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i]);
+        }
+        else
+        {
+            int counter = 0;
+            while (ptr < numElementsC && i == matrixC_CPU_row_indices[ptr])
+            {
+                counter++;
+                ptr++;
+            }
+            matrixC_CPU_row_ptr.push_back(matrixC_CPU_row_ptr[i] + counter);
+        }
+    }
+    this->rowPtr = matrixC_CPU_row_ptr;
+}
+
 template <typename T>
 CSRMatrix<T>::CSRMatrix(const CSRMatrix& other)
 {
@@ -123,14 +169,16 @@ void CSRMatrix<T>::SDDMM(
     const DenseMatrix<T>& x,
     const DenseMatrix<T>& y,
     SparseMatrix<T>& result,
+    const int num_iterations,
     std::function<void(
         const DenseMatrix<T>& x,
         const DenseMatrix<T>& y,
         const SparseMatrix<T>& z,
-        SparseMatrix<T>& result)> SDDMMFunc) const
+        SparseMatrix<T>& result,
+        const int num_iterations)> SDDMMFunc) const
 {
     // Call the SDDMM function from the library
-    SDDMMFunc(x, y, *this, result);
+    SDDMMFunc(x, y, *this, result, num_iterations);
 }
 
 template <typename T>
@@ -177,37 +225,31 @@ template <typename T>
 bool CSRMatrix<T>::isEqual(const SparseMatrix<T>& other) const
 {
     // Check if the dimensions are the same
-    if (numRows != other.getNumCols() || numCols != other.getNumCols())
+    if (numRows != other.getNumRows() || numCols != other.getNumCols())
     {
         std::cout << "Error: Dimensions are not the same" << std::endl;
         return false;
     }
 
-    // Check if the values are the same
+    std::vector<T> otherValues = other.getValues();
     for (int i = 0; i < values.size(); ++i)
     {
-        if (values[i] - other.getValues()[i] > 1e-4)
+        if (fabs(values[i] - otherValues[i]) > 0.001)
         {
-            std::cout << "Error: Values are not the same" << std::endl;
-            for (int i = 0; i < values.size(); ++i)
+            // Make rel float check
+            if (fabs(values[i] - otherValues[i]) / fabs(values[i]) > 0.001)
             {
-                std::cout << values[i] << " " << other.getValues()[i] << std::endl;
-                bool a = values[i] == other.getValues()[i];
-                std::cout << a << std::endl;
+                // std::cout << "Error: Values are not the same [ should be | is ]" << std::endl;
+                // for (int i = 0; i < values.size(); ++i)
+                // {
+                //     std::cout << values[i] << " " << otherValues[i] << std::endl;
+                //     bool a = !(fabs(values[i] - otherValues[i]) / fabs(values[i]) > 0.001);
+                //     std::cout << "was test passed: " << a << std::endl;
+                // }
+                return false;
             }
-            return false;
         }
     }
-
-    // if (values != other.getValues())
-    // {
-    //     std::cout << "Error: Values are not the same" << std::endl;
-    //     for (int i = 0; i < values.size(); ++i)
-    //     {
-    //         std::cout << values[i] << " " << other.getValues()[i] << std::endl;
-    //     }
-    //     return false;
-    // }
 
     // Check if the column indices are the same
     if (colIndices != other.getColIndices())

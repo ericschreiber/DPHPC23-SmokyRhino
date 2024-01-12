@@ -64,7 +64,6 @@ void compute_naive_csr_via_coo(
         numElementsC,
         matrixA_GPU_values,
         matrixB_transposed_GPU_values,
-        matrixC_GPU_values,
         matrixC_GPU_row_indices_complete,
         matrixC_GPU_col_indices,
         matrixResult_GPU_values);

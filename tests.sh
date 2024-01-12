@@ -4,22 +4,20 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 TESTFILES="
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_CPU_SDDMM 
-${SCRIPT_DIR}/build/SDDMMlib/tests/MatrixLib/test_SDDMM
-${SCRIPT_DIR}/build/SDDMMlib/tests/MatrixLib/test_io_dense
-${SCRIPT_DIR}/build/SDDMMlib/tests/MatrixLib/test_io_CSR
-${SCRIPT_DIR}/build/SDDMMlib/tests/MatrixLib/test_COO
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/naive_sequential_sampled_SDDMM_HOST/test_naive_sequential_sampled_SDDMM_HOST
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/naive_sequential_full_SDDMM_HOST/test_naive_sequential_full_SDDMM_HOST
 "
 GPU_TESTFILES="
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_tiled_tiles
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_CPU_SDDMM 
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_coo_SDDMM_GPU 
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_cache_coo_SDDMM_GPU
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/naive_dense_dense_gpu/test_compile
-${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_csr_via_coo_SDDMM_GPU
 ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_coo_opt_vectorization_SDDMM_GPU
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_coo_opt_loop_unrolled_SDDMM_GPU
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_coo_tiling_naive_gpu
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/semi_naive_CSR_GPU/test_semi_naive_CSR_SDDMM_GPU
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/naive_dense_dense_gpu/test_compile
+${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_cusparse_baseline
 "
+# ${SCRIPT_DIR}/build/SDDMMlib/tests/SDDMM/test_naive_csr_via_coo_SDDMM_GPU // is not working
 
 # Detect if GPU is available
 if command -v nvidia-smi &> /dev/null

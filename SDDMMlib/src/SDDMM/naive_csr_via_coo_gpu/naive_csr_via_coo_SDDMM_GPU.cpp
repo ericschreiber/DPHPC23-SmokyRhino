@@ -7,8 +7,15 @@
 #include "naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cuh"
 #include "utils.h"
 
-void naive_csr_via_coo_SDDMM_GPU<float>::SDDMM(const DenseMatrix<float>& matrixA_HOST, const DenseMatrix<float>& matrixB_HOST, const SparseMatrix<float>& matrixC_HOST, SparseMatrix<float>& matrixResult_HOST) const
+void naive_csr_via_coo_SDDMM_GPU<float>::SDDMM(
+    const DenseMatrix<float>& matrixA_HOST,
+    const DenseMatrix<float>& matrixB_HOST,
+    const SparseMatrix<float>& matrixC_HOST,
+    SparseMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
+    assert(false && "Error: naive_csr_via_coo_SDDMM_GPU::SDDMM() is not correct. CSR -> COO conversion in the gpu is implemented incorrectly.");
+
     const CSRMatrix<float>* csrMatrixC = dynamic_cast<const CSRMatrix<float>*>(&matrixC_HOST);
     CSRMatrix<float>* csrMatrixResult = dynamic_cast<CSRMatrix<float>*>(&matrixResult_HOST);
     if (csrMatrixC == nullptr || csrMatrixResult == nullptr)
@@ -17,11 +24,13 @@ void naive_csr_via_coo_SDDMM_GPU<float>::SDDMM(const DenseMatrix<float>& matrixA
     }
     else
     {
+        std::cout << "Starting computation of naive_csr_via_coo_SDDMM_GPU" << std::endl;
         SDDMM_CSR(
             matrixA_HOST,
             matrixB_HOST,
             *csrMatrixC,
-            *csrMatrixResult);
+            *csrMatrixResult,
+            num_iterations);
     }
 
     csrMatrixC = nullptr;
@@ -59,7 +68,8 @@ void naive_csr_via_coo_SDDMM_GPU<float>::SDDMM_CSR(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const CSRMatrix<float>& matrixC_HOST,
-    CSRMatrix<float>& matrixResult_HOST) const
+    CSRMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
     // Get all the sizes (A=mxk; B=kxn; C=mxn; Result=mxn)
     int m = matrixA_HOST.getNumRows();
@@ -107,21 +117,24 @@ void naive_csr_via_coo_SDDMM_GPU<float>::SDDMM_CSR(
     // CUDA_CHECK(cudaMemcpy(matrixC_GPU_row_indices_complete, matrixC_row_indices.data(), numElementsC * sizeof(int), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(matrixC_GPU_col_indices, (matrixC_HOST.getColIndices()).data(), numElementsC * sizeof(float), cudaMemcpyHostToDevice));
 
-    this->start_run();
-    compute_naive_csr_via_coo(
-        m,
-        n,
-        k,
-        numElementsC,
-        rowPtrSizeC,
-        matrixA_GPU_values,
-        matrixB_transpose_GPU_values,
-        matrixC_GPU_values,
-        matrixC_GPU_row_indices,
-        // matrixC_GPU_row_indices_complete,
-        matrixC_GPU_col_indices,
-        matrixResult_GPU_values);
-    this->stop_run();
+    for (int i = 0; i < num_iterations; i++)
+    {
+        this->start_run();
+        compute_naive_csr_via_coo(
+            m,
+            n,
+            k,
+            numElementsC,
+            rowPtrSizeC,
+            matrixA_GPU_values,
+            matrixB_transpose_GPU_values,
+            matrixC_GPU_values,
+            matrixC_GPU_row_indices,
+            // matrixC_GPU_row_indices_complete,
+            matrixC_GPU_col_indices,
+            matrixResult_GPU_values);
+        this->stop_run();
+    }
 
     // copy matrixResult_GPU to matrixResult
     float* matrixResult_HOST_values = new float[numElementsC];

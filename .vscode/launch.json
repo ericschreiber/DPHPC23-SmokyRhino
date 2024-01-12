@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug test_coo_tiling_naive_gpu",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/SDDMMlib/tests/SDDMM/test_coo_tiling_naive_gpu",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+        },
+        {
             "name": "Debug test_io_dense",
             "type": "cppdbg",
             "request": "launch",
@@ -41,5 +53,21 @@
             "MIMode": "gdb",
             "preLaunchTask": "build using cmake"
         },
+        {
+            "name": "test benchmark pipeline",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/benchmark_pipeline/src/benchmark_pipeline",
+            "args": [
+                "/users/eschreib/eric/DPHPC23-SmokyRhino/benchmark_pipeline/tests/config.example.txt",
+                "/users/eschreib/eric/DPHPC23-SmokyRhino/benchmark_pipeline/tests"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "build using cmake"
+        }
     ]
 }

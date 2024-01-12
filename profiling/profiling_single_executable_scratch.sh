@@ -3,6 +3,7 @@
 #SBATCH --output=/dev/null
 #SBATCH --error=/dev/null
 #SBATCH --time=00:10:00
+#SBATCH --account=g34
 
 ###
 #   run this script with (replacing the node{ault09/ault10} and the (test)executable with your own)

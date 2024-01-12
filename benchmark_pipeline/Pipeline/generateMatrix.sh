@@ -1,23 +1,25 @@
 #!/bin/bash
 
-# Inputs: OUTPUT_DIR, MATRIX_TYPE, MATRIX_SHAPE, MATRIX_DENSITY (optional and in 0.1 or 1 notation)
+# Inputs: OUTPUT_DIR, MATRIX_SHAPE, MATRIX_DENSITY (optional and in 0.1 or 1 notation)
+
+# If density is 1 or not specified, the matrix will be fully dense and stored in dense format. 
+# The A & B Matrices need to be in dense format for the dense matrix multiplication benchmark.
 
 # Example Usage:
-# ./generateMatrix.sh <path/to/output/dir> <matrix_type> <matrix_shape> (optional: <matrix_density>)
-# ./generateMatrix.sh ../data/matrices dense "5x5"
+# ./generateMatrix.sh <path/to/output/dir> <matrix_shape> (optional: <matrix_density>)
+# ./generateMatrix.sh ../data/matrices "5x5"
 
 
 if [ $# -ne 3 ] && [ $# -ne 4 ]; then
     echo "Illegal number of parameters"
-    echo "Usage: generateMatrix.sh OUTPUT_DIR MATRIX_TYPE MATRIX_SHAPE (optional: MATRIX_DENSITY)"
+    echo "Usage: generateMatrix.sh OUTPUT_DIR MATRIX_SHAPE (optional: MATRIX_DENSITY)"
     exit 1
 fi
 
 OUTPUT_DIR=$1
-MATRIX_TYPE=$2
-MATRIX_SHAPE=$3
-if [ $# -eq 4 ]; then
-    MATRIX_DENSITY=$4
+MATRIX_SHAPE=$2
+if [ $# -eq 3 ]; then
+    MATRIX_DENSITY=$3
 else 
     MATRIX_DENSITY=1
 fi
@@ -39,7 +41,23 @@ fi
 # Remove the point in the density if it exists
 MATRIX_DENSITY_file_name=$(echo $MATRIX_DENSITY | sed 's/\.//g')
 NAME="n_"$n"_m_"$m"_sparsity_"$MATRIX_DENSITY_file_name
-FILE=$OUTPUT_DIR"/"$NAME".txt"
+
+
+# if the output directory does not exist, create it
+if [ ! -d "$OUTPUT_DIR" ]; then
+    mkdir -p $OUTPUT_DIR
+fi
+# remove the / at the end of the output directory if it exists
+if [[ $OUTPUT_DIR == */ ]]; then
+    OUTPUT_DIR=${OUTPUT_DIR::-1}
+fi
+FILE=$OUTPUT_DIR"/"$NAME
+# if density is not 1 then the matrix is sparse and stored in mtx formats
+if [ $MATRIX_DENSITY != 1 ]; then
+    FILE=$FILE".mtx"
+fi
 touch $FILE
+
+
 $EXECUTABLE "${n}" "${m}" "${MATRIX_DENSITY}" "${FILE}"
 echo "Generated matrix "$FILE

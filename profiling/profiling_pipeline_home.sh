@@ -3,6 +3,7 @@
 #SBATCH --output=/dev/null
 #SBATCH --error=/dev/null
 #SBATCH --time=00:10:00
+#SBATCH --account=g34
 
 ###
 #   run this script with (replacing the node{ault09/ault10} and using the inputs for the benchmark_run.sh script
@@ -30,5 +31,5 @@ nvprof --analysis-metrics \
         --track-memory-allocations on \
         --events all \
         --csv \
-        --export-profile /users/eschreib/niklas/DPHPC23-SmokyRhino/profiling/results/output%p.nvprof \
-        $script $config $output_path > /users/eschreib/niklas/DPHPC23-SmokyRhino/profiling/results/profiling.out 2>&1
+        --export-profile /users/eschreib/eric/DPHPC23-SmokyRhino/profiling/results/output%p.nvprof \
+        $script $config $output_path > /users/eschreib/eric/DPHPC23-SmokyRhino/profiling/results/profiling.out 2>&1

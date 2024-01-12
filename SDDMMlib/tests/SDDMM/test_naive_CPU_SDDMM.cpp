@@ -13,6 +13,8 @@ void test_1()
     CSRMatrix<float> expectedSolution(std::vector<std::vector<float>>{{28, 22, 0, 0, 0}, {0, 52, 0, 0, 0}, {0, 0, 60, 0, 0}, {0, 0, 0, 52, 0}, {0, 0, 0, 0, 28}});
     // This testes the Sparsematrix.SDDMM() (for CSR matrix)
 
+    const int num_iterations = 1;
+
     matrixB.transpose();
 
     ExecutionTimer timer = ExecutionTimer();
@@ -22,13 +24,15 @@ void test_1()
         matrixA,
         matrixB,
         calculatedSolution,
+        num_iterations,
         std::bind(
             &naive_CPU_SDDMM<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     delete class_to_run;
     class_to_run = nullptr;
@@ -45,6 +49,8 @@ void test_2()
     CSRMatrix<float> expectedSolution(std::vector<std::vector<float>>{{1, 2, 0, 0, 0}, {0, 1, 0, 0, 0}, {0, 0, 1, 0, 0}, {0, 0, 0, 1, 0}, {0, 0, 0, 0, 1}});
     // This testes the Sparsematrix.SDDMM() (for CSR matrix)
 
+    const int num_iterations = 1;
+
     ExecutionTimer timer = ExecutionTimer();
     naive_CPU_SDDMM<float>* class_to_run = new naive_CPU_SDDMM<float>(&timer);
 
@@ -52,13 +58,15 @@ void test_2()
         matrixA,
         matrixB,
         calculatedSolution,
+        num_iterations,
         std::bind(
             &naive_CPU_SDDMM<float>::SDDMM,
             class_to_run,
             std::placeholders::_1,
             std::placeholders::_2,
             std::placeholders::_3,
-            std::placeholders::_4));
+            std::placeholders::_4,
+            std::placeholders::_5));
 
     delete class_to_run;
     class_to_run = nullptr;

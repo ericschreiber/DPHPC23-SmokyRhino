@@ -80,6 +80,9 @@ else()
                 better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU.cu
                 better_naive_CSR_GPU/better_naive_CSR_SDDMM_GPU_kernel.cu
 
+                semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU.cu
+                semi_naive_CSR_GPU/semi_naive_CSR_SDDMM_GPU_kernel.cu
+
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
                 naive_coo_gpu/naive_coo_SDDMM.cu
 

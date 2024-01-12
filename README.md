@@ -3,7 +3,7 @@
 ## Building and running everything
 To build create a `build` folder in this directory and build with
 ```
-cmake -DUSE_CUDA=<0/1> ..
+cmake -DUSE_CUDA=<0/1> -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 ```
 Afterwards you can profile your application with the scripts in `profiling` or to benchmark the pipeline you can use the scripts in `pipeline_runscripts`. Please only use these scripts to run sth on the server. You can also build a pipeline with only one application to test this without profiling. Details on how to run these scripts can be found in the corresponding folders and files.

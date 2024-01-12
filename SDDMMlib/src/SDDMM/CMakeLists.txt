@@ -3,10 +3,6 @@ set(THIRD_PARTY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../third_party)
 
 add_library(SDDMMlib
                 naive_SDDMM.cpp
-                naive_CPU_SDDMM.cpp
-                
-                naive_sequential_full_SDDMM_HOST/naive_sequential_full_SDDMM_HOST.cpp
-                naive_sequential_sampled_SDDMM_HOST/naive_sequential_sampled_SDDMM_HOST.cpp
                 )
 
 if (USE_CUDA EQUAL 0) 
@@ -71,9 +67,6 @@ else()
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM_GPU.cpp
                 coo_opt_vectorization_gpu/coo_opt_vectorization_SDDMM.cu
 
-                naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM_GPU.cpp
-                naive_csr_via_coo_gpu/naive_csr_via_coo_SDDMM.cu
-
                 naive_dense_dense_gpu/naive_SDDMM_GPU.cu
                 naive_dense_dense_gpu/my_naive_sampling.cu
                 
@@ -86,23 +79,11 @@ else()
                 naive_coo_gpu/naive_coo_SDDMM_GPU.cpp
                 naive_coo_gpu/naive_coo_SDDMM.cu
 
-                cache_coo_gpu/cache_coo_SDDMM_GPU.cpp
-                cache_coo_gpu/cache_coo_SDDMM.cu
-
                 memory_test/test_hub.cpp
                 memory_test/test.cu
                 memory_test/test_shared.cu
 
                 cusparse_baseline/cusparse_baseline.cpp
-
-                tiled_tiles/tiled_tiles.cpp
-                tiled_tiles/tiled_tiles.cu
-
-                merged/merged.cpp
-                merged/merged.cu
-
-                coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM_GPU.cpp
-                coo_tiling_naive_gpu/coo_tiling_naive_gpu_SDDMM.cu
                 )      
 
 

@@ -153,7 +153,8 @@ void test_hub_GPU<float>::SDDMM(
     const DenseMatrix<float>& matrixA_HOST,
     const DenseMatrix<float>& matrixB_HOST,
     const SparseMatrix<float>& matrixC_HOST,
-    SparseMatrix<float>& matrixResult_HOST) const
+    SparseMatrix<float>& matrixResult_HOST,
+    const int num_iterations) const
 {
     const CSRMatrix<float>* csrMatrixC = dynamic_cast<const CSRMatrix<float>*>(&matrixC_HOST);
     CSRMatrix<float>* csrMatrixResult = dynamic_cast<CSRMatrix<float>*>(&matrixResult_HOST);
@@ -176,7 +177,8 @@ void test_hub_GPU<T>::SDDMM(
     const DenseMatrix<T>& matrixA_HOST,
     const DenseMatrix<T>& matrixB_HOST,
     const SparseMatrix<T>& matrixC_HOST,
-    SparseMatrix<T>& matrixResult_HOST) const
+    SparseMatrix<T>& matrixResult_HOST,
+    const int num_iterations) const
 {
     assert(false && "Error: test_hub_GPU::SDDMM() only accepts float as input. Other types are not supported");
 }

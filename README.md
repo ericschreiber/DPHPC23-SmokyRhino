@@ -1,6 +1,6 @@
 # Smokey Rhino
 
-This is the official repository to the [paper "Fast SDDMM on GPUs"](DPHPC_Project_Report_Fast_SDDMM_on_GPUs.pdf), where we look at optimisations for the usage of the Sampled Dense-Dense Matrix Multiplication primitive on GPUs. 
+This is the official repository to the course DPHPC with our final [paper "Fast SDDMM on GPUs"](DPHPC_Project_Report_Fast_SDDMM_on_GPUs.pdf), where we look at optimisations for the usage of the Sampled Dense-Dense Matrix Multiplication primitive on GPUs. 
 
 ## Building and running everything
 To build create a `build` folder in this directory and build with
